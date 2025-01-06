@@ -73,4 +73,4 @@ Item ID| Item Name |Shopee Price| Momo Link | Momo Price
 ## Credits
 All codes were developed by Bryant-Liu 劉子揚
 
-Github profile (https://github.com/Bryant-Liu-Yang)
+Github profile (https://github.com/Bryant-Liu-TzuYang)
