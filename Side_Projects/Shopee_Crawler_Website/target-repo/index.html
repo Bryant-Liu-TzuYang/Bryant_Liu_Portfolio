@@ -1,0 +1,1664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bryant Liu - Data Scientist & Full-Stack Developer</title>
+    <meta name="description" content="Portfolio of Bryant Liu - Expert in Data Science, Machine Learning, and Full-Stack Development">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Particles.js -->
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --accent-color: #3b82f6;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --background: #ffffff;
+            --surface: #f8fafc;
+            --border: #e5e7eb;
+            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            padding: 1rem 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .navbar.scrolled {
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: var(--shadow);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-primary);
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary-color);
+        }
+
+        .mobile-menu {
+            display: none;
+            cursor: pointer;
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 100vh;
+            background: var(--gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+
+        .hero-content {
+            z-index: 10;
+            position: relative;
+            max-width: 800px;
+            padding: 0 2rem;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            opacity: 0;
+            animation: fadeInUp 1s ease 0.5s forwards;
+        }
+
+        .hero .subtitle {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            opacity: 0;
+            animation: fadeInUp 1s ease 0.7s forwards;
+        }
+
+        .hero .description {
+            font-size: 1.1rem;
+            margin-bottom: 3rem;
+            opacity: 0;
+            animation: fadeInUp 1s ease 0.9s forwards;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            opacity: 0;
+            animation: fadeInUp 1s ease 1.1s forwards;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: white;
+            color: var(--primary-color);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+
+        .btn-secondary:hover {
+            background: white;
+            color: var(--primary-color);
+        }
+
+        /* Typing Animation */
+        .typing-container {
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .typing-text {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #fbbf24;
+        }
+
+        /* About Section */
+        .about {
+            padding: 6rem 2rem;
+            background: var(--background);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .section-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+        }
+
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .about-content {
+            display: flex;
+            gap: 2rem;
+            align-items: flex-start;
+            flex-direction: row-reverse;
+        }
+
+        .about-image {
+            flex: 0 0 200px;
+            position: relative;
+        }
+
+        .profile-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease;
+        }
+
+        .profile-image:hover {
+            transform: scale(1.02);
+        }
+
+        .about-text {
+            flex: 1;
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 2rem;
+            background: var(--surface);
+            border-radius: 15px;
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            display: block;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* Skills Section */
+        .skills {
+            padding: 6rem 2rem;
+            background: var(--surface);
+        }
+
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .skill-category {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease;
+        }
+
+        .skill-category:hover {
+            transform: translateY(-10px);
+        }
+
+        .skill-icon {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .skill-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .skill-list {
+            list-style: none;
+        }
+
+        .skill-list li {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .skill-list li::before {
+            content: "✓";
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        /* Experience Section */
+        .experience {
+            padding: 6rem 2rem;
+            background: var(--background);
+        }
+
+        .experience-timeline {
+            position: relative;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .experience-timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--gradient);
+            transform: translateX(-50%);
+        }
+
+        .experience-item {
+            position: relative;
+            margin-bottom: 3rem;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease;
+        }
+
+        .experience-item.animated {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .experience-item:nth-child(odd) .experience-content {
+            margin-right: 55%;
+        }
+
+        .experience-item:nth-child(even) .experience-content {
+            margin-left: 55%;
+        }
+
+        .experience-item::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 20px;
+            width: 20px;
+            height: 20px;
+            background: var(--primary-color);
+            border: 4px solid white;
+            border-radius: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 0 0 4px var(--primary-color);
+            z-index: 10;
+        }
+
+        .experience-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            position: relative;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .experience-content:hover {
+            transform: translateY(-5px);
+        }
+
+        .experience-content.collapsed .experience-description,
+        .experience-content.collapsed .experience-tags {
+            display: none;
+        }
+
+        .experience-toggle {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .experience-toggle:hover {
+            background: var(--secondary-color);
+            transform: scale(1.1);
+        }
+
+        .experience-toggle i {
+            transition: transform 0.3s ease;
+        }
+
+        .experience-content.collapsed .experience-toggle i {
+            transform: rotate(180deg);
+        }
+
+        .experience-item:nth-child(odd) .experience-content::before {
+            content: '';
+            position: absolute;
+            right: -10px;
+            top: 20px;
+            width: 0;
+            height: 0;
+            border: 10px solid transparent;
+            border-left-color: white;
+        }
+
+        .experience-item:nth-child(even) .experience-content::before {
+            content: '';
+            position: absolute;
+            left: -10px;
+            top: 20px;
+            width: 0;
+            height: 0;
+            border: 10px solid transparent;
+            border-right-color: white;
+        }
+
+        .experience-header {
+            margin-bottom: 1rem;
+        }
+
+        .experience-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .experience-company {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .experience-period {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .experience-description {
+            margin-top: 1rem;
+        }
+
+        .experience-description ul {
+            list-style: none;
+            margin-top: 0.5rem;
+        }
+
+        .experience-description li {
+            margin-bottom: 0.75rem;
+            padding-left: 1.5rem;
+            position: relative;
+            line-height: 1.6;
+        }
+
+        .experience-description li::before {
+            content: "▶";
+            position: absolute;
+            left: 0;
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .experience-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .experience-tag {
+            background: var(--surface);
+            color: var(--primary-color);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .honors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .honor-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .honor-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .honor-icon {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .honor-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .honor-organization {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .honor-description {
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        /* Projects Section */
+        .projects {
+            padding: 6rem 2rem;
+            background: var(--background);
+        }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .project-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease;
+        }
+
+        .project-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .project-header {
+            background: var(--gradient);
+            padding: 1.5rem;
+            color: white;
+        }
+
+        .project-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .project-type {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+
+        .project-content {
+            padding: 1.5rem;
+        }
+
+        .project-description {
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .tech-tag {
+            background: var(--surface);
+            color: var(--primary-color);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .project-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .project-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .project-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Contact Section */
+        .contact {
+            padding: 6rem 2rem;
+            background: var(--surface);
+        }
+
+        .contact-content {
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .contact-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .contact-link {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 2rem;
+            background: white;
+            color: var(--primary-color);
+            text-decoration: none;
+            border-radius: 50px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .contact-link:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--text-primary);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease;
+        }
+
+        .animate-on-scroll.animated {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .mobile-menu {
+                display: block;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero .subtitle {
+                font-size: 1.1rem;
+            }
+
+            .about-grid {
+                grid-template-columns: 1fr;
+                gap: 3rem;
+            }
+
+            .about-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 2rem;
+            }
+
+            .about-image {
+                flex: none;
+                width: 200px;
+                margin: 0 auto;
+                order: -1;
+            }
+
+            .profile-image {
+                height: 250px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .projects-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .contact-links {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .experience-timeline::before {
+                left: 20px;
+            }
+
+            .experience-item:nth-child(odd) .experience-content,
+            .experience-item:nth-child(even) .experience-content {
+                margin-left: 60px;
+                margin-right: 0;
+            }
+
+            .experience-item::before {
+                left: 20px;
+                transform: none;
+            }
+
+            .experience-item:nth-child(odd) .experience-content::before,
+            .experience-item:nth-child(even) .experience-content::before {
+                content: '';
+                position: absolute;
+                left: -10px;
+                top: 20px;
+                width: 0;
+                height: 0;
+                border: 10px solid transparent;
+                border-right-color: white;
+            }
+
+            .honors-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Scroll Progress Bar */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 3px;
+            background: var(--gradient);
+            z-index: 1001;
+            transition: width 0.3s ease;
+        }
+
+        /* Email Copy Notification */
+        .copy-notification {
+            position: fixed;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--primary-color);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            z-index: 1002;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .copy-notification.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1.05);
+        }
+
+        .copy-notification i {
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Progress Bar -->
+    <div class="progress-bar" id="progressBar"></div>
+
+    <!-- Copy Email Notification -->
+    <div class="copy-notification" id="copyNotification">
+        <i class="fas fa-check-circle"></i>
+        <span>Email copied to clipboard!</span>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="logo">Bryant Liu</div>
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#experience">Experience</a></li>
+                <li><a href="#skills">Skills</a></li>
+                <li><a href="#projects">Projects</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+            <div class="mobile-menu">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div id="particles-js"></div>
+        <div class="hero-content">
+            <h1>Bryant Liu</h1>
+            <p class="subtitle">劉子揚</p>
+            <div class="typing-container">
+                <span class="typing-text" id="typingText"></span>
+            </div>
+            <p class="description">
+                Passionate Data Scientist & Full-Stack Developer with expertise in Machine Learning, 
+                Web Development, and AI Integration. Transforming data into insights and building 
+                scalable solutions that make a difference.
+            </p>
+            <div class="cta-buttons">
+                <a href="#projects" class="btn btn-primary">
+                    <i class="fas fa-rocket"></i> View My Work
+                </a>
+                <a href="#contact" class="btn btn-secondary">
+                    <i class="fas fa-envelope"></i> Get In Touch
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="about" id="about">
+        <div class="container">
+            <div class="section-header animate-on-scroll">
+                <h2 class="section-title">About Me</h2>
+                <p class="section-subtitle">Combining analytical thinking with technical expertise</p>
+            </div>
+            <div class="about-grid">
+                <div class="about-content animate-on-scroll">
+                    <div class="about-text">
+                        <p>
+                            I'm a passionate software engineer with a unique blend of <strong>Data Science</strong> 
+                            and <strong>Full-Stack Development</strong> expertise. My journey spans from developing 
+                            sophisticated machine learning models to building production-ready web applications.
+                        </p>
+                        <br>
+                        <p>
+                            I specialize in creating intelligent solutions that bridge the gap between complex 
+                            data analysis and user-friendly applications. Whether it's predicting stock prices, 
+                            building AI-powered web scrapers, or developing full-stack applications with React 
+                            and Flask, I bring both analytical rigor and engineering excellence to every project.
+                        </p>
+                        <br>
+                        <p>
+                            My experience includes working with technologies like LLM, web frameworks and ML techniques, always with a focus on creating scalable, 
+                            maintainable solutions.
+                        </p>
+                    </div>
+                </div>
+                <div class="stats-grid animate-on-scroll">
+                    <div class="about-image">
+                                <img src="assets/images/bryant-profile.jpeg" 
+                                      alt="Bryant Liu Profile Photo" 
+                                      class="profile-image">
+                            </div>
+                    <div class="stat-card">
+                        <span class="stat-number">10+</span>
+                        <span class="stat-label">Projects Completed</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number">2+</span>
+                        <span class="stat-label">Years Experience</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number">100%</span>
+                        <span class="stat-label">Passion Driven</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Skills Section -->
+    <section class="skills" id="skills">
+        <div class="container">
+            <div class="section-header animate-on-scroll">
+                <h2 class="section-title">Technical Skills</h2>
+                <p class="section-subtitle">Expert-level proficiency across multiple domains</p>
+            </div>
+            <div class="skills-grid">
+                <div class="skill-category animate-on-scroll">
+                    <div class="skill-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3 class="skill-title">Data Science & ML</h3>
+                    <ul class="skill-list">
+                        <li>Python (Pandas, NumPy, Scikit-learn)</li>
+                        <li>Machine Learning (XGBoost, CatBoost)</li>
+                        <li>Deep Learning (TensorFlow, Neural Networks)</li>
+                        <li>Statistical Analysis & Modeling</li>
+                        <li>Data Visualization (Matplotlib, Seaborn)</li>
+                        <li>Feature Engineering & Selection</li>
+                    </ul>
+                </div>
+                <div class="skill-category animate-on-scroll">
+                    <div class="skill-icon">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <h3 class="skill-title">Full-Stack Development</h3>
+                    <ul class="skill-list">
+                        <li>Frontend (React, JavaScript, HTML5, CSS3)</li>
+                        <li>Backend (Flask, Node.js, RESTful APIs)</li>
+                        <li>Databases (MySQL, Query Optimization)</li>
+                        <li>Version Control (Git, GitHub)</li>
+                        <li>Responsive Design & UX</li>
+                        <li>API Integration & Development</li>
+                    </ul>
+                </div>
+                <div class="skill-category animate-on-scroll">
+                    <div class="skill-icon">
+                        <i class="fas fa-cloud"></i>
+                    </div>
+                    <h3 class="skill-title">DevOps & Tools</h3>
+                    <ul class="skill-list">
+                        <li>Docker & Containerization</li>
+                        <li>Nginx & Web Servers</li>
+                        <li>CI/CD & Deployment</li>
+                        <li>Web Scraping (Selenium, Beautiful Soup)</li>
+                        <li>Jupyter Notebooks & Development Tools</li>
+                        <li>Performance Optimization</li>
+                    </ul>
+                </div>
+                <div class="skill-category animate-on-scroll">
+                    <div class="skill-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h3 class="skill-title">AI & Advanced Tech</h3>
+                    <ul class="skill-list">
+                        <li>OpenAI API Integration</li>
+                        <li>Natural Language Processing</li>
+                        <li>Computer Vision</li>
+                        <li>Time Series Forecasting</li>
+                        <li>Optimization Algorithms</li>
+                        <li>Signal Processing</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section class="projects" id="projects">
+        <div class="container">
+            <div class="section-header animate-on-scroll">
+                <h2 class="section-title">Featured Projects</h2>
+                <p class="section-subtitle">Showcasing innovation through code</p>
+            </div>
+            <div class="projects-grid">
+                <div class="project-card animate-on-scroll">
+                    <div class="project-header">
+                        <h3 class="project-title">Shopee Crawler Website</h3>
+                        <p class="project-type">Full-Stack Web Application with AI Integration</p>
+                    </div>
+                    <div class="project-content">
+                        <p class="project-description">
+                            Advanced e-commerce product crawling platform with AI-powered matching, 
+                            real-time progress tracking, and trending products dashboard. Features 
+                            multi-platform support and production-ready Docker deployment.
+                        </p>
+                        <div class="tech-stack">
+                            <span class="tech-tag">Flask</span>
+                            <span class="tech-tag">React</span>
+                            <span class="tech-tag">OpenAI API</span>
+                            <span class="tech-tag">Selenium</span>
+                            <span class="tech-tag">Docker</span>
+                            <span class="tech-tag">Nginx</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="https://github.com/Bryant-Liu-TzuYang/Bryant_Liu_Portfolio/tree/main/Side_Projects/Shopee_Crawler_Website" class="project-link">
+                                <i class="fab fa-github"></i> View Code
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="project-card animate-on-scroll">
+                    <div class="project-header">
+                        <h3 class="project-title">Vocabulary Recall System</h3>
+                        <p class="project-type">Full-Stack Application with Email Automation</p>
+                    </div>
+                    <div class="project-content">
+                        <p class="project-description">
+                            Intelligent vocabulary learning platform that integrates with Notion databases 
+                            and sends personalized email reminders. Features user authentication, 
+                            customizable scheduling, and comprehensive logging.
+                        </p>
+                        <div class="tech-stack">
+                            <span class="tech-tag">Flask</span>
+                            <span class="tech-tag">React</span>
+                            <span class="tech-tag">MySQL</span>
+                            <span class="tech-tag">Notion API</span>
+                            <span class="tech-tag">SMTP</span>
+                            <span class="tech-tag">Docker</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="https://github.com/Bryant-Liu-TzuYang/Bryant_Liu_Portfolio/tree/main/Side_Projects/Voca_Recall" class="project-link">
+                                <i class="fab fa-github"></i> View Code
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="project-card animate-on-scroll">
+                    <div class="project-header">
+                        <h3 class="project-title">House Price Prediction</h3>
+                        <p class="project-type">Machine Learning & Data Science</p>
+                    </div>
+                    <div class="project-content">
+                        <p class="project-description">
+                            Advanced ML model for predicting house prices using Taipei metro proximity data. 
+                            Features comprehensive EDA, feature engineering, and comparison of multiple 
+                            algorithms including XGBoost and CatBoost.
+                        </p>
+                        <div class="tech-stack">
+                            <span class="tech-tag">Python</span>
+                            <span class="tech-tag">XGBoost</span>
+                            <span class="tech-tag">CatBoost</span>
+                            <span class="tech-tag">Pandas</span>
+                            <span class="tech-tag">Scikit-learn</span>
+                            <span class="tech-tag">Matplotlib</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="https://github.com/Bryant-Liu-TzuYang/Bryant_Liu_Portfolio/tree/main/School_Course_Projects/Manufacturing_Data_Science/HW1" class="project-link">
+                                <i class="fab fa-github"></i> View Code
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="project-card animate-on-scroll">
+                    <div class="project-header">
+                        <h3 class="project-title">Stock Price Prediction</h3>
+                        <p class="project-type">Financial Data Science & Time Series</p>
+                    </div>
+                    <div class="project-content">
+                        <p class="project-description">
+                            Sophisticated time series forecasting system for stock price prediction 
+                            incorporating keyword analysis for market sentiment. Combines technical 
+                            indicators with NLP for enhanced prediction accuracy.
+                        </p>
+                        <div class="tech-stack">
+                            <span class="tech-tag">Python</span>
+                            <span class="tech-tag">Time Series</span>
+                            <span class="tech-tag">NLP</span>
+                            <span class="tech-tag">Financial Analysis</span>
+                            <span class="tech-tag">Machine Learning</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="https://github.com/Bryant-Liu-TzuYang/Bryant_Liu_Portfolio/tree/main/School_Course_Projects/Big_Data_and_Business_Analysis/Stock_Price_Prediction" class="project-link">
+                                <i class="fab fa-github"></i> View Code
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="project-card animate-on-scroll">
+                    <div class="project-header">
+                        <h3 class="project-title">Manufacturing Fault Detection</h3>
+                        <p class="project-type">Industrial Data Science & IoT</p>
+                    </div>
+                    <div class="project-content">
+                        <p class="project-description">
+                            AI-powered fault detection system for industrial machinery using sensor data 
+                            and signal processing. Implements advanced classification algorithms for 
+                            real-time anomaly detection and predictive maintenance.
+                        </p>
+                        <div class="tech-stack">
+                            <span class="tech-tag">Python</span>
+                            <span class="tech-tag">Signal Processing</span>
+                            <span class="tech-tag">Machine Learning</span>
+                            <span class="tech-tag">IoT Analytics</span>
+                            <span class="tech-tag">Classification</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="https://github.com/Bryant-Liu-TzuYang/Bryant_Liu_Portfolio/tree/main/School_Course_Projects/Manufacturing_Data_Science/Final_Project" class="project-link">
+                                <i class="fab fa-github"></i> View Code
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="project-card animate-on-scroll">
+                    <div class="project-header">
+                        <h3 class="project-title">Operations Research Optimization</h3>
+                        <p class="project-type">Mathematical Modeling & Algorithms</p>
+                    </div>
+                    <div class="project-content">
+                        <p class="project-description">
+                            Advanced optimization algorithms and mathematical modeling for complex 
+                            business problems. Implements linear programming, heuristic algorithms, 
+                            and large-scale optimization using Gurobi solver.
+                        </p>
+                        <div class="tech-stack">
+                            <span class="tech-tag">Python</span>
+                            <span class="tech-tag">Gurobi</span>
+                            <span class="tech-tag">Optimization</span>
+                            <span class="tech-tag">Mathematical Modeling</span>
+                            <span class="tech-tag">Algorithms</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="https://github.com/Bryant-Liu-TzuYang/Bryant_Liu_Portfolio/tree/main/School_Course_Projects/Operations_Research" class="project-link">
+                                <i class="fab fa-github"></i> View Code
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Professional Experience Section -->
+    <section class="experience" id="experience">
+        <div class="container">
+            <div class="section-header animate-on-scroll">
+                <h2 class="section-title">Professional Experience</h2>
+                <p class="section-subtitle">Bridging technology and business through versatile expertise</p>
+            </div>
+            
+            <div class="experience-timeline">
+                <div class="experience-item animate-on-scroll">
+                    <div class="experience-content collapsed">
+                        <button class="experience-toggle">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
+                        <div class="experience-header">
+                            <h3 class="experience-title">Business Analysis Intern</h3>
+                            <h4 class="experience-company">Shopee Taiwan</h4>
+                            <p class="experience-period">Jun 2024 - Nov 2024</p>
+                        </div>
+                        <div class="experience-description">
+                            <ul>
+                                <li>Developed an efficient Python-based web-crawling algorithm to track competitors' pricing, leveraging the OpenAI API for automation. <strong>Reduced URL collection time by 75%</strong>, from approximately 1 minute per link to 15 seconds.</li>
+                                <li>Optimized daily data processing workflows using advanced Excel (VBA, Macros) and Google Sheets (Apps Script, QUERY + IMPORTRANGE) techniques, <strong>reducing data update time by 67%</strong> (from 1.5 hours to under 30 minutes).</li>
+                                <li>Collaborated closely with an <strong>ex-McKinsey consultant</strong> to deliver high-quality analysis, receiving strong training in project management and business analysis.</li>
+                            </ul>
+                        </div>
+                        <div class="experience-tags">
+                            <span class="experience-tag">Python</span>
+                            <span class="experience-tag">OpenAI API</span>
+                            <span class="experience-tag">Web Scraping</span>
+                            <span class="experience-tag">VBA</span>
+                            <span class="experience-tag">Business Analysis</span>
+                            <span class="experience-tag">Data Processing</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="experience-item animate-on-scroll">
+                    <div class="experience-content collapsed">
+                        <button class="experience-toggle">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
+                        <div class="experience-header">
+                            <h3 class="experience-title">Head of Public Relations & Media Designer</h3>
+                            <h4 class="experience-company">TwinOaks Education - See Think Wonder Challenge</h4>
+                            <p class="experience-period">Mar 2022 - Aug 2023</p>
+                        </div>
+                        <div class="experience-description">
+                            <ul>
+                                <li>Led funding initiatives in collaboration with <strong>ex-BCG consultant</strong>. Secured sustainable annual funding of over <strong>200K NTD</strong> through cold-calling and professional pitchbook preparation.</li>
+                                <li>Self-taught in tools such as Adobe Premiere Pro and Photoshop, producing videos with over <strong>14K views</strong> and contributing to the participation of <strong>4K+ individuals globally</strong>.</li>
+                                <li>Participated in comprehensive marketing campaigns and stakeholder relations for international educational initiatives.</li>
+                            </ul>
+                        </div>
+                        <div class="experience-tags">
+                            <span class="experience-tag">Fundraising</span>
+                            <span class="experience-tag">Business Development</span>
+                            <span class="experience-tag">Adobe Creative Suite</span>
+                            <span class="experience-tag">Video Production</span>
+                            <span class="experience-tag">Marketing</span>
+                            <span class="experience-tag">Stakeholder Management</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="experience-item animate-on-scroll">
+                    <div class="experience-content collapsed">
+                        <button class="experience-toggle">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
+                        <div class="experience-header">
+                            <h3 class="experience-title">Team Captain & Financial Systems Developer</h3>
+                            <h4 class="experience-company">NTU Department Volleyball Team</h4>
+                            <p class="experience-period">Jun 2023 - Aug 2024</p>
+                        </div>
+                        <div class="experience-description">
+                            <ul>
+                                <li>Implemented a <strong>dynamic team fee structure</strong> based on engagement levels, demonstrating innovative approach to team management and resource allocation.</li>
+                                <li>Leveraged self-taught Google Apps Script to automate calculations using daily operational Google Sheets, improving efficiency and transparency.</li>
+                                <li>Led team operations and strategic planning while maintaining high team morale and performance standards.</li>
+                            </ul>
+                        </div>
+                        <div class="experience-tags">
+                            <span class="experience-tag">Leadership</span>
+                            <span class="experience-tag">Google Apps Script</span>
+                            <span class="experience-tag">Financial Planning</span>
+                            <span class="experience-tag">Team Management</span>
+                            <span class="experience-tag">Process Automation</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Honors & Recognition -->
+            <div class="section-header animate-on-scroll" style="margin-top: 4rem; margin-bottom: 2rem;">
+                <h3 class="section-title" style="font-size: 2rem;">Honors & Recognition</h3>
+            </div>
+            
+            <div class="honors-grid">
+                <div class="honor-card animate-on-scroll">
+                    <div class="honor-icon">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <h4 class="honor-title">Top 20 Finalist</h4>
+                    <p class="honor-organization">CBS Case Competition (Feb 2024)</p>
+                    <p class="honor-description">
+                        Ranked in the top 20 of <strong>416 teams globally</strong> for comprehensive analysis of the competitive landscape of diabetes medications for Novo Nordisk within 24 hours.
+                    </p>
+                </div>
+
+                <div class="honor-card animate-on-scroll">
+                    <div class="honor-icon">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <h4 class="honor-title">Academic Excellence</h4>
+                    <p class="honor-organization">National Taiwan University</p>
+                    <p class="honor-description">
+                        Maintaining a <strong>GPA of 3.8/4.3</strong> in International Business while completing advanced computer science and data science coursework.
+                    </p>
+                </div>
+
+                <div class="honor-card animate-on-scroll">
+                    <div class="honor-icon">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    <h4 class="honor-title">International Impact</h4>
+                    <p class="honor-organization">Global Educational Initiatives</p>
+                    <p class="honor-description">
+                        Successfully managed international programs affecting <strong>4K+ participants globally</strong>, demonstrating cross-cultural communication and project management skills.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact" id="contact">
+        <div class="container">
+            <div class="section-header animate-on-scroll">
+                <h2 class="section-title">Let's Connect</h2>
+                <p class="section-subtitle">Ready to collaborate on exciting projects</p>
+            </div>
+            <div class="contact-content animate-on-scroll">
+                <p>
+                    I'm always interested in discussing new opportunities, collaborating on innovative 
+                    projects, or sharing knowledge about data science and software development. 
+                    Let's build something amazing together!
+                </p>
+                <div class="contact-links">
+                    <a href="https://github.com/Bryant-Liu-TzuYang" class="contact-link">
+                        <i class="fab fa-github"></i> GitHub
+                    </a>
+                    <a href="mailto:bryant98360410@gmail.com" class="contact-link" id="emailLink" data-email="bryant98360410@gmail.com">
+                        <i class="fas fa-envelope"></i> Email
+                    </a>
+                    <a href="https://www.linkedin.com/in/tzu-yang-liu-7755b921a/" class="contact-link">
+                        <i class="fab fa-linkedin"></i> LinkedIn
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 Bryant Liu (劉子揚). All rights reserved. Built with passion and precision.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Particles.js configuration
+        particlesJS('particles-js', {
+            particles: {
+                number: { value: 80, density: { enable: true, value_area: 800 } },
+                color: { value: '#ffffff' },
+                shape: { type: 'circle' },
+                opacity: { value: 0.5, random: false },
+                size: { value: 3, random: true },
+                line_linked: {
+                    enable: true,
+                    distance: 150,
+                    color: '#ffffff',
+                    opacity: 0.4,
+                    width: 1
+                },
+                move: {
+                    enable: true,
+                    speed: 6,
+                    direction: 'none',
+                    random: false,
+                    straight: false,
+                    out_mode: 'out',
+                    bounce: false
+                }
+            },
+            interactivity: {
+                detect_on: 'canvas',
+                events: {
+                    onhover: { enable: true, mode: 'repulse' },
+                    onclick: { enable: true, mode: 'push' },
+                    resize: true
+                }
+            },
+            retina_detect: true
+        });
+
+        // Typing animation
+        const typingElement = document.getElementById('typingText');
+        const phrases = [
+            'Data Scientist',
+            'Full-Stack Developer',
+            'Machine Learning Engineer',
+            'AI Enthusiast',
+            'Problem Solver'
+        ];
+        let phraseIndex = 0;
+        let charIndex = 0;
+        let isDeleting = false;
+
+        function typeText() {
+            const currentPhrase = phrases[phraseIndex];
+            
+            if (isDeleting) {
+                typingElement.textContent = currentPhrase.substring(0, charIndex - 1);
+                charIndex--;
+            } else {
+                typingElement.textContent = currentPhrase.substring(0, charIndex + 1);
+                charIndex++;
+            }
+
+            let typeSpeed = isDeleting ? 50 : 100;
+
+            if (!isDeleting && charIndex === currentPhrase.length) {
+                typeSpeed = 2000;
+                isDeleting = true;
+            } else if (isDeleting && charIndex === 0) {
+                isDeleting = false;
+                phraseIndex = (phraseIndex + 1) % phrases.length;
+                typeSpeed = 500;
+            }
+
+            setTimeout(typeText, typeSpeed);
+        }
+
+        // Start typing animation
+        setTimeout(typeText, 1000);
+
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbar');
+            const progressBar = document.getElementById('progressBar');
+            
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+
+            // Update progress bar
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            progressBar.style.width = scrolled + '%';
+        });
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Animate elements on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animated');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.animate-on-scroll').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Enhanced animation for experience timeline items
+        const experienceObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry, index) => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => {
+                        entry.target.classList.add('animated');
+                    }, index * 200); // Stagger animation
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.experience-item').forEach(el => {
+            experienceObserver.observe(el);
+        });
+
+        // Experience section collapse/expand functionality
+        document.querySelectorAll('.experience-toggle').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.stopPropagation(); // Prevent event bubbling
+                const experienceContent = this.parentElement;
+                experienceContent.classList.toggle('collapsed');
+            });
+        });
+
+        // Also allow clicking on the entire experience content to toggle
+        document.querySelectorAll('.experience-content').forEach(content => {
+            content.addEventListener('click', function(e) {
+                // Don't toggle if clicking on the button itself
+                if (!e.target.closest('.experience-toggle')) {
+                    this.classList.toggle('collapsed');
+                }
+            });
+        });
+
+        // Counter animation for stats
+        function animateCounters() {
+            const counters = document.querySelectorAll('.stat-number');
+            counters.forEach(counter => {
+                const originalText = counter.textContent;
+                const target = parseInt(originalText.replace(/[^\d]/g, ''));
+                const increment = target / 100;
+                let current = 0;
+                
+                const updateCounter = () => {
+                    if (current < target) {
+                        current += increment;
+                        const currentValue = Math.min(Math.ceil(current), target);
+                        if (originalText.includes('+')) {
+                            counter.textContent = currentValue + '+';
+                        } else if (originalText.includes('%')) {
+                            counter.textContent = currentValue + '%';
+                        } else {
+                            counter.textContent = currentValue;
+                        }
+                        requestAnimationFrame(updateCounter);
+                    } else {
+                        counter.textContent = originalText; // Reset to original
+                    }
+                };
+                
+                updateCounter();
+            });
+        }
+
+        // Trigger counter animation when stats section is visible
+        const statsSection = document.querySelector('.stats-grid');
+        if (statsSection) {
+            const statsObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        animateCounters();
+                        statsObserver.unobserve(entry.target);
+                    }
+                });
+            });
+            statsObserver.observe(statsSection);
+        }
+
+        // Email copy functionality
+        const emailLink = document.getElementById('emailLink');
+        const copyNotification = document.getElementById('copyNotification');
+
+        if (emailLink && copyNotification) {
+            emailLink.addEventListener('click', function(e) {
+                e.preventDefault(); // Prevent default mailto behavior
+                
+                const email = this.getAttribute('data-email');
+                
+                // Copy to clipboard
+                if (navigator.clipboard && window.isSecureContext) {
+                    // Modern browsers with clipboard API
+                    navigator.clipboard.writeText(email).then(() => {
+                        showCopyNotification();
+                    }).catch(() => {
+                        // Fallback if clipboard API fails
+                        fallbackCopyToClipboard(email);
+                    });
+                } else {
+                    // Fallback for older browsers
+                    fallbackCopyToClipboard(email);
+                }
+            });
+        }
+
+        function fallbackCopyToClipboard(text) {
+            // Create a temporary textarea element
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                showCopyNotification();
+            } catch (err) {
+                console.error('Failed to copy email to clipboard:', err);
+                // If all else fails, open mailto as fallback
+                window.location.href = `mailto:${text}`;
+            }
+            
+            document.body.removeChild(textArea);
+        }
+
+        function showCopyNotification() {
+            copyNotification.classList.add('show');
+            
+            // Hide notification after 2 seconds
+            setTimeout(() => {
+                copyNotification.classList.remove('show');
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

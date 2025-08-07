@@ -1,6 +1,6 @@
 # Shopee Link Crawler Website
 
-A powerful web-based tool for crawling and extracting product links from Shopee. This application allows users to upload CSV/Excel files containing product information and automatically crawls Shopee to find relevant product links.
+A powerful web-based tool for crawling and extracting product links from Momo / Coupang. This application allows users to upload CSV/Excel files containing product information and automatically crawls Momo / Coupang to find relevant product links.
 
 ## Features
 
