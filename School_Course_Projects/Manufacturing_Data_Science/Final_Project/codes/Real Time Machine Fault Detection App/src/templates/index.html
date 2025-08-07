@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Machine Audio Anomaly Detection</title>
+    <!-- Include Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body class="bg-light">
+    <div class="container mt-5">
+        <h1 class="text-center mb-4"><strong>Real-Time Machine Audio Anomaly Detection</strong></h1>
+        
+        <!-- Information Section -->
+        <div class="alert alert-info">
+            <p>Monitoring folder: <strong>sensor_data</strong><br>
+            Drop sensor data files (CSV format) into the folder to detect anomalies.</p>
+        </div>
+        
+        <!-- Alerts Section -->
+        <div id="alert-box" class="mb-4"></div>
+
+        <!-- Past Records Section -->
+        <div class="card">
+            <div class="card-header">
+                <h2>Past Records</h2>
+                <label class="form-check-label">
+                    <input type="checkbox" id="filter-anomalies" class="form-check-input"> Show anomalies only
+                </label>
+            </div>
+            <div class="card-body">
+                <table id="records-table" class="table table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Anomaly Type</th>
+                            <th>Confidence</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Rows will be dynamically added here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!-- Include Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+</body>
+</html>
