@@ -1,0 +1,97 @@
+# Site settings
+title: Bryant Liu Portfolio
+description: Portfolio of Bryant Liu - Expert in Data Science, Machine Learning, and Full-Stack Development
+author: Bryant Liu
+email: your.email@example.com
+url: https://bryant-liu-tzuyang.github.io
+baseurl: /Bryant_Liu_Portfolio
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+permalink: pretty
+
+# Exclude files from processing
+exclude:
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor
+  - .sass-cache
+  - .jekyll-cache
+  - .jekyll-metadata
+  - .DS_Store
+  - __pycache__
+  - "*.py[cod]"
+  - "*.so"
+  - .Python
+  - build
+  - develop-eggs
+  - dist
+  - downloads
+  - eggs
+  - .eggs
+  - lib
+  - lib64
+  - parts
+  - sdist
+  - var
+  - wheels
+  - "*.egg-info"
+  - .installed.cfg
+  - "*.egg"
+  - MANIFEST
+  - venv
+  - env
+  - ENV
+  - .vscode
+  - .idea
+  - "*.swp"
+  - "*.swo"
+  - .ipynb_checkpoints
+  - "*.tmp"
+  - "*.temp"
+  - "~*"
+  - "*.mp4"
+  - "*.zip"
+  - "*.tar.gz"
+  - .dockerignore
+  - node_modules
+  - catboost_info
+  - "*.ilp"
+  - "Hottest"
+  - "School_Course_Projects/Introduction_to_Computer_Science/src/Assembler"
+  - "School_Course_Projects/**/catboost_info"
+  - "**/.DS_Store"
+  - "**/~$*"
+
+# Include files
+include:
+  - .htaccess
+  - _pages
+
+# Plugins
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+
+# Collections
+collections:
+  projects:
+    output: true
+    permalink: /:collection/:name/
+
+# Default front matter
+defaults:
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "post"
+      author: "Bryant Liu"
+  - scope:
+      path: ""
+      type: "projects"
+    values:
+      layout: "project"
