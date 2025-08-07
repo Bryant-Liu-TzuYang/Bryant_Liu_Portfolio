@@ -238,7 +238,33 @@
             align-items: center;
         }
 
+        .about-content {
+            display: flex;
+            gap: 2rem;
+            align-items: flex-start;
+            flex-direction: row-reverse;
+        }
+
+        .about-image {
+            flex: 0 0 200px;
+            position: relative;
+        }
+
+        .profile-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease;
+        }
+
+        .profile-image:hover {
+            transform: scale(1.02);
+        }
+
         .about-text {
+            flex: 1;
             font-size: 1.1rem;
             line-height: 1.8;
         }
@@ -255,6 +281,10 @@
             background: var(--surface);
             border-radius: 15px;
             transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
 
         .stat-card:hover {
@@ -325,6 +355,244 @@
             content: "✓";
             color: var(--primary-color);
             font-weight: bold;
+        }
+
+        /* Experience Section */
+        .experience {
+            padding: 6rem 2rem;
+            background: var(--background);
+        }
+
+        .experience-timeline {
+            position: relative;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .experience-timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--gradient);
+            transform: translateX(-50%);
+        }
+
+        .experience-item {
+            position: relative;
+            margin-bottom: 3rem;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease;
+        }
+
+        .experience-item.animated {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .experience-item:nth-child(odd) .experience-content {
+            margin-right: 55%;
+        }
+
+        .experience-item:nth-child(even) .experience-content {
+            margin-left: 55%;
+        }
+
+        .experience-item::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 20px;
+            width: 20px;
+            height: 20px;
+            background: var(--primary-color);
+            border: 4px solid white;
+            border-radius: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 0 0 4px var(--primary-color);
+            z-index: 10;
+        }
+
+        .experience-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            position: relative;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .experience-content:hover {
+            transform: translateY(-5px);
+        }
+
+        .experience-content.collapsed .experience-description,
+        .experience-content.collapsed .experience-tags {
+            display: none;
+        }
+
+        .experience-toggle {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .experience-toggle:hover {
+            background: var(--secondary-color);
+            transform: scale(1.1);
+        }
+
+        .experience-toggle i {
+            transition: transform 0.3s ease;
+        }
+
+        .experience-content.collapsed .experience-toggle i {
+            transform: rotate(180deg);
+        }
+
+        .experience-item:nth-child(odd) .experience-content::before {
+            content: '';
+            position: absolute;
+            right: -10px;
+            top: 20px;
+            width: 0;
+            height: 0;
+            border: 10px solid transparent;
+            border-left-color: white;
+        }
+
+        .experience-item:nth-child(even) .experience-content::before {
+            content: '';
+            position: absolute;
+            left: -10px;
+            top: 20px;
+            width: 0;
+            height: 0;
+            border: 10px solid transparent;
+            border-right-color: white;
+        }
+
+        .experience-header {
+            margin-bottom: 1rem;
+        }
+
+        .experience-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .experience-company {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .experience-period {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .experience-description {
+            margin-top: 1rem;
+        }
+
+        .experience-description ul {
+            list-style: none;
+            margin-top: 0.5rem;
+        }
+
+        .experience-description li {
+            margin-bottom: 0.75rem;
+            padding-left: 1.5rem;
+            position: relative;
+            line-height: 1.6;
+        }
+
+        .experience-description li::before {
+            content: "▶";
+            position: absolute;
+            left: 0;
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .experience-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .experience-tag {
+            background: var(--surface);
+            color: var(--primary-color);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .honors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .honor-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .honor-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .honor-icon {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .honor-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .honor-organization {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .honor-description {
+            font-size: 0.95rem;
+            line-height: 1.6;
         }
 
         /* Projects Section */
@@ -501,6 +769,24 @@
 
             .about-grid {
                 grid-template-columns: 1fr;
+                gap: 3rem;
+            }
+
+            .about-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 2rem;
+            }
+
+            .about-image {
+                flex: none;
+                width: 200px;
+                margin: 0 auto;
+                order: -1;
+            }
+
+            .profile-image {
+                height: 250px;
             }
 
             .stats-grid {
@@ -520,6 +806,37 @@
                 flex-direction: column;
                 align-items: center;
             }
+
+            .experience-timeline::before {
+                left: 20px;
+            }
+
+            .experience-item:nth-child(odd) .experience-content,
+            .experience-item:nth-child(even) .experience-content {
+                margin-left: 60px;
+                margin-right: 0;
+            }
+
+            .experience-item::before {
+                left: 20px;
+                transform: none;
+            }
+
+            .experience-item:nth-child(odd) .experience-content::before,
+            .experience-item:nth-child(even) .experience-content::before {
+                content: '';
+                position: absolute;
+                left: -10px;
+                top: 20px;
+                width: 0;
+                height: 0;
+                border: 10px solid transparent;
+                border-right-color: white;
+            }
+
+            .honors-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         /* Scroll Progress Bar */
@@ -533,11 +850,48 @@
             z-index: 1001;
             transition: width 0.3s ease;
         }
+
+        /* Email Copy Notification */
+        .copy-notification {
+            position: fixed;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--primary-color);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            z-index: 1002;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .copy-notification.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1.05);
+        }
+
+        .copy-notification i {
+            font-size: 1.2rem;
+        }
     </style>
 </head>
 <body>
     <!-- Progress Bar -->
     <div class="progress-bar" id="progressBar"></div>
+
+    <!-- Copy Email Notification -->
+    <div class="copy-notification" id="copyNotification">
+        <i class="fas fa-check-circle"></i>
+        <span>Email copied to clipboard!</span>
+    </div>
 
     <!-- Navigation -->
     <nav class="navbar" id="navbar">
@@ -546,6 +900,7 @@
             <ul class="nav-links">
                 <li><a href="#home">Home</a></li>
                 <li><a href="#about">About</a></li>
+                <li><a href="#experience">Experience</a></li>
                 <li><a href="#skills">Skills</a></li>
                 <li><a href="#projects">Projects</a></li>
                 <li><a href="#contact">Contact</a></li>
@@ -589,37 +944,39 @@
                 <p class="section-subtitle">Combining analytical thinking with technical expertise</p>
             </div>
             <div class="about-grid">
-                <div class="about-text animate-on-scroll">
-                    <p>
-                        I'm a passionate software engineer with a unique blend of <strong>Data Science</strong> 
-                        and <strong>Full-Stack Development</strong> expertise. My journey spans from developing 
-                        sophisticated machine learning models to building production-ready web applications.
-                    </p>
-                    <br>
-                    <p>
-                        I specialize in creating intelligent solutions that bridge the gap between complex 
-                        data analysis and user-friendly applications. Whether it's predicting stock prices, 
-                        building AI-powered web scrapers, or developing full-stack applications with React 
-                        and Flask, I bring both analytical rigor and engineering excellence to every project.
-                    </p>
-                    <br>
-                    <p>
-                        My experience includes working with cutting-edge technologies like XGBoost, OpenAI API, 
-                        Docker, and modern web frameworks, always with a focus on creating scalable, 
-                        maintainable solutions.
-                    </p>
+                <div class="about-content animate-on-scroll">
+                    <div class="about-text">
+                        <p>
+                            I'm a passionate software engineer with a unique blend of <strong>Data Science</strong> 
+                            and <strong>Full-Stack Development</strong> expertise. My journey spans from developing 
+                            sophisticated machine learning models to building production-ready web applications.
+                        </p>
+                        <br>
+                        <p>
+                            I specialize in creating intelligent solutions that bridge the gap between complex 
+                            data analysis and user-friendly applications. Whether it's predicting stock prices, 
+                            building AI-powered web scrapers, or developing full-stack applications with React 
+                            and Flask, I bring both analytical rigor and engineering excellence to every project.
+                        </p>
+                        <br>
+                        <p>
+                            My experience includes working with technologies like LLM, web frameworks and ML techniques, always with a focus on creating scalable, 
+                            maintainable solutions.
+                        </p>
+                    </div>
                 </div>
                 <div class="stats-grid animate-on-scroll">
+                    <div class="about-image">
+                                <img src="assets/images/bryant-profile.jpeg" 
+                                      alt="Bryant Liu Profile Photo" 
+                                      class="profile-image">
+                            </div>
                     <div class="stat-card">
-                        <span class="stat-number">15+</span>
+                        <span class="stat-number">10+</span>
                         <span class="stat-label">Projects Completed</span>
                     </div>
                     <div class="stat-card">
-                        <span class="stat-number">10+</span>
-                        <span class="stat-label">Technologies Mastered</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-number">3+</span>
+                        <span class="stat-number">2+</span>
                         <span class="stat-label">Years Experience</span>
                     </div>
                     <div class="stat-card">
@@ -869,6 +1226,141 @@
         </div>
     </section>
 
+    <!-- Professional Experience Section -->
+    <section class="experience" id="experience">
+        <div class="container">
+            <div class="section-header animate-on-scroll">
+                <h2 class="section-title">Professional Experience</h2>
+                <p class="section-subtitle">Bridging technology and business through versatile expertise</p>
+            </div>
+            
+            <div class="experience-timeline">
+                <div class="experience-item animate-on-scroll">
+                    <div class="experience-content collapsed">
+                        <button class="experience-toggle">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
+                        <div class="experience-header">
+                            <h3 class="experience-title">Business Analysis Intern</h3>
+                            <h4 class="experience-company">Shopee Taiwan</h4>
+                            <p class="experience-period">Jun 2024 - Nov 2024</p>
+                        </div>
+                        <div class="experience-description">
+                            <ul>
+                                <li>Developed an efficient Python-based web-crawling algorithm to track competitors' pricing, leveraging the OpenAI API for automation. <strong>Reduced URL collection time by 75%</strong>, from approximately 1 minute per link to 15 seconds.</li>
+                                <li>Optimized daily data processing workflows using advanced Excel (VBA, Macros) and Google Sheets (Apps Script, QUERY + IMPORTRANGE) techniques, <strong>reducing data update time by 67%</strong> (from 1.5 hours to under 30 minutes).</li>
+                                <li>Collaborated closely with an <strong>ex-McKinsey consultant</strong> to deliver high-quality analysis, receiving strong training in project management and business analysis.</li>
+                            </ul>
+                        </div>
+                        <div class="experience-tags">
+                            <span class="experience-tag">Python</span>
+                            <span class="experience-tag">OpenAI API</span>
+                            <span class="experience-tag">Web Scraping</span>
+                            <span class="experience-tag">VBA</span>
+                            <span class="experience-tag">Business Analysis</span>
+                            <span class="experience-tag">Data Processing</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="experience-item animate-on-scroll">
+                    <div class="experience-content collapsed">
+                        <button class="experience-toggle">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
+                        <div class="experience-header">
+                            <h3 class="experience-title">Head of Public Relations & Media Designer</h3>
+                            <h4 class="experience-company">TwinOaks Education - See Think Wonder Challenge</h4>
+                            <p class="experience-period">Mar 2022 - Aug 2023</p>
+                        </div>
+                        <div class="experience-description">
+                            <ul>
+                                <li>Led funding initiatives in collaboration with <strong>ex-BCG consultant</strong>. Secured sustainable annual funding of over <strong>200K NTD</strong> through cold-calling and professional pitchbook preparation.</li>
+                                <li>Self-taught in tools such as Adobe Premiere Pro and Photoshop, producing videos with over <strong>14K views</strong> and contributing to the participation of <strong>4K+ individuals globally</strong>.</li>
+                                <li>Participated in comprehensive marketing campaigns and stakeholder relations for international educational initiatives.</li>
+                            </ul>
+                        </div>
+                        <div class="experience-tags">
+                            <span class="experience-tag">Fundraising</span>
+                            <span class="experience-tag">Business Development</span>
+                            <span class="experience-tag">Adobe Creative Suite</span>
+                            <span class="experience-tag">Video Production</span>
+                            <span class="experience-tag">Marketing</span>
+                            <span class="experience-tag">Stakeholder Management</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="experience-item animate-on-scroll">
+                    <div class="experience-content collapsed">
+                        <button class="experience-toggle">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
+                        <div class="experience-header">
+                            <h3 class="experience-title">Team Captain & Financial Systems Developer</h3>
+                            <h4 class="experience-company">NTU Department Volleyball Team</h4>
+                            <p class="experience-period">Jun 2023 - Aug 2024</p>
+                        </div>
+                        <div class="experience-description">
+                            <ul>
+                                <li>Implemented a <strong>dynamic team fee structure</strong> based on engagement levels, demonstrating innovative approach to team management and resource allocation.</li>
+                                <li>Leveraged self-taught Google Apps Script to automate calculations using daily operational Google Sheets, improving efficiency and transparency.</li>
+                                <li>Led team operations and strategic planning while maintaining high team morale and performance standards.</li>
+                            </ul>
+                        </div>
+                        <div class="experience-tags">
+                            <span class="experience-tag">Leadership</span>
+                            <span class="experience-tag">Google Apps Script</span>
+                            <span class="experience-tag">Financial Planning</span>
+                            <span class="experience-tag">Team Management</span>
+                            <span class="experience-tag">Process Automation</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Honors & Recognition -->
+            <div class="section-header animate-on-scroll" style="margin-top: 4rem; margin-bottom: 2rem;">
+                <h3 class="section-title" style="font-size: 2rem;">Honors & Recognition</h3>
+            </div>
+            
+            <div class="honors-grid">
+                <div class="honor-card animate-on-scroll">
+                    <div class="honor-icon">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <h4 class="honor-title">Top 20 Finalist</h4>
+                    <p class="honor-organization">CBS Case Competition (Feb 2024)</p>
+                    <p class="honor-description">
+                        Ranked in the top 20 of <strong>416 teams globally</strong> for comprehensive analysis of the competitive landscape of diabetes medications for Novo Nordisk within 24 hours.
+                    </p>
+                </div>
+
+                <div class="honor-card animate-on-scroll">
+                    <div class="honor-icon">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <h4 class="honor-title">Academic Excellence</h4>
+                    <p class="honor-organization">National Taiwan University</p>
+                    <p class="honor-description">
+                        Maintaining a <strong>GPA of 3.8/4.3</strong> in International Business while completing advanced computer science and data science coursework.
+                    </p>
+                </div>
+
+                <div class="honor-card animate-on-scroll">
+                    <div class="honor-icon">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    <h4 class="honor-title">International Impact</h4>
+                    <p class="honor-organization">Global Educational Initiatives</p>
+                    <p class="honor-description">
+                        Successfully managed international programs affecting <strong>4K+ participants globally</strong>, demonstrating cross-cultural communication and project management skills.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Contact Section -->
     <section class="contact" id="contact">
         <div class="container">
@@ -886,7 +1378,7 @@
                     <a href="https://github.com/Bryant-Liu-TzuYang" class="contact-link">
                         <i class="fab fa-github"></i> GitHub
                     </a>
-                    <a href="mailto:bryant98360410@gmail.com" class="contact-link">
+                    <a href="mailto:bryant98360410@gmail.com" class="contact-link" id="emailLink" data-email="bryant98360410@gmail.com">
                         <i class="fas fa-envelope"></i> Email
                     </a>
                     <a href="https://www.linkedin.com/in/tzu-yang-liu-7755b921a/" class="contact-link">
@@ -1032,27 +1524,63 @@
             observer.observe(el);
         });
 
+        // Enhanced animation for experience timeline items
+        const experienceObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry, index) => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => {
+                        entry.target.classList.add('animated');
+                    }, index * 200); // Stagger animation
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.experience-item').forEach(el => {
+            experienceObserver.observe(el);
+        });
+
+        // Experience section collapse/expand functionality
+        document.querySelectorAll('.experience-toggle').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.stopPropagation(); // Prevent event bubbling
+                const experienceContent = this.parentElement;
+                experienceContent.classList.toggle('collapsed');
+            });
+        });
+
+        // Also allow clicking on the entire experience content to toggle
+        document.querySelectorAll('.experience-content').forEach(content => {
+            content.addEventListener('click', function(e) {
+                // Don't toggle if clicking on the button itself
+                if (!e.target.closest('.experience-toggle')) {
+                    this.classList.toggle('collapsed');
+                }
+            });
+        });
+
         // Counter animation for stats
         function animateCounters() {
             const counters = document.querySelectorAll('.stat-number');
             counters.forEach(counter => {
-                const target = parseInt(counter.textContent.replace(/[^\d]/g, ''));
+                const originalText = counter.textContent;
+                const target = parseInt(originalText.replace(/[^\d]/g, ''));
                 const increment = target / 100;
                 let current = 0;
                 
                 const updateCounter = () => {
                     if (current < target) {
                         current += increment;
-                        if (counter.textContent.includes('+')) {
-                            counter.textContent = Math.ceil(current) + '+';
-                        } else if (counter.textContent.includes('%')) {
-                            counter.textContent = Math.ceil(current) + '%';
+                        const currentValue = Math.min(Math.ceil(current), target);
+                        if (originalText.includes('+')) {
+                            counter.textContent = currentValue + '+';
+                        } else if (originalText.includes('%')) {
+                            counter.textContent = currentValue + '%';
                         } else {
-                            counter.textContent = Math.ceil(current);
+                            counter.textContent = currentValue;
                         }
                         requestAnimationFrame(updateCounter);
                     } else {
-                        counter.textContent = counter.textContent; // Reset to original
+                        counter.textContent = originalText; // Reset to original
                     }
                 };
                 
@@ -1072,6 +1600,64 @@
                 });
             });
             statsObserver.observe(statsSection);
+        }
+
+        // Email copy functionality
+        const emailLink = document.getElementById('emailLink');
+        const copyNotification = document.getElementById('copyNotification');
+
+        if (emailLink && copyNotification) {
+            emailLink.addEventListener('click', function(e) {
+                e.preventDefault(); // Prevent default mailto behavior
+                
+                const email = this.getAttribute('data-email');
+                
+                // Copy to clipboard
+                if (navigator.clipboard && window.isSecureContext) {
+                    // Modern browsers with clipboard API
+                    navigator.clipboard.writeText(email).then(() => {
+                        showCopyNotification();
+                    }).catch(() => {
+                        // Fallback if clipboard API fails
+                        fallbackCopyToClipboard(email);
+                    });
+                } else {
+                    // Fallback for older browsers
+                    fallbackCopyToClipboard(email);
+                }
+            });
+        }
+
+        function fallbackCopyToClipboard(text) {
+            // Create a temporary textarea element
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                showCopyNotification();
+            } catch (err) {
+                console.error('Failed to copy email to clipboard:', err);
+                // If all else fails, open mailto as fallback
+                window.location.href = `mailto:${text}`;
+            }
+            
+            document.body.removeChild(textArea);
+        }
+
+        function showCopyNotification() {
+            copyNotification.classList.add('show');
+            
+            // Hide notification after 2 seconds
+            setTimeout(() => {
+                copyNotification.classList.remove('show');
+            }, 2000);
         }
     </script>
 </body>

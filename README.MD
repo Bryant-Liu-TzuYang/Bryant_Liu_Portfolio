@@ -160,5 +160,8 @@ I'm always interested in discussing new opportunities, collaborating on innovati
 Some projects in the `School_Course_Projects` folder were collaborative efforts:
 - **Programming for Business Computing (PBC)** final project - collaborative development
 - **Computer Programming (CP)** final project - collaborative development
+- **Manufacturing Data Science** final project - collaborative development
+- **Big Data and Business Analysis** - collaborative development
+- **Operations Research** - collaborative development
 
 All other projects were independently developed by **Bryant Liu (劉子揚)**.
