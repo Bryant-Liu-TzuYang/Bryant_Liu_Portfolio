@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+
+<html lang="en"></html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shopee Link Crawler</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <h1>Shopee Link Crawler｜How to Use</h1>
+      <p>Developed by Bryant Liu</p>
+      <nav>
+        <a class="action" href="{{ url_for('main_page') }}">Main Page</a>
+        <a class="action" href="{{ url_for('trending') }}">Coupang Trending</a>
+        <a class="action" href="{{ url_for('about') }}">About</a>
+      </nav>
+    </header>
+  </div>
+
+  <div class="content-container" style="text-align: left; font-size: large;">
+    <h2>Prerequisites</h2>
+    <p>Please prepare a .csv file containing Shopee product names (names only)</p>
+    
+    <h2>Main Page Operation</h2>
+    <p>Step 1: Click the "Upload" button to upload the file (csv only)</p>
+    <p>Step 2: Click the "Submit" button to start the crawling process</p>
+    <p>Step 3: After column "Progress > 0%"" you can either</p>
+    <ul>
+      <li>Click the "view" button to view the crawled data on the web</li>
+    </ul>
+    <ul>
+      <li>Click the "download" button to download the crawled data</li>
+    </ul>
+
+    <h2 style="text-align: left;">Example: Input .csv Content</h2>
+    <table class="sample-table">
+      <thead>
+        <tr>
+          <th>Product Names</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Product 1</td>
+        </tr>
+        <tr>
+          <td>Product 2</td>
+        </tr>
+        <tr>
+          <td>Product 3</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2 style="text-align: left;">Example: Output .csv Content</h2>
+    <table class="sample-table">
+      <thead>
+        <tr>
+          <th>Product Names</th>
+          <th>Momo Item Names</th>
+          <th>Momo Item Links</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Product 1</td>
+          <td>Corresponded Momo Item</td>
+          <td>Momo Link</td>
+        </tr>
+        <tr>
+          <td>Product 2</td>
+          <td>Corresponded Momo Item</td>
+          <td>Momo Link</td>
+        </tr>
+        <tr>
+          <td>Product 3</td>
+          <td>Corresponded Momo Item</td>
+          <td>Momo Link</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  
+</body>

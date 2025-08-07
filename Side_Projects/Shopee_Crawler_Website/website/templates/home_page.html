@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="refresh" content="60">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Shopee Link Crawler</title>
+  <link rel="stylesheet" href="static/style.css">
+  <!-- DataTables CSS -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Shopee Link Crawler</h1>
+      <p>Developed by Bryant Liu</p>
+      <nav>
+        <a class="action" href="{{ url_for('trending') }}">Coupang Trending</a>
+        <a class="action" href="{{ url_for('how_to_use') }}">How to Use?</a>
+        <a class="action" href="{{ url_for('updates') }}">Updates</a>
+        <a class="action" href="{{ url_for('about') }}">About</a>
+      </nav>
+    </header>
+
+    <main>
+      <br><br/>
+      
+      <!-- Platform Selection -->
+      <div class="platform-selection">
+        <label style="font-weight: bold; margin-right: 15px;">Select Platform(s):</label>
+        <div class="checkbox-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="momo-checkbox" name="platform" value="momo">
+            <span class="checkmark"></span>
+            Momo
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="coupang-checkbox" name="platform" value="coupang">
+            <span class="checkmark"></span>
+            Coupang
+          </label>
+        </div>
+      </div>
+      <br/>
+      
+      <button id="upload-btn" onclick="handleFile()">Upload</button>
+      <button id="submit-btn" style="display: none;">Submit</button>
+      <br><br/>
+      <form method="post" enctype="multipart/form-data" action="/" id="upload-form">
+        <input id="file-input" type="file" accept=".csv,.xlsx" style="display:none" multiple name="file">
+        <input id="platforms" type="hidden" name="platforms" value="">
+        <input id="file-submit" type="submit" style="display: none;">
+      </form>
+
+      <div style="overflow-x: auto;">
+        <table id="sortableTable">
+          <thead>
+            <tr>
+              <th>Uploaded File name</th>
+              <th>Platforms</th>
+              <th>Status</th>
+              <th>Progress</th>
+              <th>Upload Datetime</th>
+              <th>Time Spent</th>
+              <th>View on web</th>
+              <th>Download</th>
+              <!-- <th>Delete</th> -->
+            </tr>
+          </thead>
+          <tbody id="fileTable">
+            {% for file in files %}
+              <tr>
+                <td>{{file['filename']|safe}}</td>
+                <td>{{file['platforms']|safe if file['platforms'] else 'coupang'}}</td>
+                <td style="color:gray;" id="status">{{file['status']|safe}}</td>
+                <td>{{file['progress']|safe}}</td>
+                <td>{{file['stamp']|safe}}</td>
+                <td>{{file['timeSpent']|safe}}</td>
+                {% if file['percentage'] > 0 %}
+                  <td>
+                    <form action="{{ url_for('showData', filename=file['filename']|safe, stamp=file['stamp']|safe) }}" target="_blank">
+                      <input type="submit" value="view" class="view-btn"/>
+                    </form>
+                  </td>
+                  <td>
+                    <form action="{{ url_for('download_file', filename=file['filename']|safe, stamp=file['stamp']|safe) }}">
+                      <input type="submit" value="download" class="download-btn"/>
+                    </form>
+                  </td>
+                {% else %}
+                  <td>
+                    <button class="view-btn" disabled>view</button>
+                  </td>
+                  <td>
+                    <button class="download-btn" disabled>download</button>
+                  </td>
+                {% endif %}
+                <!-- <td>
+                  <button class="delete-btn" filename="{{file['filename']|safe}}" stamp="{{file['stamp']|safe}}">delete</button>
+                </td> -->
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <!-- JavaScript at the bottom for better performance -->
+  <!-- jQuery with fallback -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js" 
+          integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" 
+          crossorigin="anonymous"></script>
+  <script>
+    // Fallback for jQuery if CDN fails
+    if (typeof jQuery === 'undefined') {
+      console.warn('Primary jQuery CDN failed, trying Google CDN...');
+      document.write('<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"><\/script>');
+    }
+  </script>
+  <script>
+    // Second fallback to local file if all CDNs fail
+    if (typeof jQuery === 'undefined') {
+      console.warn('All jQuery CDNs failed, using local fallback...');
+      document.write('<script src="static/jquery-3.7.1.min.js"><\/script>');
+    }
+  </script>
+  
+  <!-- Check jQuery loaded before continuing -->
+  <script>
+    // Final jQuery check with comprehensive fallback
+    function checkAndReportJQuery() {
+      if (typeof jQuery === 'undefined') {
+        console.error('jQuery failed to load from all sources!');
+        // Show user-friendly message
+        const alertMsg = 'jQuery library failed to load. This may be due to network issues or browser security settings. Some table features may not work properly.';
+        console.error(alertMsg);
+        
+        // Try to gracefully degrade
+        const table = document.getElementById('sortableTable');
+        if (table) {
+          console.log('Attempting to provide basic table functionality without jQuery');
+          // Add a simple message to users
+          const warningDiv = document.createElement('div');
+          warningDiv.style.backgroundColor = '#fff3cd';
+          warningDiv.style.border = '1px solid #ffeaa7';
+          warningDiv.style.color = '#856404';
+          warningDiv.style.padding = '10px';
+          warningDiv.style.marginBottom = '10px';
+          warningDiv.style.borderRadius = '4px';
+          warningDiv.innerHTML = '⚠️ Table sorting and search features are temporarily unavailable due to a loading issue.';
+          table.parentNode.insertBefore(warningDiv, table);
+        }
+      } else {
+        console.log('jQuery loaded successfully, version:', jQuery.fn.jquery);
+      }
+    }
+    
+    // Wait a moment for all scripts to load, then check
+    setTimeout(checkAndReportJQuery, 1000);
+  </script>
+
+  <!-- DataTables JS -->
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  
+  <!-- Test script for debugging -->
+  <script src="static/test.js"></script>
+  
+  <!-- Your custom script -->
+  <script src="static/script.js"></script>
+</body>
+</html>

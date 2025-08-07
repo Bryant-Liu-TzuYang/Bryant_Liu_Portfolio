@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+
+<html lang="en"></html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shopee Link Crawler</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    .content-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.7;
+    }
+    
+    .content-container h2 {
+      color: #004c73;
+      font-size: 2em;
+      margin-top: 40px;
+      margin-bottom: 20px;
+      border-bottom: 3px solid #004c73;
+      padding-bottom: 10px;
+      position: relative;
+    }
+    
+    .content-container h2::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: -3px;
+      width: 50px;
+      height: 3px;
+      background: #00354f;
+    }
+    
+    .content-container h3 {
+      color: #00354f;
+      font-size: 1.4em;
+      margin-top: 25px;
+      margin-bottom: 15px;
+      padding: 10px 15px;
+      background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+      border-radius: 8px;
+      border-left: 5px solid #004c73;
+    }
+    
+    .content-container p {
+      margin-bottom: 15px;
+      color: #333;
+      text-align: justify;
+    }
+    
+    .step-container {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      margin: 20px 0;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      border-top: 4px solid #004c73;
+    }
+    
+    .step-number {
+      display: inline-block;
+      background: #004c73;
+      color: white;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 30px;
+      font-weight: bold;
+      margin-right: 10px;
+    }
+    
+    .platform-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin: 20px 0;
+    }
+    
+    .platform-card {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      border-top: 4px solid #004c73;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .platform-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    }
+    
+    .platform-card h4 {
+      color: #004c73;
+      margin-bottom: 15px;
+      font-size: 1.2em;
+    }
+    
+    .content-container ul {
+      margin-bottom: 20px;
+      padding-left: 0;
+    }
+    
+    .content-container li {
+      background: #f8f9fa;
+      margin-bottom: 8px;
+      padding: 12px 15px;
+      border-radius: 6px;
+      border-left: 4px solid #004c73;
+      list-style: none;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .content-container li:hover {
+      transform: translateX(5px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    
+    .content-container li strong {
+      color: #004c73;
+      font-weight: 600;
+    }
+    
+    .sample-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .sample-table th {
+      background: linear-gradient(135deg, #004c73, #00354f);
+      color: white;
+      padding: 15px 12px;
+      text-align: left;
+      font-weight: 600;
+    }
+    
+    .sample-table td {
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+      transition: background-color 0.2s ease;
+    }
+    
+    .sample-table tr:hover td {
+      background-color: #f8f9fa;
+    }
+    
+    .highlight-box {
+      background: linear-gradient(135deg, #e3f2fd, #f0f8ff);
+      border: 1px solid #004c73;
+      border-radius: 10px;
+      padding: 20px;
+      margin: 20px 0;
+      position: relative;
+    }
+    
+    .highlight-box::before {
+      content: '💡';
+      position: absolute;
+      top: -10px;
+      left: 20px;
+      background: white;
+      padding: 0 10px;
+      font-size: 20px;
+    }
+    
+    .trending-steps {
+      background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+      border-radius: 15px;
+      padding: 30px;
+      margin: 30px 0;
+      border: 2px solid #004c73;
+    }
+    
+    .trending-steps h3 {
+      background: #004c73;
+      color: white;
+      margin: -30px -30px 20px -30px;
+      padding: 15px 30px;
+      border-radius: 13px 13px 0 0;
+      font-size: 1.5em;
+    }
+    
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin: 20px 0;
+    }
+    
+    .category-item {
+      background: white;
+      border: 2px solid #004c73;
+      border-radius: 8px;
+      padding: 15px;
+      text-align: center;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100px;
+      line-height: 1.2;
+    }
+    
+    .category-item:hover {
+      background: #004c73;
+      color: white;
+      transform: scale(1.05);
+    }
+    
+    .toc {
+      background: white;
+      border-radius: 15px;
+      padding: 30px;
+      margin: 30px 0;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+      border-top: 5px solid #004c73;
+    }
+    
+    .toc-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      border-bottom: 2px solid #004c73;
+      padding-bottom: 15px;
+      margin-bottom: 20px;
+      transition: all 0.3s ease;
+    }
+    
+    .toc-header:hover {
+      background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+      margin: -15px -15px 20px -15px;
+      padding: 15px 15px 15px 15px;
+      border-radius: 10px;
+    }
+    
+    .toc h2 {
+      color: #004c73;
+      font-size: 1.8em;
+      margin: 0;
+      text-align: left;
+    }
+    
+    .toggle-btn {
+      background: #004c73;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .toggle-btn:hover {
+      background: #00354f;
+      transform: scale(1.05);
+    }
+    
+    .toggle-icon {
+      transition: transform 0.3s ease;
+    }
+    
+    .toggle-icon.collapsed {
+      transform: rotate(180deg);
+    }
+    
+    .toc-content {
+      max-height: 1000px;
+      overflow: hidden;
+      transition: max-height 0.4s ease-in-out, opacity 0.3s ease;
+      opacity: 1;
+    }
+    
+    .toc-content.collapsed {
+      max-height: 0;
+      opacity: 0;
+      margin-bottom: 0;
+    }
+    
+    .toc ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .toc li {
+      margin: 15px 0;
+      background: none;
+      box-shadow: none;
+      border: none;
+      padding: 0;
+    }
+    
+    .toc li:hover {
+      transform: none;
+      box-shadow: none;
+    }
+    
+    .toc a {
+      display: block;
+      color: #004c73;
+      text-decoration: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+      border-left: 4px solid #004c73;
+      transition: all 0.3s ease;
+      font-weight: 500;
+    }
+    
+    .toc a:hover {
+      background: linear-gradient(135deg, #004c73, #00354f);
+      color: white;
+      transform: translateX(10px);
+      box-shadow: 0 4px 12px rgba(0,76,115,0.3);
+    }
+    
+    .toc .sub-item {
+      margin-left: 20px;
+      margin-top: 8px;
+    }
+    
+    .toc .sub-item a {
+      font-size: 0.9em;
+      background: linear-gradient(135deg, #e3f2fd, #f0f8ff);
+      border-left: 3px solid #5c9bd1;
+    }
+    
+    .toc .sub-item a:hover {
+      background: linear-gradient(135deg, #5c9bd1, #4a8bc2);
+    }
+
+    @media (max-width: 768px) {
+      .content-container {
+        padding: 15px;
+      }
+      
+      .content-container h2 {
+        font-size: 1.6em;
+      }
+      
+      .platform-grid, .category-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .toc .sub-item {
+        margin-left: 10px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <h1>Shopee Link Crawler｜How to Use</h1>
+      <p>Developed by Bryant Liu</p>
+      <nav>
+        <a class="action" href="{{ url_for('main_page') }}">Main Page</a>
+        <a class="action" href="{{ url_for('trending') }}">Coupang Trending</a>
+        <a class="action" href="{{ url_for('updates') }}">Updates</a>
+        <a class="action" href="{{ url_for('about') }}">About</a>
+      </nav>
+    </header>
+  </div>
+
+  <div class="content-container" style="text-align: left; font-size: large;">
+    <!-- Table of Contents -->
+    <div class="toc">
+      <div class="toc-header" onclick="toggleTOC()">
+        <h2>📋 目錄</h2>
+        <button class="toggle-btn">
+          <span class="toggle-text">隱藏</span>
+          <span class="toggle-icon">▲</span>
+        </button>
+      </div>
+      <div class="toc-content" id="tocContent">
+        <ul>
+          <li><a href="#main-page">1. Main Page 操作說明</a></li>
+          <li class="sub-item"><a href="#preparation">1.1 事前準備</a></li>
+          <li class="sub-item"><a href="#platform-selection">1.2 平台選擇說明</a></li>
+          <li class="sub-item"><a href="#default-setting">1.3 預設選擇</a></li>
+          <li class="sub-item"><a href="#operation-steps">1.4 操作步驟</a></li>
+          <li class="sub-item"><a href="#file-examples">1.5 檔案範例</a></li>
+          <li class="sub-item"><a href="#result-explanation">1.6 結果說明</a></li>
+          <li class="sub-item"><a href="#platform-features">1.7 平台特色說明</a></li>
+          <li><a href="#trending">2. 熱門商品趨勢功能使用說明</a></li>
+          <li class="sub-item"><a href="#trending-steps">2.1 操作步驟</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Main Page 操作說明 -->
+    <h2 id="main-page">1. Main Page 操作說明</h2>
+    
+    <h3 id="preparation">1.1 事前準備</h3>
+    <p>請先準備好一個 .csv 或是 .xlsx 檔案，其中
+    <ul>
+      <li>第一欄（the first column）必須是產品名稱，其他欄位沒有規定。</li>
+      <li>第一列（the first row）請給予各欄位標題。像是第一欄可以命名為 prd name 或是 Product Name。</li>
+    </ul>
+    </p>
+    <p><strong>注意事項：</strong>請注意上傳 .csv 最終下載的就是 .csv 檔， .xlsx 亦同。</p>
+    <p><strong>注意事項：</strong>商品名稱越具體，匹配結果越準確。例如「iPhone 16 128GB」比「iPhone」更容易找到精確匹配的商品。</p>
+    
+    <h3 id="platform-selection">1.2 平台選擇說明</h3>
+    <p>本系統支援多平台商品搜尋，您可以選擇以下平台：</p>
+    <div class="platform-grid">
+      <div class="platform-card">
+        <h4>🛒 Momo購物網</h4>
+        <p>台灣最大電商平台，商品種類豐富</p>
+      </div>
+      <div class="platform-card">
+        <h4>🌏 Coupang</h4>
+        <p>韓國領先電商平台，適合跨境商品研究</p>
+      </div>
+      <div class="platform-card">
+        <h4>🔄 兩個平台都選</h4>
+        <p>同時搜尋兩個平台，會需要花兩倍的時間</p>
+      </div>
+    </div>
+    
+    <h3 id="default-setting">1.3 預設選擇</h3>
+    <div class="highlight-box">
+      <p><strong>預設選擇：</strong>系統預設選擇 Coupang 平台，您可以根據需求調整。</p>
+    </div>
+    
+    <h3 id="operation-steps">1.4 操作步驟</h3>
+    <div class="step-container">
+      <h4><span class="step-number">1</span>選擇要搜尋的電商平台（可單選或多選）</h4>
+      <ul>
+        <li>勾選 "Momo" 以搜尋 Momo購物網</li>
+        <li>勾選 "Coupang" 以搜尋 Coupang</li>
+        <li>可同時勾選兩個平台進行比較</li>
+      </ul>
+    </div>
+    
+    <div class="step-container">
+      <h4><span class="step-number">2</span>上傳檔案</h4>
+      <p>點擊 "Upload" 按鈕以上傳 .csv 或 .xlsx 檔案</p>
+    </div>
+    
+    <div class="step-container">
+      <h4><span class="step-number">3</span>自動處理</h4>
+      <p>系統會自動開始爬蟲處理，無需額外點擊</p>
+    </div>
+    
+    <div class="step-container">
+      <h4><span class="step-number">4</span>監控與下載</h4>
+      <p>等到 "Progress" 欄位大於或等於 0%時，就可以進行底下兩種操作</p>
+      <ul>
+        <li>點擊 "view" 在網站上觀察目前爬蟲輸出檔案狀況，方便檢查。請注意每爬 10 筆資料檔案才會更新一次</li>
+        <li>點擊 "download" 按鈕就可以將爬到現在的輸出檔案下載下來。如果有要將連結丟到另外一個系統就可以事先下載不用等</li>
+      </ul>
+    </div>
+
+    <h3 id="file-examples">1.5 檔案範例</h3>
+    <h4 style="text-align: left;">上傳檔案範例</h4>
+    <table class="sample-table">
+      <thead>
+        <tr>
+          <th>Product Names</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Product 1</td>
+        </tr>
+        <tr>
+          <td>Product 2</td>
+        </tr>
+        <tr>
+          <td>Product 3</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h4 style="text-align: left;">輸出檔案範例</h4>
+    
+    <h5>選擇單一平台時（以 Coupang 為例）：</h5>
+    <table class="sample-table">
+      <thead>
+        <tr>
+          <th>Product Names</th>
+          <th>Coupang Item Name</th>
+          <th>Coupang Link</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Product 1</td>
+          <td>對應的 Coupang 商品</td>
+          <td>Coupang 連結</td>
+        </tr>
+        <tr>
+          <td>Product 2</td>
+          <td>對應的 Coupang 商品</td>
+          <td>Coupang 連結</td>
+        </tr>
+        <tr>
+          <td>Product 3</td>
+          <td>對應的 Coupang 商品</td>
+          <td>Coupang 連結</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h5>選擇多個平台時：</h5>
+    <table class="sample-table">
+      <thead>
+        <tr>
+          <th>Product Names</th>
+          <th>Momo Item Name</th>
+          <th>Momo Link</th>
+          <th>Coupang Item Name</th>
+          <th>Coupang Link</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Product 1</td>
+          <td>對應的 Momo 商品</td>
+          <td>Momo 連結</td>
+          <td>對應的 Coupang 商品</td>
+          <td>Coupang 連結</td>
+        </tr>
+        <tr>
+          <td>Product 2</td>
+          <td>對應的 Momo 商品</td>
+          <td>Momo 連結</td>
+          <td>對應的 Coupang 商品</td>
+          <td>Coupang 連結</td>
+        </tr>
+        <tr>
+          <td>Product 3</td>
+          <td>對應的 Momo 商品</td>
+          <td>Momo 連結</td>
+          <td>對應的 Coupang 商品</td>
+          <td>Coupang 連結</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3 id="result-explanation">1.6 結果說明</h3>
+    <p>輸出檔案會根據您選擇的平台包含對應的商品名稱和連結。沒有對應連結的可能情況如下：</p>
+    <ul>
+      <li><strong>No search result</strong> = 爬蟲在該平台沒有搜尋結果。您可以自行複製商品名稱到平台官網測試確認</li>
+      <li><strong>No corresponding item</strong> = 雖然有搜尋結果但是 AI 判斷搜尋結果中沒有匹配的產品</li>
+    </ul>
+
+    <!-- 熱門商品趨勢功能使用說明 -->
+    <h2 id="trending">2. 熱門商品趨勢功能使用說明</h2>
+    <div class="trending-steps">
+      <h3 id="trending-steps">📈 2.1 操作步驟</h3>
+      <p>全新的熱門商品趨勢分析功能，讓您輕鬆掌握 Coupang 平台的市場動態：</p>
+      
+      <div class="step-container">
+        <h4><span class="step-number">1</span>進入趨勢分析頁面</h4>
+        <p>點擊導航選單中的「Coupang Trending」連結</p>
+      </div>
+      
+      <div class="step-container">
+        <h4><span class="step-number">2</span>選擇商品類別</h4>
+        <p>從下拉選單中選擇您感興趣的商品類別：</p>
+        <div class="category-grid" id="trending-categories">
+          <div class="category-item"><strong>Phone Only</strong><br>手機類商品</div>
+          <div class="category-item"><strong>Phone Accessories</strong><br>手機配件</div>
+          <div class="category-item"><strong>Computer Laptop</strong><br>筆記型電腦</div>
+          <div class="category-item"><strong>Computer Accessories</strong><br>電腦配件</div>
+          <div class="category-item"><strong>Game</strong><br>遊戲相關商品</div>
+          <div class="category-item"><strong>Home Electronic</strong><br>家電產品</div>
+        </div>
+      </div>
+      
+      <div class="step-container">
+        <h4><span class="step-number">3</span>選擇查詢日期</h4>
+        <p>使用日期選擇器挑選您要查看的日期，系統會顯示該日期的熱門商品資料</p>
+      </div>
+      
+      <div class="step-container">
+        <h4><span class="step-number">4</span>瀏覽趨勢數據</h4>
+        <p>系統會載入對應的熱門商品清單，表格包含以下功能：</p>
+        <ul>
+          <li><strong>搜尋功能</strong>：可在表格中搜尋特定商品</li>
+          <li><strong>排序功能</strong>：點擊欄位標題進行排序</li>
+          <li><strong>分頁瀏覽</strong>：大量數據自動分頁顯示</li>
+          <li><strong>商品連結</strong>：直接點擊商品名稱前往 Coupang 商品頁面</li>
+        </ul>
+      </div>
+      
+      <div class="step-container">
+        <h4><span class="step-number">5</span>下載數據</h4>
+        <p>提供兩種下載選項：</p>
+        <ul>
+          <li><strong>Download Selected Category</strong>：下載當前選擇類別的 CSV 檔案</li>
+          <li><strong>Download All (ZIP)</strong>：下載該日期所有類別的 ZIP 壓縮檔</li>
+        </ul>
+      </div>
+      
+      <div class="highlight-box" id="trending-features">
+        <p><strong>小提示：</strong>頁面會顯示趨勢資料的建立時間，方便您掌握資訊的時效性。</p>
+      </div>
+    </div>
+      
+  </div>
+  
+  <script>
+    function toggleTOC() {
+      const tocContent = document.getElementById('tocContent');
+      const toggleIcon = document.querySelector('.toggle-icon');
+      const toggleText = document.querySelector('.toggle-text');
+      
+      if (tocContent.classList.contains('collapsed')) {
+        // Show TOC
+        tocContent.classList.remove('collapsed');
+        toggleIcon.classList.remove('collapsed');
+        toggleText.textContent = '隱藏';
+        toggleIcon.textContent = '▲';
+      } else {
+        // Hide TOC
+        tocContent.classList.add('collapsed');
+        toggleIcon.classList.add('collapsed');
+        toggleText.textContent = '顯示';
+        toggleIcon.textContent = '▼';
+      }
+    }
+    
+    // Optional: Add smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+      });
+    });
+  </script>
+  
+</body>

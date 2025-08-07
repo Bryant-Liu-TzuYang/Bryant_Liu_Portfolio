@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shopee Link Crawler｜Updates</title>
+  <link rel="stylesheet" href="static/style.css">
+  <style>
+    .updates-content {
+      max-width: 900px;
+      margin: 0 auto;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 30px;
+      margin-top: 20px;
+    }
+    
+    .updates-header {
+      margin-bottom: 30px;
+      text-align: center;
+      border-bottom: 2px solid #004c73;
+      padding-bottom: 20px;
+    }
+    
+    .updates-header h2 {
+      color: #004c73;
+      margin-bottom: 10px;
+      font-size: 28px;
+    }
+    
+    .updates-header p {
+      color: #666;
+      font-size: 16px;
+    }
+    
+    .updates-meta {
+      background-color: #f8f9fa;
+      border-radius: 5px;
+      padding: 15px;
+      margin-bottom: 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    
+    .updates-meta .meta-item {
+      display: flex;
+      align-items: center;
+      margin: 5px 0;
+    }
+    
+    .updates-meta .meta-label {
+      font-weight: bold;
+      color: #004c73;
+      margin-right: 8px;
+    }
+    
+    .refresh-btn {
+      background-color: #004c73;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    
+    .refresh-btn:hover {
+      background-color: #00354f;
+    }
+    
+    .refresh-btn:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    
+    .updates-list {
+      line-height: 1.6;
+    }
+    
+    .update-item {
+      margin-bottom: 15px;
+      padding: 10px 0;
+    }
+    
+    .update-item.heading-1 {
+      font-size: 24px;
+      font-weight: bold;
+      color: #004c73;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 10px;
+      margin-top: 25px;
+      margin-bottom: 20px;
+    }
+    
+    .update-item.heading-2 {
+      font-size: 20px;
+      font-weight: bold;
+      color: #2c5c7a;
+      margin-top: 20px;
+      margin-bottom: 15px;
+    }
+    
+    .update-item.heading-3 {
+      font-size: 18px;
+      font-weight: bold;
+      color: #3d6b8a;
+      margin-top: 15px;
+      margin-bottom: 10px;
+    }
+    
+    .update-item.paragraph {
+      font-size: 16px;
+      color: #333;
+      margin-bottom: 12px;
+    }
+    
+    .update-item.list-item {
+      font-size: 16px;
+      color: #333;
+      margin-left: 20px;
+      position: relative;
+    }
+    
+    .update-item.list-item::before {
+      content: "•";
+      color: #004c73;
+      font-weight: bold;
+      position: absolute;
+      left: -15px;
+    }
+    
+    .update-item.numbered-list-item {
+      font-size: 16px;
+      color: #333;
+      margin-left: 20px;
+      counter-increment: list-counter;
+    }
+    
+    .numbered-list {
+      counter-reset: list-counter;
+    }
+    
+    .update-item.numbered-list-item::before {
+      content: counter(list-counter) ". ";
+      color: #004c73;
+      font-weight: bold;
+    }
+    
+    .toggle-block {
+      margin: 15px 0;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      background-color: #fafafa;
+    }
+    
+    .toggle-header {
+      padding: 12px 16px;
+      cursor: pointer;
+      user-select: none;
+      background-color: #f5f5f5;
+      border-radius: 8px 8px 0 0;
+      display: flex;
+      align-items: center;
+      transition: background-color 0.2s;
+    }
+    
+    .toggle-header:hover {
+      background-color: #eeeeee;
+    }
+    
+    .toggle-header.active {
+      background-color: #004c73;
+      color: white;
+    }
+    
+    .toggle-icon {
+      margin-right: 8px;
+      font-size: 12px;
+      transition: transform 0.2s;
+    }
+    
+    .toggle-icon.expanded {
+      transform: rotate(90deg);
+    }
+    
+    .toggle-content {
+      padding: 16px;
+      border-top: 1px solid #e0e0e0;
+      background-color: white;
+      border-radius: 0 0 8px 8px;
+      display: none;
+    }
+    
+    .toggle-content.show {
+      display: block;
+    }
+    
+    .nested-content {
+      margin-left: 20px;
+    }
+    
+    .depth-1 { margin-left: 20px; }
+    .depth-2 { margin-left: 40px; }
+    .depth-3 { margin-left: 60px; }
+    
+    .code-block {
+      background-color: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 4px;
+      padding: 12px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      margin: 10px 0;
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+    
+    .callout-block {
+      background-color: #f0f8ff;
+      border-left: 4px solid #004c73;
+      padding: 12px 16px;
+      margin: 10px 0;
+      border-radius: 0 4px 4px 0;
+    }
+    
+    .callout-icon {
+      margin-right: 8px;
+      font-size: 16px;
+    }
+    
+    .quote-block {
+      border-left: 4px solid #ccc;
+      padding-left: 16px;
+      margin: 10px 0;
+      font-style: italic;
+      color: #666;
+    }
+    
+    /* Rich text formatting support */
+    .update-item strong, .update-item b {
+      font-weight: bold;
+      color: #004c73;
+    }
+    
+    .update-item em, .update-item i {
+      font-style: italic;
+    }
+    
+    .update-item code {
+      background-color: #f1f3f4;
+      padding: 2px 4px;
+      border-radius: 3px;
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 0.9em;
+      color: #d73a49;
+    }
+    
+    /* Improve spacing and readability */
+    .toggle-content .update-item {
+      margin-bottom: 8px;
+    }
+    
+    .updates-list p {
+      margin: 8px 0;
+      line-height: 1.5;
+    }
+    
+    /* Better visual hierarchy for nested content */
+    .depth-1 {
+      border-left: 3px solid #e0e0e0;
+      padding-left: 15px;
+      margin-left: 5px;
+    }
+    
+    .depth-2 {
+      border-left: 2px solid #f0f0f0;
+      padding-left: 12px;
+      margin-left: 5px;
+    }
+    
+    .depth-3 {
+      border-left: 1px solid #f8f8f8;
+      padding-left: 10px;
+      margin-left: 5px;
+    }
+    
+    .error-message {
+      background-color: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 20px 0;
+      text-align: center;
+    }
+    
+    .no-updates {
+      text-align: center;
+      color: #666;
+      font-style: italic;
+      padding: 40px 20px;
+    }
+    
+    .fallback-message {
+      background-color: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 5px;
+      padding: 20px;
+      text-align: center;
+      margin: 20px 0;
+    }
+    
+    .fallback-message a {
+      color: #004c73;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    
+    .fallback-message a:hover {
+      text-decoration: underline;
+    }
+    
+    .loading-indicator {
+      text-align: center;
+      padding: 40px 20px;
+      color: #666;
+      animation: fadeIn 0.3s ease-in;
+    }
+    
+    .loading-spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #004c73;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 10px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Add smooth transitions for content loading */
+    .updates-content {
+      opacity: 1;
+      transition: opacity 0.3s ease-in-out;
+    }
+    
+    .updates-content.loading {
+      opacity: 0.7;
+    }
+    
+    /* Skeleton loading styles */
+    .skeleton {
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background-size: 200% 100%;
+      animation: loading 1.5s infinite;
+    }
+    
+    @keyframes loading {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    
+    @media (max-width: 768px) {
+      .updates-content {
+        margin: 10px;
+        padding: 20px;
+      }
+      
+      .updates-meta {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      .updates-meta .meta-item {
+        justify-content: space-between;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <h1>Shopee Link Crawler｜Updates</h1>
+      <p>Developed by Bryant Liu</p>
+      <nav>
+        <a class="action" href="{{ url_for('main_page') }}">Main Page</a>
+        <a class="action" href="{{ url_for('trending') }}">Coupang Trending</a>
+        <a class="action" href="{{ url_for('how_to_use') }}">How to Use?</a>
+        <a class="action" href="{{ url_for('about') }}">About</a>
+      </nav>
+    </header>
+    
+    <div class="updates-content">
+      <div class="updates-header">
+        <h2>Project Updates & Development Journal</h2>
+        <p>Stay updated with the latest changes, improvements, and development progress</p>
+        <!-- Fallback link -->
+        <div class="fallback-message" style="margin-top: 20px; padding: 15px;">
+            <p style="margin: 0 0 10px 0;"><strong>View Live Updates:</strong></p>
+            <a href="https://www.notion.so/Shoppee-4454baa0c2964320ba4177f288cc7113" target="_blank" rel="noopener noreferrer">
+            Open in Notion →
+            </a>
+        </div>
+      </div>
+
+      {% if error %}
+        <div class="error-message">
+          <h3>Error Loading Updates</h3>
+          <p>{{ error }}</p>
+          <div class="fallback-message">
+            <p>You can access the updates directly on Notion:</p>
+            <a href="https://www.notion.so/Shoppee-4454baa0c2964320ba4177f288cc7113" target="_blank" rel="noopener noreferrer">
+              View Updates on Notion →
+            </a>
+          </div>
+        </div>
+      {% elif updates_data %}
+        <div class="updates-meta">
+          <div>
+            <div class="meta-item">
+              <span class="meta-label">Last Updated:</span>
+              <span id="last-updated">{{ updates_data.last_edited[:19] if updates_data.last_edited else 'Unknown' }}</span>
+              <small style="color: #999; margin-left: 5px;">(Local)</small>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Fetched:</span>
+              <span id="fetched-time">{{ updates_data.fetch_time[:19] if updates_data.fetch_time else 'Unknown' }}</span>
+              <small style="color: #999; margin-left: 5px;">(Local)</small>
+            </div>
+            <div class="meta-item" style="font-size: 12px; color: #666; margin-top: 5px;">
+              <small>Note: Notion API may have delays in updating timestamps</small>
+            </div>
+          </div>
+          <button class="refresh-btn" onclick="refreshUpdates()" id="refresh-btn">
+            Refresh Updates
+          </button>
+        </div>
+
+        {% if updates_data.updates %}
+          <!-- Define recursive macro for rendering blocks -->
+          {% macro render_block(block, depth=0) %}
+            <div class="update-item {{ block.type }} depth-{{ depth }}">
+              {% if block.type == 'toggle' %}
+                <div class="toggle-block">
+                  <div class="toggle-header" onclick="toggleContent(this)">
+                    <span class="toggle-icon">▶</span>
+                    <span>{{ block.content }}</span>
+                  </div>
+                  <div class="toggle-content">
+                    {% if block.children %}
+                      {% for child in block.children %}
+                        {{ render_block(child, depth + 1) }}
+                      {% endfor %}
+                    {% endif %}
+                  </div>
+                </div>
+              {% elif block.type == 'code' %}
+                <div class="code-block">
+                  <small style="color: #666;">{{ block.language or 'text' }}</small>
+                  <pre>{{ block.content }}</pre>
+                </div>
+              {% elif block.type == 'callout' %}
+                <div class="callout-block">
+                  {% if block.icon %}<span class="callout-icon">{{ block.icon }}</span>{% endif %}
+                  {{ block.content | safe }}
+                </div>
+              {% elif block.type == 'quote' %}
+                <div class="quote-block">
+                  {{ block.content }}
+                </div>
+              {% else %}
+                {{ block.content | safe }}
+              {% endif %}
+              
+              {% if block.children and block.type != 'toggle' %}
+                <div class="nested-content">
+                  {% for child in block.children %}
+                    {{ render_block(child, depth + 1) }}
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+          {% endmacro %}
+
+          <div class="updates-list">
+            <div class="numbered-list">
+              {% for update in updates_data.updates %}
+                {% if update.type != 'heading_1' %}
+                  {{ render_block(update) }}
+                {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+        {% else %}
+          <div class="no-updates">
+            <p>No updates available at the moment.</p>
+            <p>Check back later or visit the Notion page directly.</p>
+          </div>
+        {% endif %}
+      {% else %}
+        <div class="loading-indicator" id="loading-indicator">
+          <div class="loading-spinner"></div>
+          <span>Loading updates...</span>
+        </div>
+        <!-- Placeholder for async loaded content -->
+        <div id="updates-content-placeholder" style="display: none;"></div>
+      {% endif %}
+    </div>
+  </div>
+
+  <script>
+    function toggleContent(header) {
+      const content = header.nextElementSibling;
+      const icon = header.querySelector('.toggle-icon');
+      
+      if (content.classList.contains('show')) {
+        content.classList.remove('show');
+        icon.classList.remove('expanded');
+        header.classList.remove('active');
+        icon.textContent = '▶';
+      } else {
+        content.classList.add('show');
+        icon.classList.add('expanded');
+        header.classList.add('active');
+        icon.textContent = '▼';
+      }
+    }
+
+    async function refreshUpdates() {
+      const refreshBtn = document.getElementById('refresh-btn');
+      if (!refreshBtn) return;
+      
+      const originalText = refreshBtn.textContent;
+      
+      refreshBtn.disabled = true;
+      refreshBtn.textContent = 'Refreshing...';
+      
+      try {
+        const response = await fetch('/updates/refresh', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+        
+        const result = await response.json();
+        
+        if (result.status === 'success') {
+          // Reload updates data instead of full page
+          await loadUpdatesAsync();
+        } else {
+          alert('Error refreshing updates: ' + result.message);
+        }
+      } catch (error) {
+        alert('Error refreshing updates: ' + error.message);
+      } finally {
+        refreshBtn.disabled = false;
+        refreshBtn.textContent = originalText;
+      }
+    }
+    
+    // Auto-refresh every 15 minutes  
+    setInterval(function() {
+      // Instead of reloading, just refresh the data
+      loadUpdatesAsync();
+    }, 15 * 60 * 1000);
+
+    // Async loading function
+    async function loadUpdatesAsync() {
+      try {
+        // Add timeout to prevent hanging
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+        
+        const response = await fetch('/updates/data', {
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.status === 'success' && result.data) {
+          // Hide loading indicator
+          const loadingIndicator = document.getElementById('loading-indicator');
+          if (loadingIndicator) {
+            loadingIndicator.style.display = 'none';
+          }
+          
+          // Render the updates content
+          renderUpdatesContent(result.data);
+        } else {
+          showErrorMessage('Failed to load updates: ' + (result.message || 'Unknown error'));
+        }
+      } catch (error) {
+        console.error('Error loading updates:', error);
+        if (error.name === 'AbortError') {
+          showErrorMessage('Request timed out. Please try refreshing the page.');
+        } else {
+          showErrorMessage('Error loading updates: ' + error.message);
+        }
+      }
+    }
+
+    function renderUpdatesContent(updatesData) {
+      const placeholder = document.getElementById('updates-content-placeholder');
+      if (!placeholder) return;
+      
+      // Build the HTML content
+      let html = `
+        <div class="updates-meta">
+          <div>
+            <div class="meta-item">
+              <span class="meta-label">Last Updated:</span>
+              <span id="last-updated">${updatesData.last_edited ? updatesData.last_edited.slice(0, 19) : 'Unknown'}</span>
+              <small style="color: #999; margin-left: 5px;">(Local)</small>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Fetched:</span>
+              <span id="fetched-time">${updatesData.fetch_time ? updatesData.fetch_time.slice(0, 19) : 'Unknown'}</span>
+              <small style="color: #999; margin-left: 5px;">(Local)</small>
+            </div>
+            <div class="meta-item" style="font-size: 12px; color: #666; margin-top: 5px;">
+              <small>Note: Notion API may have delays in updating timestamps</small>
+            </div>
+          </div>
+          <button class="refresh-btn" onclick="refreshUpdates()" id="refresh-btn">
+            Refresh Updates
+          </button>
+        </div>
+      `;
+      
+      if (updatesData.updates && updatesData.updates.length > 0) {
+        html += '<div class="updates-list"><div class="numbered-list">';
+        
+        updatesData.updates.forEach(update => {
+          if (update.type !== 'heading_1') {
+            html += renderBlock(update);
+          }
+        });
+        
+        html += '</div></div>';
+      } else {
+        html += `
+          <div class="no-updates">
+            <p>No updates available at the moment.</p>
+            <p>Check back later or visit the Notion page directly.</p>
+          </div>
+        `;
+      }
+      
+      placeholder.innerHTML = html;
+      placeholder.style.display = 'block';
+      
+      // Convert times to local format
+      convertToLocalTime();
+    }
+
+    function renderBlock(block) {
+      // Simple block rendering - you can expand this based on your needs
+      const depth = block.depth || 0;
+      let html = `<div class="update-item ${block.type} depth-${depth}">`;
+      
+      if (block.type === 'toggle') {
+        html += `
+          <div class="toggle-block">
+            <div class="toggle-header" onclick="toggleContent(this)">
+              <span class="toggle-icon">▶</span>
+              <span>${block.content || ''}</span>
+            </div>
+            <div class="toggle-content">
+        `;
+        
+        if (block.children) {
+          block.children.forEach(child => {
+            html += renderBlock(child);
+          });
+        }
+        
+        html += '</div></div>';
+      } else if (block.type === 'code') {
+        html += `
+          <div class="code-block">
+            <small style="color: #666;">${block.language || 'text'}</small>
+            <pre>${block.content || ''}</pre>
+          </div>
+        `;
+      } else if (block.type === 'callout') {
+        html += `
+          <div class="callout-block">
+            ${block.icon ? `<span class="callout-icon">${block.icon}</span>` : ''}
+            ${block.content || ''}
+          </div>
+        `;
+      } else if (block.type === 'quote') {
+        html += `<div class="quote-block">${block.content || ''}</div>`;
+      } else {
+        html += block.content || '';
+      }
+      
+      if (block.children && block.type !== 'toggle') {
+        html += '<div class="nested-content">';
+        block.children.forEach(child => {
+          html += renderBlock(child);
+        });
+        html += '</div>';
+      }
+      
+      html += '</div>';
+      return html;
+    }
+
+    function showErrorMessage(message) {
+      const loadingIndicator = document.getElementById('loading-indicator');
+      if (loadingIndicator) {
+        loadingIndicator.innerHTML = `
+          <div class="error-message">
+            <h3>Error Loading Updates</h3>
+            <p>${message}</p>
+            <div class="fallback-message">
+              <p>You can access the updates directly on Notion:</p>
+              <a href="https://www.notion.so/Shoppee-4454baa0c2964320ba4177f288cc7113" target="_blank" rel="noopener noreferrer">
+                View Updates on Notion →
+              </a>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    // Convert UTC times to local time
+    function convertToLocalTime() {
+      const lastUpdatedElement = document.getElementById('last-updated');
+      const fetchedTimeElement = document.getElementById('fetched-time');
+      
+      if (lastUpdatedElement && lastUpdatedElement.textContent !== 'Unknown') {
+        try {
+          // Parse the UTC time and convert to local time
+          const utcTime = lastUpdatedElement.textContent + 'Z'; // Add Z to indicate UTC
+          const localTime = new Date(utcTime);
+          if (!isNaN(localTime.getTime())) {
+            lastUpdatedElement.textContent = localTime.toLocaleString();
+          }
+        } catch (error) {
+          console.error('Error converting last updated time:', error);
+        }
+      }
+      
+      if (fetchedTimeElement && fetchedTimeElement.textContent !== 'Unknown') {
+        try {
+          // The fetched time is already in local format, but let's ensure consistent formatting
+          const fetchedTime = new Date(fetchedTimeElement.textContent);
+          if (!isNaN(fetchedTime.getTime())) {
+            fetchedTimeElement.textContent = fetchedTime.toLocaleString();
+          }
+        } catch (error) {
+          console.error('Error formatting fetched time:', error);
+        }
+      }
+    }
+
+    // Auto-expand first toggle on page load and convert times
+    document.addEventListener('DOMContentLoaded', function() {
+      // Check if we have updates data already loaded
+      const hasUpdatesData = document.querySelector('.updates-meta') !== null;
+      
+      if (hasUpdatesData) {
+        // Convert times to local format
+        convertToLocalTime();
+        
+        // Auto-expand first toggle
+        const firstToggle = document.querySelector('.toggle-header');
+        if (firstToggle) {
+          toggleContent(firstToggle);
+        }
+      } else {
+        // Load updates asynchronously
+        loadUpdatesAsync();
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,389 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+  
+.container {
+  margin: 0 auto;
+  padding: 10px 10px;
+}
+
+.content-container {
+  margin: 0 auto;
+  margin-left: 20px;
+  padding: 20px 20px;
+}
+
+header {
+  background-color: #004c73;
+  color: white;
+  text-align: center;
+  padding: 10px 20px;
+  border-radius: 5px;
+}
+
+
+header nav a {
+  margin: 0 10px;
+  color: white;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+header nav a:hover {
+  text-decoration: underline;
+}
+
+input {
+  background-color: #004c73;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+input:hover {
+  background-color: #00354f;
+}
+
+button {
+  font-size: large;
+  background-color: #004c73;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #00354f;
+}
+
+/* Specific styling for upload button to ensure correct color */
+#upload-btn {
+  background-color: #004c73 !important;
+  color: white !important;
+  border: none !important;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: large;
+}
+
+#upload-btn:hover {
+  background-color: #00354f !important;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.done {
+  color: green;
+}
+
+.failed {
+  color: red;
+}
+
+.button {
+  font-size: large;
+  background-color: #004c73;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.grid-container {
+  display: grid;
+  grid-template-columns: 30% 70%;
+}
+
+.center-table {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.sample-table {
+  width: 400px; /* or adjust as you like, e.g. 320px */
+  border-collapse: collapse;
+  border: 2px solid #333;   /* Outer border */
+  background: #fff;
+}
+
+.sample-table th,
+.sample-table td {
+  text-align: center;
+  padding: 10px;
+  border: 1px solid #ddd; /* Cell borders */
+}
+
+.sample-table th {
+  background-color: #fafbfc;
+  font-weight: bold;
+}
+
+
+/* 基本排版 */
+table.dataTable {
+  border-collapse: collapse !important;
+  border: none !important;
+  width: 100% !important;
+  font-size: 14px;
+  background-color: white;
+}
+
+/* 表頭樣式：無漸層、無陰影、字靠左 */
+table.dataTable thead th {
+  background: none !important;
+  background-color: #f7f9fc !important;
+  box-shadow: none !important;
+  color: #333;
+  font-weight: bold;
+  text-align: center;
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+/* 表格列樣式 */
+table.dataTable tbody td {
+  padding: 10px;
+  border: none;
+  color: #222;
+}
+
+/* 偶數列底色淡化 */
+table.dataTable tbody tr:nth-child(even) {
+  background-color: #fcfcfc;
+}
+
+/* 搜尋欄與下拉選單 */
+.dataTables_filter input,
+.dataTables_length select {
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+/* 搜尋靠右，下拉靠左 */
+.dataTables_filter { float: right; }
+.dataTables_length { float: left; }
+
+/* 分頁按鈕一致風格 */
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+  padding: 5px 10px;
+  margin: 0 2px;
+  border: 1px solid #004c73;
+  background-color: white;
+  color: #004c73;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+  background-color: #004c73;
+  color: white !important;
+}
+
+.dataTables_info {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #555;
+}
+
+/* 標題排序箭頭顏色淡化 */
+table.dataTable thead .sorting:before,
+table.dataTable thead .sorting:after,
+table.dataTable thead .sorting_asc:before,
+table.dataTable thead .sorting_desc:after {
+  color: #aaa !important;
+  opacity: 0.8;
+}
+
+
+.view-btn,
+.stop-btn,
+.download-btn,
+.delete-btn {
+  background-color: white;
+  color: #004c73;
+  border: 1px solid #004c73;
+  padding: 5px 10px;
+  border-radius: 3px;
+  font-size: medium;
+}
+
+.view-btn:hover,
+.stop-btn:hover,
+.download-btn:hover {
+  background-color: #004c73;
+  color: white;
+}
+
+.delete-btn {
+  background-color: white;
+  color: #dc3545;
+  border: 1px solid #dc3545;
+}
+
+.delete-btn:hover {
+  background-color: #dc3545;
+  color: white;
+}
+
+.delete-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.view-btn:disabled,
+.download-btn:disabled {
+  opacity: 0.5;
+  filter: blur(1px) grayscale(70%);
+  cursor: not-allowed;
+  /* Optional: give them a little grayscale too for extra effect */
+  /* filter: blur(1px) grayscale(70%); */
+  /* You can adjust the blur (px) and opacity as you like */
+}
+
+table th,
+table td {
+  text-align: center;
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+/* Platform Selection Styles */
+.platform-selection {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 15px;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.platform-selection label:first-child {
+  font-weight: bold;
+  color: #004c73;
+  margin-right: 20px;
+  font-size: 16px;
+}
+
+.checkbox-group {
+  display: flex;
+  gap: 25px;
+  align-items: center;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+  user-select: none;
+  transition: all 0.3s ease;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 2px solid transparent;
+}
+
+.checkbox-label:hover {
+  color: #004c73;
+  background-color: #e3f2fd;
+  border-color: #004c73;
+}
+
+.checkbox-label input[type="checkbox"] {
+  margin-right: 10px;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #004c73;
+  transform: scale(1.1);
+}
+
+.checkbox-label input[type="checkbox"]:checked + span {
+  color: #004c73;
+  font-weight: 600;
+}
+
+.checkbox-label:has(input:checked) {
+  background-color: #e3f2fd;
+  border-color: #004c73;
+  box-shadow: 0 2px 4px rgba(0, 76, 115, 0.1);
+}
+
+.checkbox-label input[type="checkbox"]:focus {
+  outline: 2px solid #004c73;
+  outline-offset: 2px;
+}
+
+/* Platform Preference Feedback */
+.platform-selection.loading {
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+}
+
+.preference-status {
+  font-size: 12px;
+  color: #28a745;
+  margin-left: 10px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.preference-status.show {
+  opacity: 1;
+}
+
+.checkbox-label.preference-loaded {
+  animation: preferenceLoaded 0.5s ease-in-out;
+}
+
+@keyframes preferenceLoaded {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* Responsive design for platform selection */
+@media (max-width: 768px) {
+  .platform-selection {
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+  }
+  
+  .platform-selection label:first-child {
+    margin-right: 0;
+    margin-bottom: 5px;
+  }
+  
+  .checkbox-group {
+    flex-direction: row;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .checkbox-group {
+    flex-direction: column;
+    gap: 10px;
+  }
+}

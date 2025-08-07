@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Service Label (must be unique) -->
+    <key>Label</key>
+    <string>com.user.coupang.crawler.login</string>
+    
+    <!-- Program to run with explicit shell -->
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/Users/bryant_lue/Documents/GitHub/Shopee_Crawler_Website/service/get_coupang_trending/run_coupang_crawler.sh</string>
+    </array>
+    
+    <!-- Working Directory -->
+    <key>WorkingDirectory</key>
+    <string>/Users/bryant_lue</string>
+    
+    <!-- Run at login instead of scheduled time -->
+    <!-- Removed StartCalendarInterval to disable 2 AM scheduling -->
+    
+    <!-- Standard Output Log -->
+    <key>StandardOutPath</key>
+    <string>/Users/bryant_lue/Documents/GitHub/Shopee_Crawler_Website/logs/launchd_stdout.log</string>
+    
+    <!-- Standard Error Log -->
+    <key>StandardErrorPath</key>
+    <string>/Users/bryant_lue/Documents/GitHub/Shopee_Crawler_Website/logs/launchd_stderr.log</string>
+    
+    <!-- Run when service is loaded (i.e., at login) -->
+    <key>RunAtLoad</key>
+    <true/>
+    
+    <!-- Keep the job loaded -->
+    <key>KeepAlive</key>
+    <false/>
+    
+    <!-- Environment Variables -->
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/Users/bryant_lue/anaconda3/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <key>HOME</key>
+        <string>/Users/bryant_lue</string>
+        <key>USER</key>
+        <string>bryant_lue</string>
+        <key>SHELL</key>
+        <string>/bin/bash</string>
+    </dict>
+    
+    <!-- Process Type (Interactive for Safari automation) -->
+    <key>ProcessType</key>
+    <string>Interactive</string>
+    
+    <!-- Session Create (required for GUI applications) -->
+    <key>SessionCreate</key>
+    <true/>
+</dict>
+</plist>

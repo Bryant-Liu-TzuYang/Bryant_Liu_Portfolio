@@ -1,0 +1,17 @@
+Flask==3.0.0
+Jinja2==3.1.4
+click==8.1.7
+gunicorn
+pyodbc
+pydantic
+pandas
+openai
+selenium
+chromedriver-autoinstaller
+chromedriver-py==138.0.7204.94
+undetected-chromedriver
+sentry-sdk[flask]
+openpyxl
+notion-client==2.2.1
+requests==2.31.0
+python-dotenv

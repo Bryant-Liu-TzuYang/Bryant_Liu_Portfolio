@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Coupang Trending Products</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <!-- DataTables CSS -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <!-- DataTables JS -->
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <style>
+    .selection-container {
+      background-color: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      border: 1px solid #dee2e6;
+    }
+    
+    .selection-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+      gap: 15px;
+    }
+    
+    .selection-label {
+      font-weight: bold;
+      min-width: 120px;
+    }
+    
+    select {
+      padding: 8px 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+      min-width: 200px;
+    }
+    
+    input[type="date"] {
+      padding: 8px 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+      color: #333;
+      background-color: white;
+    }
+    
+    .download-buttons {
+      display: flex;
+      gap: 10px;
+      margin: 20px 0;
+    }
+    
+    .download-btn {
+      background-color: #004c73;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      text-decoration: none;
+      display: inline-block;
+    }
+    
+    .download-btn:hover {
+      background-color: #00354f;
+    }
+    
+    .download-btn:disabled {
+      background-color: #6c757d;
+      cursor: not-allowed;
+    }
+    
+    .table-container {
+      margin: 20px 0;
+      overflow-x: auto;
+    }
+    
+    #trendingTable {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    
+    #trendingTable th,
+    #trendingTable td {
+      border: 1px solid #dee2e6;
+      padding: 12px;
+      text-align: left;
+    }
+    
+    #trendingTable th {
+      background-color: #004c73;
+      color: black;
+      font-weight: bold;
+    }
+    
+    #trendingTable tr:nth-child(even) {
+      background-color: #f8f9fa;
+    }
+    
+    #trendingTable tr:hover {
+      background-color: #e9ecef;
+    }
+    
+    .ranking-cell {
+      text-align: center;
+      font-weight: bold;
+      color: #004c73;
+    }
+    
+    .price-cell {
+      text-align: right;
+      font-weight: bold;
+      color: #28a745;
+    }
+    
+    .name-cell {
+      max-width: 400px;
+      word-wrap: break-word;
+    }
+    
+    .link-cell {
+      text-align: center;
+    }
+    
+    .link-btn {
+      background-color: #004c73;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 3px;
+      text-decoration: none;
+      font-size: 12px;
+    }
+    
+    .link-btn:hover {
+      background-color: #00354f;
+    }
+    
+    .error-message {
+      background-color: #f8d7da;
+      color: #721c24;
+      padding: 15px;
+      border-radius: 5px;
+      border: 1px solid #f5c6cb;
+      margin: 20px 0;
+    }
+    
+    .loading-message {
+      background-color: #d1ecf1;
+      color: #0c5460;
+      padding: 15px;
+      border-radius: 5px;
+      border: 1px solid #bee5eb;
+      margin: 20px 0;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Coupang Trending Products</h1>
+      <p>View trending products by category and date</p>
+      <nav>
+        <a class="action" href="{{ url_for('main_page') }}">Home</a>
+        <a class="action" href="{{ url_for('how_to_use') }}">How to Use?</a>
+        <a class="action" href="{{ url_for('updates') }}">Updates</a>
+        <a class="action" href="{{ url_for('about') }}">About</a>
+      </nav>
+    </header>
+
+    <main>
+      <div class="selection-container">
+        <div class="selection-row">
+          <label class="selection-label">Category:</label>
+          <select id="categorySelect">
+            <option value="Phone Only">Phone Only</option>
+            <option value="Phone Accessories">Phone Accessories</option>
+            <option value="Computer Laptop">Computer Laptop</option>
+            <option value="Computer Accessories">Computer Accessories</option>
+            <option value="Game">Game</option>
+            <option value="Home Electronic">Home Electronic</option>
+          </select>
+        </div>
+        
+        <div class="selection-row">
+          <label class="selection-label">Date:</label>
+          <input type="date" id="dateSelect" value="{{ current_date }}">
+          <span id="fileCreatedInfo" style="color: #666; font-size: 14px; margin-left: 15px;"></span>
+        </div>
+      </div>
+      
+      <div class="download-buttons">
+        <button id="downloadSelected" class="download-btn">Download Selected Category</button>
+        <button id="downloadAll" class="download-btn">Download All Categories</button>
+      </div>
+      
+      <div id="loadingMessage" class="loading-message" style="display: none;">
+        Loading trending data...
+      </div>
+      
+      <div id="errorMessage" class="error-message" style="display: none;">
+      </div>
+      
+      <div class="table-container">
+        <table id="trendingTable" style="display: none;">
+          <thead>
+            <tr>
+              <th>Ranking</th>
+              <th>Product Name</th>
+              <th>Price (NT$)</th>
+              <th>Link</th>
+            </tr>
+          </thead>
+          <tbody id="trendingTableBody">
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    $(document).ready(function() {
+      // Load initial data
+      loadTrendingData();
+      
+      // Event listeners
+      $('#categorySelect, #dateSelect').on('change', function() {
+        console.log('Category or date changed. Category:', $('#categorySelect').val(), 'Date:', $('#dateSelect').val());
+        loadTrendingData();
+      });
+      
+      $('#downloadSelected').on('click', function() {
+        downloadData('selected');
+      });
+      
+      $('#downloadAll').on('click', function() {
+        downloadData('all');
+      });
+    });
+    
+    function loadTrendingData() {
+      const category = $('#categorySelect').val();
+      const date = $('#dateSelect').val();
+      
+      console.log('Loading trending data for category:', JSON.stringify(category), 'date:', date);
+      console.log('Category length:', category.length);
+      console.log('Category char codes:', category.split('').map(c => c.charCodeAt(0)));
+      
+      $('#loadingMessage').show();
+      $('#errorMessage').hide();
+      $('#trendingTable').hide();
+      
+      $.ajax({
+        url: '/trending_data',
+        method: 'GET',
+        data: {
+          category: category,
+          date: date
+        },
+        traditional: true,
+        success: function(response) {
+          console.log('API response:', response);
+          $('#loadingMessage').hide();
+          if (response.success) {
+            displayTrendingData(response.data);
+            // Update file creation info
+            if (response.file_created) {
+              $('#fileCreatedInfo').text('(Data crawled at: ' + response.file_created + ')');
+            } else {
+              $('#fileCreatedInfo').text('');
+            }
+          } else {
+            showError(response.message || 'Failed to load trending data');
+            $('#fileCreatedInfo').text('');
+          }
+        },
+        error: function(xhr, status, error) {
+          console.log('API error:', xhr.responseText, status, error);
+          $('#loadingMessage').hide();
+          $('#fileCreatedInfo').text('');
+          showError('Error loading data: ' + error);
+        }
+      });
+    }
+    
+    function displayTrendingData(data) {
+      console.log('displayTrendingData called with:', data.length, 'items');
+      console.log('First item:', data[0]);
+      
+      if (!data || data.length === 0) {
+        showError('No trending data available for the selected category and date');
+        return;
+      }
+      
+      // Initialize or reinitialize DataTable
+      if ($.fn.DataTable.isDataTable('#trendingTable')) {
+        console.log('Destroying existing DataTable');
+        $('#trendingTable').DataTable().destroy();
+        $('#trendingTable').empty(); // Clear all DataTable-generated content
+      }
+      
+      // Rebuild the table structure
+      $('#trendingTable').html(`
+        <thead>
+          <tr>
+            <th>Ranking</th>
+            <th>Product Name</th>
+            <th>Price (NT$)</th>
+            <th>Link</th>
+          </tr>
+        </thead>
+        <tbody id="trendingTableBody">
+        </tbody>
+      `);
+      
+      // Re-populate with new data
+      const newTbody = $('#trendingTableBody');
+      data.forEach(function(item, index) {
+        if (index < 3) { // Log first 3 items for debugging
+          console.log(`Creating row ${index + 1}:`, item.ranking, item.name.substring(0, 30) + '...', item.price);
+        }
+        
+        const row = $('<tr>');
+        
+        // Ranking
+        const rankingCell = $('<td class="ranking-cell">').text(item.ranking);
+        
+        // Product Name
+        const nameCell = $('<td class="name-cell">').text(item.name);
+        
+        // Price
+        const priceCell = $('<td class="price-cell">').text('NT$ ' + Number(item.price).toLocaleString());
+        
+        // Link
+        const linkCell = $('<td class="link-cell">');
+        const linkBtn = $('<a class="link-btn" target="_blank">View Product</a>').attr('href', item.link);
+        linkCell.append(linkBtn);
+        
+        row.append(rankingCell, nameCell, priceCell, linkCell);
+        newTbody.append(row);
+      });
+      
+      console.log('All rows added to tbody. Total rows:', newTbody.find('tr').length);
+      
+      $('#trendingTable').show();
+      console.log('Table shown');
+      
+      console.log('Initializing new DataTable');
+      $('#trendingTable').DataTable({
+        "pageLength": 25,
+        "order": [[ 0, "asc" ]],
+        "columnDefs": [
+          { "orderable": false, "targets": 3 }
+        ]
+      });
+      console.log('DataTable initialized');
+    }
+    
+    function showError(message) {
+      $('#errorMessage').text(message).show();
+      $('#trendingTable').hide();
+    }
+    
+    function downloadData(type) {
+      const category = $('#categorySelect').val();
+      const date = $('#dateSelect').val();
+      
+      console.log('Downloading data for category:', category, 'type:', type);
+      
+      let url = '/download_trending';
+      if (type === 'selected') {
+        url += '?category=' + encodeURIComponent(category) + '&date=' + encodeURIComponent(date);
+      } else {
+        url += '?date=' + encodeURIComponent(date) + '&all=true';
+      }
+      
+      console.log('Download URL:', url);
+      
+      // Create a temporary link and click it to download
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = '';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  </script>
+</body>
+</html>
