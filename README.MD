@@ -2,6 +2,15 @@
 
 Welcome to my professional portfolio repository! I'm a passionate software engineer with expertise in **Data Science** and **Full-Stack Development**. This repository showcases my technical skills, academic projects, and side projects that demonstrate my ability to solve complex problems using modern technologies.
 
+## 🌟 Hottest Projects - My Best Work
+
+The **`Hottest/`** folder contains my most impressive and polished projects that best demonstrate my technical capabilities:
+
+- **🛒 Shopee Crawler Website**: A sophisticated full-stack web application featuring AI integration, real-time data processing, and production-ready deployment
+- **🔍 Keyword Recommend Auto-generater**: An intelligent keyword recommendation system leveraging machine learning and data analysis for business optimization
+
+These projects represent the pinnacle of my development skills and are perfect showcases for potential employers and collaborators.
+
 ## 🚀 Technical Expertise
 
 ### 💻 Programming Languages
@@ -115,6 +124,9 @@ Welcome to my professional portfolio repository! I'm a passionate software engin
 ## 📂 Repository Structure
 
 ```
+├── Hottest/                         # 🌟 MY BEST PROJECTS - Featured showcase pieces
+│   ├── Shopee_Crawler_Website/           # Full-stack web scraping application
+│   └── Keyword_Recommend_Auto-generater/ # AI-powered keyword recommendation system
 ├── School_Course_Projects/          # Academic projects demonstrating core competencies
 │   ├── Big_Data_and_Business_Analysis/    # Data science and analytics projects
 │   ├── Manufacturing_Data_Science/        # Industrial ML and signal processing
