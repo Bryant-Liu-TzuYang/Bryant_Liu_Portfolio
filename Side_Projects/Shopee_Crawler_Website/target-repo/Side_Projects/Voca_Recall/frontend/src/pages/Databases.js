@@ -46,12 +46,18 @@ const Databases = () => {
 
   const onSubmit = async (data) => {
     try {
+      // Build payload expected by backend
+      const payload = {
+        notion_api_key: data.notion_api_key,
+        database_url: data.database_url,
+      };
+
       if (editingDatabase) {
-        await axios.put(`/api/databases/${editingDatabase.id}`, data);
+        await axios.put(`/api/databases/${editingDatabase.id}`, payload);
         toast.success('Database updated successfully!');
         setEditingDatabase(null);
       } else {
-        await axios.post('/api/databases', data);
+        await axios.post('/api/databases', payload);
         toast.success('Database added successfully!');
       }
       fetchDatabases();
@@ -99,8 +105,8 @@ const Databases = () => {
 
   const handleEdit = (database) => {
     setEditingDatabase(database);
-    setValue('database_name', database.database_name);
     setValue('database_url', database.database_url);
+  setValue('notion_api_key', '');
     setShowAddForm(true);
   };
 
@@ -150,48 +156,58 @@ const Databases = () => {
             {editingDatabase ? 'Edit Database' : 'Add New Database'}
           </h2>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {/* Integration Token */}
             <div>
-              <label htmlFor="database_name" className="form-label">
-                Database Name
+              <label htmlFor="notion_api_key" className="form-label">
+                Integration Token
               </label>
               <input
-                id="database_name"
-                type="text"
+                id="notion_api_key"
+                type="password"
                 className={`input-field ${
-                  errors.database_name ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''
+                  errors.notion_api_key ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''
                 }`}
-                placeholder="My Vocabulary Database"
-                {...register('database_name', {
-                  required: 'Database name is required',
+                placeholder="secret_xxx from your Notion integration"
+                {...register('notion_api_key', {
+                  required: 'Integration Token is required',
+                  minLength: { value: 10, message: 'Token looks too short' },
                 })}
               />
-              {errors.database_name && (
-                <p className="mt-1 text-sm text-red-600">{errors.database_name.message}</p>
+              {errors.notion_api_key && (
+                <p className="mt-1 text-sm text-red-600">{errors.notion_api_key.message}</p>
               )}
+              <p className="mt-1 text-sm text-gray-500">
+                Create a Notion internal integration and copy its secret. We do not store your token.
+              </p>
             </div>
 
             <div>
               <label htmlFor="database_url" className="form-label">
-                Database URL
+                Database URL or ID
               </label>
               <input
                 id="database_url"
-                type="url"
+                type="text"
                 className={`input-field ${
                   errors.database_url ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''
                 }`}
-                placeholder="https://www.notion.so/workspace/database-id"
+                placeholder="https://www.notion.so/... or a 32-char database ID"
                 {...register('database_url', {
-                  required: 'Database URL is required',
-                  pattern: {
-                    value: /^https:\/\/www\.notion\.so\/.+/,
-                    message: 'Please enter a valid Notion database URL',
+                  required: 'Database URL or ID is required',
+                  validate: (value) => {
+                    const urlRegex = /^https?:\/\/[^\s]+$/;
+                    const idRegex = /^(?:[0-9a-fA-F]{32}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$/;
+                    return urlRegex.test(value) || idRegex.test(value) || 'Enter a Notion URL or database ID';
                   },
                 })}
               />
               {errors.database_url && (
                 <p className="mt-1 text-sm text-red-600">{errors.database_url.message}</p>
               )}
+              <p className="mt-1 text-sm text-gray-500">
+                Paste the Notion database page URL (the ID is embedded) or the 32-character database ID.
+                Example: https://www.notion.so/workspace/<strong>xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</strong>
+              </p>
             </div>
 
             <div className="flex space-x-4">
