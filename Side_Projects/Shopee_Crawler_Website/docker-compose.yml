@@ -9,6 +9,19 @@ services:
       - ./instance:/app/instance
     ports:
       - "8000:8000"
+    environment:
+      # Secrets (provided at deploy time via .env / environment)
+      OPEN_API_KEY: ${OPEN_API_KEY}
+      NOTION_INTEGRATION_TOKEN: ${NOTION_INTEGRATION_TOKEN}
+      NOTION_PAGE_ID: ${NOTION_PAGE_ID}
+      SENTRY_DSN: ${SENTRY_DSN}
+      SHOPEE_USERNAME: ${SHOPEE_USERNAME}
+      SHOPEE_PASSWORD: ${SHOPEE_PASSWORD}
+      # App config vars
+      FLASK_APP: ${FLASK_APP}
+      FLASK_ENV: ${FLASK_ENV}
+      FLASK_DEBUG: ${FLASK_DEBUG}
+      SECRET_KEY: ${SECRET_KEY}
     restart: always
 
   nginx:
