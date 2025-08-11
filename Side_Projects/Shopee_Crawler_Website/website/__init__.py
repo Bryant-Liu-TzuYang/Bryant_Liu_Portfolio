@@ -5,25 +5,25 @@ import time
 import zipfile
 import io
 import urllib.parse
+import pandas as pd
+import sentry_sdk
+import logging
+import pytz
 from datetime import datetime
 from dotenv import load_dotenv
-# import time
-# import pyodbc, struct
-# from azure import identity
-# from typing import Union
-# from pydantic import BaseModel
-# from werkzeug.utils import secure_filename
 from datetime import datetime, timezone, timedelta
-import pandas as pd
-from .src.getlink import main
 from flask import (Flask, redirect, render_template, request,
                    send_file, url_for, session, jsonify)
-from .db import get_db
-
 from werkzeug.middleware.proxy_fix import ProxyFix
+from logging.handlers import RotatingFileHandler
 
-import sentry_sdk
+from .db import get_db
+from .src.getlink import main
 from .notion_service import NotionUpdatesService
+
+OPEN_API_KEY = os.environ.get('OPEN_API_KEY', None)
+UPLOAD_FOLDER = 'data/uploads'
+OUTPUT_FOLDER = 'data/outputs'
 
 if platform == "linux":
     from sentry_sdk.integrations.flask import FlaskIntegration
@@ -49,10 +49,6 @@ if platform == "linux":
 
 
 ### -------- Logging Setup -------- ###
-import logging
-from logging.handlers import RotatingFileHandler
-
-import pytz
 # 建立 logs 資料夾
 os.makedirs('logs', exist_ok=True)
 
@@ -99,7 +95,6 @@ logger.addHandler(console_handler)
 
 
 
-
 def create_app(test_config=None):
     # Load environment variables from .env file
     load_dotenv()
@@ -135,11 +130,6 @@ def create_app(test_config=None):
             elif request.path.endswith('.css'):
                 response.headers['Content-Type'] = 'text/css; charset=utf-8'
         return response
-
-
-    UPLOAD_FOLDER = 'data/uploads'
-    OUTPUT_FOLDER = 'data/outputs'
-
 
     # ensure the uploads and outputs folders exist
     try:
@@ -210,7 +200,7 @@ def create_app(test_config=None):
 
             return redirect(url_for('tempPage_processingFile', filename=f.filename, time_stamp=time_stamp, platforms=platforms))
 
-        return render_template('home_page.html', files=files)
+        return render_template('home_page.html', files=files, openai_api_key=OPEN_API_KEY)
 
 
 

@@ -26,9 +26,9 @@ from .search_momo import search as momo_search
 from ..db import get_db
 
 # Constants
-OPEN_API_KEY = os.environ.get('OPEN_API_KEY', 'your-openai-api-key')
+OPEN_API_KEY = os.environ.get('OPEN_API_KEY', None)
 MAX_TIMEOUT_SECONDS = 120
-MAX_WORKERS = 6  # Adjust based on your CPU cores
+MAX_WORKERS = os.cpu_count()  # Adjust based on your CPU cores
 
 
 def init_log_info(logger: logging.Logger, total_crawl_num, filename: str):

@@ -43,9 +43,15 @@
         </div>
       </div>
       <br/>
-      
-      <button id="upload-btn" onclick="handleFile()">Upload</button>
-      <button id="submit-btn" style="display: none;">Submit</button>
+
+      {% if openai_api_key != None %}
+        <button id="upload-btn" onclick="handleFile()">Upload</button>
+        <button id="submit-btn" style="display: none;">Submit</button>
+        {%else%}
+        <h4>Cannot upload files. Please contact Bryant Liu to set OpenAI API key before proceeding.</h4>
+        <button id="upload-btn-disabled" onclick="handleFile()" disabled style="opacity:0.4; cursor:not-allowed;">Upload</button>
+      {%endif%}
+
       <br><br/>
       <form method="post" enctype="multipart/form-data" action="/" id="upload-form">
         <input id="file-input" type="file" accept=".csv,.xlsx" style="display:none" multiple name="file">
