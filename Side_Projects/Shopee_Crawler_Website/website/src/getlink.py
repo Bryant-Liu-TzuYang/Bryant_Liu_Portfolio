@@ -98,8 +98,8 @@ def initialize_webdriver() -> webdriver.Chrome:
     from selenium import webdriver
     from selenium.webdriver.chrome.service import Service as ChromeService
     from selenium.webdriver.chrome.options import Options
-    import chromedriver_autoinstaller
     import platform
+    import os
 
     options = Options()
     options.add_argument("--headless=new")
@@ -126,19 +126,16 @@ def initialize_webdriver() -> webdriver.Chrome:
         svc = webdriver.ChromeService(executable_path=binary_path)
         driver = webdriver.Chrome(options=options, service=svc)
 
-    # Windows → autoinstaller (use returned path explicitly to avoid PATH conflicts)
+    # Windows → rely on Selenium Manager (avoids autoinstaller race conditions)
     elif system == "Windows":
-        driver_path = chromedriver_autoinstaller.install()
-        service = ChromeService(executable_path=driver_path)
-        driver = webdriver.Chrome(options=options, service=service)
+        driver = webdriver.Chrome(options=options)
 
-    # Linux (e.g., WSL)
+    # Linux (e.g., server/WSL) → rely on Selenium Manager. Optionally honor CHROME_BINARY.
     elif system == "Linux":
-        driver_path = chromedriver_autoinstaller.install()
-        service = ChromeService(executable_path=driver_path)
-        driver = webdriver.Chrome(options=options, service=service)
-        # If running in a minimal container, you may also need:
-        # options.binary_location = "/usr/bin/google-chrome"
+        chrome_binary = os.environ.get("CHROME_BINARY")
+        if chrome_binary:
+            options.binary_location = chrome_binary
+        driver = webdriver.Chrome(options=options)
 
     else:
         raise EnvironmentError(f"Unsupported platform: {system}-{arch}")
@@ -260,6 +257,7 @@ def process_row(
     # Search for the item on each platform
     for platform in selected_platforms:
         for attempt in range(max_retry):
+            driver = None
             try:
                 driver = initialize_webdriver()
                 if platform == 'momo':
@@ -270,12 +268,14 @@ def process_row(
                     prd_name, link, price = f"Unknown platform: {platform}", "", 0
                 
                 results[platform] = (prd_name, link, price)
-                driver.quit()
+                if driver:
+                    driver.quit()
                 break  # Success, break retry loop
             except Exception as e:
                 logging.error(f"[Row {index}] Error on {platform}: {e}")
                 try:
-                    driver.quit()
+                    if driver:
+                        driver.quit()
                 except Exception as quit_error:
                     logging.error(f"[Row {index}] Error quitting driver: {quit_error}")
                 time.sleep(2)  # Wait before retrying
