@@ -38,4 +38,4 @@ COPY . .
 CMD ["gunicorn", "-c", "gunicorn.conf.py", "wsgi:app"]
 
 # 如果需要初始化資料庫，可以取消下面的註解
-# RUN flask init-db
+RUN flask init-db

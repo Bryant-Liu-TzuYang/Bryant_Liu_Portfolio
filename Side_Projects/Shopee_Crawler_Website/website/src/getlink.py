@@ -119,6 +119,15 @@ def initialize_webdriver() -> webdriver.Chrome:
     system = platform.system()
     arch = platform.machine()
 
+    # Ensure Selenium Manager is used (do not fall back to any PATH chromedriver)
+    try:
+        os.environ.pop("webdriver.chrome.driver", None)
+        orig_path = os.environ.get("PATH", "")
+        safe_path_parts = [p for p in orig_path.split(os.pathsep) if "chromedriver" not in p and "chromedriver_autoinstaller" not in p]
+        os.environ["PATH"] = os.pathsep.join(safe_path_parts)
+    except Exception:
+        pass
+
     # Mac M1 → Chromium + chromedriver_py
     if system == "Darwin" and arch == "arm64":
         from chromedriver_py import binary_path
@@ -126,16 +135,18 @@ def initialize_webdriver() -> webdriver.Chrome:
         svc = webdriver.ChromeService(executable_path=binary_path)
         driver = webdriver.Chrome(options=options, service=svc)
 
-    # Windows → rely on Selenium Manager (avoids autoinstaller race conditions)
+    # Windows → rely on Selenium Manager with explicit empty Service
     elif system == "Windows":
-        driver = webdriver.Chrome(options=options)
+        service = ChromeService()  # no executable_path → Selenium Manager resolves
+        driver = webdriver.Chrome(options=options, service=service)
 
     # Linux (e.g., server/WSL) → rely on Selenium Manager. Optionally honor CHROME_BINARY.
     elif system == "Linux":
         chrome_binary = os.environ.get("CHROME_BINARY")
         if chrome_binary:
             options.binary_location = chrome_binary
-        driver = webdriver.Chrome(options=options)
+        service = ChromeService()  # force Selenium Manager usage
+        driver = webdriver.Chrome(options=options, service=service)
 
     else:
         raise EnvironmentError(f"Unsupported platform: {system}-{arch}")
