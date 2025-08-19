@@ -126,18 +126,19 @@ def initialize_webdriver() -> webdriver.Chrome:
         svc = webdriver.ChromeService(executable_path=binary_path)
         driver = webdriver.Chrome(options=options, service=svc)
 
-    # Windows → autoinstaller
+    # Windows → autoinstaller (use returned path explicitly to avoid PATH conflicts)
     elif system == "Windows":
-        chromedriver_autoinstaller.install()
-        driver = webdriver.Chrome(options=options)
+        driver_path = chromedriver_autoinstaller.install()
+        service = ChromeService(executable_path=driver_path)
+        driver = webdriver.Chrome(options=options, service=service)
 
     # Linux (e.g., WSL)
     elif system == "Linux":
-        chromedriver_autoinstaller.install()
-        driver = webdriver.Chrome(options=options)
+        driver_path = chromedriver_autoinstaller.install()
+        service = ChromeService(executable_path=driver_path)
+        driver = webdriver.Chrome(options=options, service=service)
+        # If running in a minimal container, you may also need:
         # options.binary_location = "/usr/bin/google-chrome"
-        # svc = ChromeService(executable_path="/usr/local/bin/chromedriver")
-        # driver = webdriver.Chrome(options=options, service=svc)
 
     else:
         raise EnvironmentError(f"Unsupported platform: {system}-{arch}")
@@ -519,9 +520,9 @@ if __name__ == "__main__":
         elif system in ["Windows", "Linux"]:
             if system == "Linux":
                 options.binary_location = "/usr/bin/google-chrome"
-            
-            chromedriver_autoinstaller.install()
-            driver = webdriver.Chrome(options=options)
+            driver_path = chromedriver_autoinstaller.install()
+            service = ChromeService(executable_path=driver_path)
+            driver = webdriver.Chrome(options=options, service=service)
 
         else:
             raise EnvironmentError(f"Unsupported platform: {system}-{arch}")

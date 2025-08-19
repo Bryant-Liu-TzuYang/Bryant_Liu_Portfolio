@@ -170,9 +170,9 @@ if __name__ == "__main__":
         elif system in ["Windows", "Linux"]:
             if system == "Linux":
                 options.binary_location = "/usr/bin/google-chrome"
-            
-            chromedriver_autoinstaller.install()
-            driver = webdriver.Chrome(options=options)
+            driver_path = chromedriver_autoinstaller.install()
+            service = ChromeService(executable_path=driver_path)
+            driver = webdriver.Chrome(options=options, service=service)
 
         else:
             raise EnvironmentError(f"Unsupported platform: {system}-{arch}")
