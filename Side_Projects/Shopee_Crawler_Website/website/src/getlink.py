@@ -10,6 +10,7 @@ import re
 import pandas as pd
 import time
 import logging
+import chromedriver_autoinstaller
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from openai import OpenAI
 from selenium import webdriver
@@ -135,18 +136,19 @@ def initialize_webdriver() -> webdriver.Chrome:
         svc = webdriver.ChromeService(executable_path=binary_path)
         driver = webdriver.Chrome(options=options, service=svc)
 
-    # Windows → rely on Selenium Manager with explicit empty Service
+    # Windows → autoinstaller (use returned path explicitly to avoid PATH conflicts)
     elif system == "Windows":
-        service = ChromeService()  # no executable_path → Selenium Manager resolves
+        driver_path = chromedriver_autoinstaller.install()
+        service = ChromeService(executable_path=driver_path)
         driver = webdriver.Chrome(options=options, service=service)
 
-    # Linux (e.g., server/WSL) → rely on Selenium Manager. Optionally honor CHROME_BINARY.
+    # Linux (e.g., WSL)
     elif system == "Linux":
-        chrome_binary = os.environ.get("CHROME_BINARY")
-        if chrome_binary:
-            options.binary_location = chrome_binary
-        service = ChromeService()  # force Selenium Manager usage
+        driver_path = chromedriver_autoinstaller.install()
+        service = ChromeService(executable_path=driver_path)
         driver = webdriver.Chrome(options=options, service=service)
+        # If running in a minimal container, you may also need:
+        # options.binary_location = "/usr/bin/google-chrome"
 
     else:
         raise EnvironmentError(f"Unsupported platform: {system}-{arch}")
