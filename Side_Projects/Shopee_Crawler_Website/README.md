@@ -18,6 +18,7 @@ A powerful web-based tool for crawling and extracting product links from Momo / 
 - 📝 **Comprehensive Logging**: Detailed logging with rotation and timezone support
 - 🔄 **Notion Integration**: Built-in Notion service for updates and documentation
 - 📈 **Trending Products Dashboard**: View and analyze trending products from Coupang by category and date
+- 🧪 **Evaluation Dashboard**: Interactive page to review crawl quality metrics from data/eval.csv
 
 ## Trending Products Feature
 
@@ -56,6 +57,27 @@ To access the trending products feature:
 3. Choose a date using the date picker
 4. View the trending products in the interactive table
 5. Download data using the CSV or ZIP download buttons
+
+## Evaluation Dashboard
+
+The application includes an interactive evaluation page that displays crawl quality metrics from `data/eval.csv`.
+
+### 📈 What You Get
+- **Interactive Table**: Sortable, searchable, paginated view via DataTables
+- **Metrics at a Glance**: Rates and counts for valid items, no search results, no corresponding items, errors, NA, etc., for Momo and Coupang
+- **Timestamp**: Shows when the evaluation file was last updated
+- **Export**: One-click download of the raw CSV
+
+### 🔎 How to Access
+1. Click “Evaluation” in the top navigation (or open `/eval`)
+2. Use the search box and headers to filter/sort
+3. Click “Download CSV” to export the raw data
+
+### 📁 Data Location
+- The page reads from `data/eval.csv`. Make sure the file exists and is readable by the app.
+
+### 🔒 Error Handling
+- If the file is missing, the page shows a helpful message. Once `data/eval.csv` is added, refresh to load the table.
 
 ## Technology Stack
 
@@ -175,6 +197,7 @@ The output file will contain columns like:
 │   │   └── same_product_or_not.py  # AI product matching
 │   ├── static/                # Frontend assets
 │   ├── templates/             # HTML templates (including trending_coupang.html)
+│   │   └── eval.html           # Evaluation dashboard page
 │   ├── config.py              # Configuration settings
 │   ├── db.py                  # Database operations
 │   └── notion_service.py      # Notion integration

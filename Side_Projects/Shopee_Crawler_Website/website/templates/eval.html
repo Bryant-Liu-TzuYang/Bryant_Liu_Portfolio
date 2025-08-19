@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Evaluation Report</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <!-- DataTables CSS -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+  <style>
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 10px 0 0;
+    }
+    .meta {
+      color: #666; font-size: 14px;
+    }
+    .table-container { margin: 20px 0; overflow-x: auto; }
+    #evalTable { width: 100%; }
+    .error-message {
+      background-color: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; border: 1px solid #f5c6cb; margin: 20px 0;
+    }
+    .loading-message {
+      background-color: #d1ecf1; color: #0c5460; padding: 15px; border-radius: 5px; border: 1px solid #bee5eb; margin: 20px 0; text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Evaluation Report</h1>
+      <p>Summary of crawl quality and outcomes</p>
+      <nav>
+        <a class="action" href="{{ url_for('main_page') }}">Home</a>
+        <a class="action" href="{{ url_for('trending') }}">Coupang Trending</a>
+        <a class="action" href="{{ url_for('how_to_use') }}">How to Use?</a>
+        <a class="action" href="{{ url_for('updates') }}">Updates</a>
+        <a class="action" href="{{ url_for('about') }}">About</a>
+      </nav>
+    </header>
+
+    <main>
+      <div class="top-bar">
+        <div class="meta">
+          <span id="fileCreatedInfo">{% if file_created %}(Data updated: {{ file_created }}){% endif %}</span>
+        </div>
+        <div>
+          <a class="download-btn" href="{{ url_for('download_eval') }}">Download CSV</a>
+        </div>
+      </div>
+
+      <div id="errorMessage" class="error-message" style="display:none;"></div>
+      <div id="loadingMessage" class="loading-message" style="display:none;">Loading evaluation data...</div>
+
+      <div class="table-container">
+        <table id="evalTable" class="display" style="display:none;">
+          <thead id="evalThead"></thead>
+          <tbody id="evalTbody"></tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <!-- DataTables JS -->
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script>
+    $(document).ready(function(){
+      loadEvalData();
+    });
+
+    function loadEvalData(){
+      $('#loadingMessage').show();
+      $('#errorMessage').hide();
+      $('#evalTable').hide();
+
+      $.getJSON('/eval_data')
+        .done(function(resp){
+          $('#loadingMessage').hide();
+          if(!resp.success){
+            showError(resp.message || 'Failed to load evaluation data');
+            return;
+          }
+          if(resp.file_created){
+            $('#fileCreatedInfo').text('(Data updated: ' + resp.file_created + ')');
+          }
+          renderTable(resp.data);
+        })
+        .fail(function(xhr){
+          $('#loadingMessage').hide();
+          showError('Error loading data: ' + (xhr.responseText || xhr.statusText));
+        });
+    }
+
+    function renderTable(rows){
+      if(!rows || rows.length === 0){
+        showError('No data available in evaluation report');
+        return;
+      }
+
+      const columns = Object.keys(rows[0]);
+      // Build head
+      const thead = $('#evalThead');
+      const headRow = $('<tr/>');
+      columns.forEach(col => headRow.append($('<th/>').text(col)));
+      thead.empty().append(headRow);
+
+      // Build body
+      const tbody = $('#evalTbody');
+      tbody.empty();
+      rows.forEach(r => {
+        const tr = $('<tr/>');
+        columns.forEach(c => tr.append($('<td/>').text(r[c])));
+        tbody.append(tr);
+      });
+
+      // Init DataTable
+      $('#evalTable').show();
+      if ($.fn.DataTable.isDataTable('#evalTable')) {
+        $('#evalTable').DataTable().destroy();
+      }
+      $('#evalTable').DataTable({
+  pageLength: 25,
+  order: [[0, 'desc']],
+        autoWidth: true
+      });
+    }
+
+    function showError(msg){
+      $('#errorMessage').text(msg).show();
+    }
+  </script>
+</body>
+</html>

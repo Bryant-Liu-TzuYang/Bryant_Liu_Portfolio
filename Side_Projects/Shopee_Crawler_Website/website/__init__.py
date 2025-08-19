@@ -390,6 +390,53 @@ def create_app(test_config=None):
         current_date = datetime.now().strftime('%Y-%m-%d')
         return render_template('trending_coupang.html', current_date=current_date)
 
+    @app.route('/eval', methods=['GET'])
+    def eval_report():
+        """Display evaluation metrics from data/eval.csv in an interactive table"""
+        try:
+            eval_path = os.path.join(os.path.dirname(app.instance_path), 'data', 'eval.csv')
+            file_created = None
+            if os.path.exists(eval_path):
+                stat = os.stat(eval_path)
+                file_created = datetime.fromtimestamp(stat.st_mtime).strftime('%Y-%m-%d %H:%M:%S')
+            return render_template('eval.html', file_created=file_created)
+        except Exception as e:
+            app.logger.error(f"Error rendering eval page: {e}")
+            return render_template('eval.html', file_created=None, error=str(e))
+
+    @app.route('/eval_data', methods=['GET'])
+    def eval_data():
+        """API endpoint to provide evaluation CSV data as JSON for DataTables"""
+        try:
+            eval_path = os.path.join(os.path.dirname(app.instance_path), 'data', 'eval.csv')
+            if not os.path.exists(eval_path):
+                return jsonify({'success': False, 'message': 'Evaluation file not found'}), 404
+
+            # Read CSV with pandas and convert to list of dicts
+            df = pd.read_csv(eval_path)
+            data = df.to_dict(orient='records')
+
+            # Also include file mtime for display
+            stat = os.stat(eval_path)
+            file_created = datetime.fromtimestamp(stat.st_mtime).strftime('%Y-%m-%d %H:%M:%S')
+
+            return jsonify({'success': True, 'data': data, 'file_created': file_created})
+        except Exception as e:
+            app.logger.error(f"Error loading eval data: {e}")
+            return jsonify({'success': False, 'message': 'Internal server error'}), 500
+
+    @app.route('/download_eval', methods=['GET'])
+    def download_eval():
+        """Download the raw evaluation CSV"""
+        try:
+            eval_path = os.path.join(os.path.dirname(app.instance_path), 'data', 'eval.csv')
+            if not os.path.exists(eval_path):
+                return "Evaluation file not found", 404
+            return send_file(eval_path, as_attachment=True, download_name='eval.csv')
+        except Exception as e:
+            app.logger.error(f"Error in download_eval: {e}")
+            return "Internal server error", 500
+
     def get_category_mapping():
         """Map display names to file names"""
         return {
