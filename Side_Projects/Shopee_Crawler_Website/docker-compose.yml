@@ -7,6 +7,7 @@ services:
       - ./outputs:/app/outputs
       - ./logs:/app/logs
       - ./instance:/app/instance
+      - ./website/static:/app/static
     # ports:
     #   - "8000:8000"
     expose:           # internal only; reachable by "web:8000" from nginx
@@ -19,10 +20,9 @@ services:
     image: nginx:latest
     container_name: shopee_nginx
     ports:
-      - "127.0.0.1:80:80"   # only localhost
+      - "127.0.0.1:80:80"   # local-only! Funnel will publish it
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      # 如果日後上線再改成：
-      # - ./nginx/nginx_https.conf:/etc/nginx/nginx.conf:ro
+      - ./web/static:/var/www/static:ro
     depends_on:
       - web
