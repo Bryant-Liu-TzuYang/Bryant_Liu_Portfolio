@@ -117,7 +117,7 @@ def create_app(test_config=None):
 
     # Apply ProxyFix for both direct access and proxied access
     app.wsgi_app = ProxyFix(
-        app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1
+        app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1, x_port=1
     )
 
     # Ensure static files are served with proper headers
