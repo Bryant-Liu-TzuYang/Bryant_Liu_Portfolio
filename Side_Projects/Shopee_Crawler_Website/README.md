@@ -2,95 +2,6 @@
 
 A powerful web-based tool for crawling and extracting product links from Momo / Coupang. This application allows users to upload CSV/Excel files containing product information and automatically crawls Momo / Coupang to find relevant product links.
 
-## Features
-
-- 🔍 **Multi-Platform Crawling**: Support for multiple e-commerce platforms (Momo, Coupang)
-- 🎛️ **Platform Selection**: Choose which platforms to search - Momo, Coupang, or both
-- 📊 **Multiple File Formats**: Support for CSV and Excel (.xlsx) files
-- 🎯 **AI-Powered Product Matching**: Uses OpenAI GPT for intelligent product comparison and matching
-- 📈 **Real-time Progress Tracking**: Monitor crawling progress with live updates
-- 🔄 **Background Processing**: Multi-threaded crawling with background job processing
-- 📁 **File Management**: Organized upload and output file management
-- 🌐 **Web Interface**: Clean, responsive web interface for easy interaction
-- 📊 **Data Visualization**: View results directly in the browser or download as files
-- 🐳 **Docker Support**: Containerized deployment with Docker and Docker Compose
-- 🔧 **Production Ready**: Nginx reverse proxy and Gunicorn WSGI server
-- 📝 **Comprehensive Logging**: Detailed logging with rotation and timezone support
-- 🔄 **Notion Integration**: Built-in Notion service for updates and documentation
-- 📈 **Trending Products Dashboard**: View and analyze trending products from Coupang by category and date
-- 🧪 **Evaluation Dashboard**: Interactive page to review crawl quality metrics from data/eval.csv
-
-## Trending Products Feature
-
-The application includes a comprehensive trending products dashboard that allows users to:
-
-### 📊 **Category-Based Analysis**
-- **6 Product Categories**: Phone Only, Phone Accessories, Computer Laptop, Computer Accessories, Game, Home Electronic
-- **Interactive Category Selection**: Dropdown menu for easy category switching
-- **Real-time Data Loading**: AJAX-powered data fetching without page refresh
-
-### 📅 **Date-Based Filtering**
-- **Date Picker**: Select specific dates to view trending data
-- **File Creation Timestamp**: Shows when the trending data was last collected
-- **Historical Data Access**: Browse trending products from previous dates
-
-### 📥 **Download Options**
-- **Single Category Download**: Download CSV file for selected category and date
-- **Bulk Download**: Download ZIP file containing all categories for a selected date
-- **Instant Downloads**: Direct file serving without page refresh
-
-### 📋 **Interactive Data Table**
-- **DataTables Integration**: Sortable, searchable, and paginated product listings
-- **Responsive Design**: Mobile-friendly table display
-- **Product Links**: Direct links to trending products on Coupang
-- **Real-time Updates**: Table refreshes automatically when changing category or date
-
-### 🎨 **User Interface**
-- **Consistent Theming**: Blue color scheme matching the main application (#004c73)
-- **Navigation Integration**: Accessible from all pages via navigation menu
-- **Loading Indicators**: Visual feedback during data loading
-- **Error Handling**: User-friendly error messages for missing data
-
-To access the trending products feature:
-1. Navigate to the "Trending Products" link in the main navigation
-2. Select a product category from the dropdown
-3. Choose a date using the date picker
-4. View the trending products in the interactive table
-5. Download data using the CSV or ZIP download buttons
-
-## Evaluation Dashboard
-
-The application includes an interactive evaluation page that displays crawl quality metrics from `data/eval.csv`.
-
-### 📈 What You Get
-- **Interactive Table**: Sortable, searchable, paginated view via DataTables
-- **Metrics at a Glance**: Rates and counts for valid items, no search results, no corresponding items, errors, NA, etc., for Momo and Coupang
-- **Timestamp**: Shows when the evaluation file was last updated
-- **Export**: One-click download of the raw CSV
-
-### 🔎 How to Access
-1. Click “Evaluation” in the top navigation (or open `/eval`)
-2. Use the search box and headers to filter/sort
-3. Click “Download CSV” to export the raw data
-
-### 📁 Data Location
-- The page reads from `data/eval.csv`. Make sure the file exists and is readable by the app.
-
-### 🔒 Error Handling
-- If the file is missing, the page shows a helpful message. Once `data/eval.csv` is added, refresh to load the table.
-
-## Technology Stack
-
-- **Backend**: Flask (Python)
-- **Web Scraping**: Selenium WebDriver with Chrome
-- **AI/ML**: OpenAI GPT API for product matching
-- **Database**: SQLite
-- **Frontend**: HTML, CSS, JavaScript with jQuery
-- **Data Processing**: Pandas for CSV/Excel handling
-- **Containerization**: Docker & Docker Compose
-- **Web Server**: Nginx + Gunicorn
-- **Monitoring**: Sentry for error tracking
-
 ## Quick Start
 
 ### Using Docker (Recommended)
@@ -107,6 +18,7 @@ The application includes an interactive evaluation page that displays crawl qual
 
 3. **Start the application**
    ```bash
+   docker compose build --no-cache
    docker-compose up -d
    ```
 

@@ -13,14 +13,14 @@ RUN CHROME_VERSION=$(google-chrome --version | grep -oP "\d+\.\d+\.\d+\.\d+") &&
     mkdir -p /usr/local/bin && \
     mkdir -p /tmp && \
     mkdir -p /usr/local/bin && \
-    wget -O /tmp/chromedriver.zip "https://storage.googleapis.com/chrome-for-testing-public/137.0.7151.70/linux64/chromedriver-linux64.zip" && \
+    wget -O /tmp/chromedriver.zip "https://storage.googleapis.com/chrome-for-testing-public/${CHROME_VERSION}/linux64/chromedriver-linux64.zip" && \
     unzip /tmp/chromedriver.zip && \
     ls && \
     mv ./chromedriver-linux64/chromedriver /usr/local/bin/chromedriver && \
     chmod +x /usr/local/bin/chromedriver && \
     rm /tmp/chromedriver.zip
 
-ENV PATH="/usr/local/bin:$PATH"
+ENV PATH="/usr/local/bin:/usr/local/bin/chromedriver:$PATH"
 
 # Set the timezone to CST (Taipei)
 ENV TZ=Asia/Taipei
