@@ -144,7 +144,7 @@ def initialize_webdriver() -> webdriver.Chrome:
 
     # Linux (e.g., WSL) → Already downloaded chromedriver in Dockerfile
     elif system == "Linux":
-        driver_path = "/usr/local/bin/chromedriver/chromedriver"
+        driver_path = "/usr/local/bin/chromedriver"
         service = ChromeService(executable_path=driver_path)
         driver = webdriver.Chrome(options=options, service=service)
         # If running in a minimal container, you may also need:
