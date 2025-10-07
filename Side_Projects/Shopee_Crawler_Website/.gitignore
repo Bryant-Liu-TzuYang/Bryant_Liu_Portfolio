@@ -185,7 +185,9 @@ data/outputs/
 
 logs/
 
-dev/
+exploring/
 
 website/config.py
 setup_env.sh
+
+data/eval.csv

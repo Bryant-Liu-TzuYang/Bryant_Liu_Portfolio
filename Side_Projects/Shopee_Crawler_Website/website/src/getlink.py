@@ -131,10 +131,13 @@ def initialize_webdriver() -> webdriver.Chrome:
 
     # Mac M1 → Chromium + chromedriver_py
     if system == "Darwin" and arch == "arm64":
-        from chromedriver_py import binary_path
+        # from chromedriver_py import binary_path
 
-        svc = webdriver.ChromeService(executable_path=binary_path)
-        driver = webdriver.Chrome(options=options, service=svc)
+        # svc = webdriver.ChromeService(executable_path=binary_path)
+        # driver = webdriver.Chrome(options=options, service=svc)
+        driver_path = chromedriver_autoinstaller.install()
+        service = ChromeService(executable_path=driver_path)
+        driver = webdriver.Chrome(options=options, service=service)
 
     # Windows → autoinstaller (use returned path explicitly to avoid PATH conflicts)
     elif system == "Windows":
