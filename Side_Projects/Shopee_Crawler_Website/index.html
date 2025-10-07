@@ -130,11 +130,8 @@
 
     <script>
         const TARGET_URL = 'https://darth-vader-server.tail65569b.ts.net/';
-        const TIMEOUT_MS = 8000; // 8 seconds timeout
-        let hasRedirected = false;
-
+        
         function retryConnection() {
-            // Reload the page to retry
             window.location.reload();
         }
 
@@ -143,114 +140,64 @@
             document.getElementById('maintenance').classList.add('show');
         }
 
-        function checkServerWithIframe() {
-            return new Promise((resolve, reject) => {
-                // Create a hidden iframe to test the server
-                const iframe = document.createElement('iframe');
-                iframe.style.display = 'none';
-                iframe.style.position = 'absolute';
-                iframe.style.width = '0';
-                iframe.style.height = '0';
-                
-                let timeoutId;
-                let resolved = false;
+        // Use meta refresh as primary method with JavaScript fallback detection
+        // This way if the redirect fails, we can catch it
+        
+        // Set a flag in sessionStorage to track if we've tried redirecting
+        const hasAttemptedRedirect = sessionStorage.getItem('redirectAttempted');
+        const redirectFailCount = parseInt(sessionStorage.getItem('redirectFailCount') || '0');
 
-                // Setup timeout
-                timeoutId = setTimeout(() => {
-                    if (!resolved) {
-                        resolved = true;
-                        document.body.removeChild(iframe);
-                        reject(new Error('Timeout'));
-                    }
-                }, TIMEOUT_MS);
-
-                // Handle iframe load success
-                iframe.onload = function() {
-                    if (!resolved) {
-                        resolved = true;
-                        clearTimeout(timeoutId);
-                        
-                        // Try to check if the iframe loaded an error page
-                        try {
-                            // Check if iframe can be accessed (same-origin or CORS allowed)
-                            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-                            const title = iframeDoc.title.toLowerCase();
-                            const body = iframeDoc.body ? iframeDoc.body.textContent.toLowerCase() : '';
-                            
-                            // Check for common error indicators
-                            if (title.includes('error') || 
-                                title.includes('502') || 
-                                title.includes('503') || 
-                                title.includes('504') ||
-                                title.includes('isn\'t working') ||
-                                body.includes('http error') ||
-                                body.includes('bad gateway') ||
-                                body.includes('service unavailable') ||
-                                body.includes('gateway timeout') ||
-                                body.includes('unable to handle this request')) {
-                                document.body.removeChild(iframe);
-                                reject(new Error('Server error detected'));
-                                return;
-                            }
-                        } catch (e) {
-                            // Cross-origin - can't read content, but iframe loaded
-                            // This is actually good - means page loaded
-                        }
-                        
-                        document.body.removeChild(iframe);
-                        resolve(true);
-                    }
-                };
-
-                // Handle iframe load error
-                iframe.onerror = function() {
-                    if (!resolved) {
-                        resolved = true;
-                        clearTimeout(timeoutId);
-                        document.body.removeChild(iframe);
-                        reject(new Error('Failed to load'));
-                    }
-                };
-
-                // Add iframe to DOM and set source
-                document.body.appendChild(iframe);
-                iframe.src = TARGET_URL;
-            });
-        }
-
-        async function checkServerAndRedirect() {
-            try {
-                // Check if server is responding correctly
-                await checkServerWithIframe();
-                
-                // Server is up and running correctly, redirect!
-                if (!hasRedirected) {
-                    hasRedirected = true;
-                    window.location.href = TARGET_URL;
-                }
-            } catch (error) {
-                // Server is down or returning errors
-                console.log('Server check failed:', error.message);
-                if (!hasRedirected) {
-                    showMaintenancePage();
-                }
-            }
-        }
-
-        // Start the check when page loads
-        window.addEventListener('DOMContentLoaded', () => {
-            // Start checking after brief delay
+        if (!hasAttemptedRedirect) {
+            // First attempt - try to redirect
+            sessionStorage.setItem('redirectAttempted', 'true');
+            sessionStorage.setItem('redirectFailCount', '0');
+            
+            // Attempt redirect after short delay
             setTimeout(() => {
-                checkServerAndRedirect();
+                window.location.replace(TARGET_URL);
+            }, 800);
+            
+            // If we're still here after 6 seconds, redirect failed
+            setTimeout(() => {
+                // If this code runs, the redirect failed
+                sessionStorage.setItem('redirectFailCount', (redirectFailCount + 1).toString());
+                showMaintenancePage();
+            }, 6000);
+            
+        } else if (redirectFailCount < 3) {
+            // We came back from a failed redirect - try once more
+            sessionStorage.setItem('redirectFailCount', (redirectFailCount + 1).toString());
+            
+            setTimeout(() => {
+                window.location.replace(TARGET_URL);
             }, 500);
-
-            // Fallback safety: if still loading after timeout + buffer, show maintenance
+            
             setTimeout(() => {
-                if (document.getElementById('loading').classList.contains('show') && !hasRedirected) {
-                    showMaintenancePage();
-                }
-            }, TIMEOUT_MS + 2000);
+                showMaintenancePage();
+            }, 5000);
+            
+        } else {
+            // Multiple redirect failures - show maintenance immediately
+            sessionStorage.removeItem('redirectAttempted');
+            sessionStorage.removeItem('redirectFailCount');
+            setTimeout(showMaintenancePage, 100);
+        }
+
+        // If user navigates back to this page, it means redirect failed
+        window.addEventListener('pageshow', (event) => {
+            if (event.persisted || performance.navigation.type === 2) {
+                // Page came from cache (back button)
+                sessionStorage.setItem('redirectFailCount', '999'); // Force maintenance
+                showMaintenancePage();
+            }
         });
+
+        // Clear session storage when retry button is clicked
+        window.retryConnection = function() {
+            sessionStorage.removeItem('redirectAttempted');
+            sessionStorage.removeItem('redirectFailCount');
+            window.location.reload();
+        };
     </script>
 </body>
 </html>
