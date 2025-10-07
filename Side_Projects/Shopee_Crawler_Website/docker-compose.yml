@@ -23,3 +23,4 @@ services:
       - ./web/static:/var/www/static:ro
     depends_on:
       - web
+    restart: always
