@@ -2,9 +2,8 @@ services:
   web:
     build:
       context: .
-      args:
-        MODE: dev
       dockerfile: Dockerfile
+    # platform: linux/amd64
     container_name: shopee_web
     volumes:
       - ./uploads:/app/uploads

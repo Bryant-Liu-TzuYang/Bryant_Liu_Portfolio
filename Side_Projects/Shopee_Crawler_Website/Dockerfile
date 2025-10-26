@@ -1,20 +1,10 @@
 FROM ubuntu:22.04
 
-ARG MODE=${MODE}
-
 # Install necessary dependencies
 RUN apt-get update && apt-get install -y wget curl gnupg tzdata unzip python3.10 python3-pip fonts-liberation libasound2 libatk-bridge2.0-0 \
     libatk1.0-0 libcups2 libdbus-1-3 libgdk-pixbuf2.0-0 libnspr4 libnss3 libx11-xcb1 libxcomposite1 libxdamage1 libxrandr2 xdg-utils --no-install-recommends
 
-# Install Chrome/Chromium based on architecture
-RUN if [ "$MODE" = "dev" ]; then \
-        # For ARM64 (Mac M1/M2) - use Chromium
-        apt-get install -y chromium-browser chromium-chromedriver && \
-        ln -s /usr/bin/chromium-browser /usr/bin/google-chrome; \
-    else \
-        # For AMD64 (Server) - use Google Chrome
-        # Google Chrome installation
-        wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
+RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
         apt install -y ./google-chrome-stable_current_amd64.deb && \
         rm google-chrome-stable_current_amd64.deb && \
         # Chromedriver installation
@@ -27,8 +17,7 @@ RUN if [ "$MODE" = "dev" ]; then \
         ls && \
         mv ./chromedriver-linux64/chromedriver /usr/local/bin/chromedriver && \
         chmod +x /usr/local/bin/chromedriver && \
-        rm /tmp/chromedriver.zip; \
-    fi
+        rm /tmp/chromedriver.zip;
 
 ENV PATH="/usr/local/bin:/usr/local/bin/chromedriver:$PATH"
 
