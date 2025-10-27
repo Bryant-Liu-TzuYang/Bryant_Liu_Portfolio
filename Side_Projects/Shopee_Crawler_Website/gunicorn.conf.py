@@ -2,7 +2,7 @@ import multiprocessing
 import os
 
 bind = "0.0.0.0:8000"
-workers = multiprocessing.cpu_count() * 2 - 1
+workers = 2
 
 # 設定 log 輸出到容器內的 logs 資料夾
 log_dir = "logs"

@@ -29,7 +29,7 @@ from ..db import get_db
 # Constants
 OPEN_API_KEY = os.environ.get('OPEN_API_KEY', None)
 MAX_TIMEOUT_SECONDS = 120
-MAX_WORKERS = os.cpu_count() - 2  # Adjust based on your CPU cores
+MAX_WORKERS = os.cpu_count() - 2 - 2 - 2 # Reserve CPU for 1. Gunicorn, 2. Nginx, 3. other processes
 
 
 def init_log_info(logger: logging.Logger, total_crawl_num, filename: str):
@@ -129,15 +129,9 @@ def initialize_webdriver() -> webdriver.Chrome:
     except Exception:
         pass
 
-    # Mac M1 → Chromium + chromedriver_py
+    # Mac M1 → need to manually download chromedriver and place it inside /usr/local/bin
     if system == "Darwin" and arch == "arm64":
-        # from chromedriver_py import binary_path
-
-        # svc = webdriver.ChromeService(executable_path=binary_path)
-        # driver = webdriver.Chrome(options=options, service=svc)
-        driver_path = chromedriver_autoinstaller.install()
-        service = ChromeService(executable_path=driver_path)
-        driver = webdriver.Chrome(options=options, service=service)
+        driver = webdriver.Chrome(options=options)
 
     # Windows → autoinstaller (use returned path explicitly to avoid PATH conflicts)
     elif system == "Windows":
@@ -145,13 +139,11 @@ def initialize_webdriver() -> webdriver.Chrome:
         service = ChromeService(executable_path=driver_path)
         driver = webdriver.Chrome(options=options, service=service)
 
-    # Linux (e.g., WSL) → Already downloaded chromedriver in Dockerfile
+    # Linux → Already downloaded chromedriver in Dockerfile
     elif system == "Linux":
         driver_path = "/usr/local/bin/chromedriver"
         service = ChromeService(executable_path=driver_path)
         driver = webdriver.Chrome(options=options, service=service)
-        # If running in a minimal container, you may also need:
-        # options.binary_location = "/usr/bin/google-chrome"
 
     else:
         raise EnvironmentError(f"Unsupported platform: {system}-{arch}")
@@ -159,24 +151,6 @@ def initialize_webdriver() -> webdriver.Chrome:
     driver.set_page_load_timeout(MAX_TIMEOUT_SECONDS)
     return driver
 
-
-def accept_alert(driver: webdriver.Chrome):
-    """Accept an alert dialog in the browser."""
-    driver.refresh()
-    wait = WebDriverWait(driver, timeout=10)
-    alert = wait.until(lambda d: d.switch_to.alert)
-    alert.accept()
-    return
-
-
-def handle_unexpected_alert(driver: webdriver.Chrome) -> None:
-    """
-    Handle an unexpected alert by refreshing the page and accepting the alert.
-    """
-    try:
-        accept_alert(driver)
-    except NoAlertPresentException:
-        return
 
 
 def handle_server_timeout(
@@ -233,7 +207,7 @@ def process_row(
     item_name,
     pattern,
     platforms,
-    max_retry=3,
+    max_retry=2,
 ):
     """
     Process a single row by cleaning the item name and searching for it.
@@ -252,7 +226,7 @@ def process_row(
     try:
         client = OpenAI(api_key=OPEN_API_KEY)
     except Exception as e:
-        mes = f"getlink|Error initializing OpenAI client: {e}"
+        mes = f"getlink|Error initializing OpenAI client. The error is: {e}"
         logging.error(mes)
         return index, {platform: (mes, mes, 0) for platform in platforms.split(',')}
 
@@ -304,7 +278,12 @@ def process_row(
 
 def main(uploadFilename, time_stamp, platforms) -> None:
     """
-    Main function to process uploaded file and crawl product information.
+    TOP Level Function to HANDLE requests (files)
+
+    Functions:
+        1. check if the uploaded file is processable.
+        2. create a queue (process pool) and assign each row as a job.
+        3. Update progress in the database.
 
     Args:
         uploadFilename: Name of the uploaded file
@@ -350,44 +329,14 @@ def main(uploadFilename, time_stamp, platforms) -> None:
 
     # remove unwanted text from item names
     text_to_removed = [
-        "現貨",
-        "廠商直送",
-        "蝦皮直送",
-        "大型配送",
-        "含運無安裝",
-        "含基本安裝",
-        "舊機回收",
-        "送原廠禮",
-        "免運費",
-        "官方旗艦店",
-        "第一視角飛行體驗",
-        "陳列機限地區",
-        "含基本安裝",
-        "基本安裝",
-        "七天鑑賞期",
-        "買一送一",
-        "保固延長",
-        "支援線上客服",
-        "限量供應",
-        "含安裝服務",
-        "30天退貨保障",
-        "VIP專屬服務",
-        "提供租賃方案",
-        "低碳配送",
-        "保護包裝",
-        "同日到貨",
-        "環保包裝",
-        "品牌直營",
-        "免服務費",
-        "多件折扣",
-        "到府維修",
-        "分期零利率",
-        "專屬會員折扣",
-        "全新機保證",
-        "虛擬實境體驗",
-        "新機上市",
-        "預購優惠",
-        "免運",
+        "現貨", "廠商直送", "蝦皮直送", "大型配送", "含運無安裝",
+        "含基本安裝", "舊機回收", "送原廠禮", "免運費", "官方旗艦店",
+        "第一視角飛行體驗", "陳列機限地區", "含基本安裝", "基本安裝", "七天鑑賞期",
+        "買一送一", "保固延長", "支援線上客服", "限量供應", "含安裝服務",
+        "30天退貨保障", "VIP專屬服務", "提供租賃方案", "低碳配送", "保護包裝",
+        "同日到貨", "環保包裝", "品牌直營", "免服務費", "多件折扣",
+        "到府維修", "分期零利率", "專屬會員折扣", "全新機保證", "虛擬實境體驗",
+        "新機上市", "預購優惠", "免運",
     ]
     pattern = "|".join(map(re.escape, text_to_removed))
 
@@ -496,6 +445,11 @@ def main(uploadFilename, time_stamp, platforms) -> None:
 
     return
 
+
+
+# --------------------------------------------------------------#
+# below for testing #
+
 if __name__ == "__main__":
     def initialize_webdriver() -> webdriver.Chrome:
         """
@@ -527,10 +481,7 @@ if __name__ == "__main__":
 
         # Mac M1 → Chromium + chromedriver_py
         if system == "Darwin" and arch == "arm64":
-            from chromedriver_py import binary_path
-
-            svc = webdriver.ChromeService(executable_path=binary_path)
-            driver = webdriver.Chrome(options=options, service=svc)
+            driver = webdriver.Chrome(options=options)
 
         # Windows and Linux → autoinstaller (automatically downloads correct version)
         elif system in ["Windows", "Linux"]:

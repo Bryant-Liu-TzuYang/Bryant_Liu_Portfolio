@@ -6,9 +6,44 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import NoAlertPresentException
 from .same_prouct_or_not import same_product_or_not
 
 MAX_TIMEOUT_SECONDS = 120
+
+
+def accept_alert(driver: webdriver.Chrome):
+    """Accept an alert dialog in the browser."""
+    driver.refresh()
+    wait = WebDriverWait(driver, timeout=10)
+    alert = wait.until(lambda d: d.switch_to.alert)
+    alert.accept()
+    return
+
+
+def handle_unexpected_alert(driver: webdriver.Chrome) -> None:
+    """
+    Handle an unexpected alert by refreshing the page and accepting the alert.
+    """
+    try:
+        accept_alert(driver)
+    except NoAlertPresentException:
+        return
+    
+
+def sendkeywords_and_search(aitem_name, driver):
+    """
+    Send keywords to the search bar and perform the search action.
+
+    Args:
+        aitem_name: The name of the item to search for
+        driver: WebDriver instance for web scraping
+    """
+    item_search_input = driver.find_element(By.NAME, "search-input")
+    search_button = driver.find_element(By.CSS_SELECTOR, "button[type='button'][class*='rounded-bl-[0px]']")
+    item_search_input.send_keys(aitem_name)
+    search_button.send_keys(Keys.ENTER)
+
 
 def search(aitem_name, driver, client):
     """
@@ -32,11 +67,17 @@ def search(aitem_name, driver, client):
         logging.error(mes)
         return f"{mes}", f"{mes}", 0
 
-    # sending keywords to search bar and then click search button
-    item_search_input = driver.find_element(By.ID, "keyword")
-    search_button = driver.find_element(By.CLASS_NAME, "inputbtn")
-    item_search_input.send_keys(aitem_name)
-    search_button.send_keys(Keys.ENTER)
+    try:
+        sendkeywords_and_search(aitem_name, driver)
+    except Exception as e:
+        if "element click intercepted" in str(e).lower():
+            handle_unexpected_alert(driver)
+            sendkeywords_and_search(aitem_name, driver)
+        else:
+            mes = f"search_momo | Failed to send keywords and search: {e}"
+            logging.error(mes)
+            return f"{mes}", f"{mes}", 0
+
 
     # get product name using explicit wait
     # todo: Currently using CLASS_NAME, may need optimization
@@ -127,8 +168,19 @@ def search(aitem_name, driver, client):
     
     # If no matching product found
     return "no corresponding item", "no corresponding item", 0
-    
 
+
+
+### ------------------------------------ ###
+
+### ------- Testing the function ------- ###
+
+### ------------------------------------ ###
+
+"""
+cd /Users/bryant_lue/Documents/GitHub/Shopee_Crawler_Website/website
+python3 -m src.search_momo 
+"""
 
 if __name__ == "__main__":
     def initialize_webdriver() -> webdriver.Chrome:
@@ -161,10 +213,7 @@ if __name__ == "__main__":
 
         # Mac M1 → Chromium + chromedriver_py
         if system == "Darwin" and arch == "arm64":
-            from chromedriver_py import binary_path
-
-            svc = webdriver.ChromeService(executable_path=binary_path)
-            driver = webdriver.Chrome(options=options, service=svc)
+            driver = webdriver.Chrome(options=options)
 
         # Windows and Linux → autoinstaller (automatically downloads correct version)
         elif system in ["Windows", "Linux"]:

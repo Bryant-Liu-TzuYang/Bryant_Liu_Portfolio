@@ -21,6 +21,7 @@ from .db import get_db
 from .src.getlink import main
 from .notion_service import NotionUpdatesService
 
+LOG_LEVEL = os.environ.get('LOG_LEVEL', 'WARNING').upper()
 OPEN_API_KEY = os.environ.get('OPEN_API_KEY', None)
 UPLOAD_FOLDER = 'data/uploads'
 OUTPUT_FOLDER = 'data/outputs'
@@ -73,7 +74,6 @@ log_path = f'logs/app_{date_time}.log'
 file_handler = RotatingFileHandler(
     log_path, maxBytes=10_000_000, backupCount=5, encoding='utf-8'
 )
-file_handler.setLevel(logging.WARNING)
 file_formatter = GMT8Formatter(
     '[%(asctime)s] [%(levelname)s] %(name)s: %(message)s'
 )
@@ -81,7 +81,6 @@ file_handler.setFormatter(file_formatter)
 
 # Console Handler（stdout）
 console_handler = logging.StreamHandler(sys.stdout)
-console_handler.setLevel(logging.WARNING)
 console_formatter = GMT8Formatter(
     '[%(asctime)s] [%(levelname)s] %(message)s'
 )
@@ -89,12 +88,33 @@ console_handler.setFormatter(console_formatter)
 
 # 主 logger 註冊 handler
 logger = logging.getLogger()
-logger.setLevel(logging.WARNING)
 logger.addHandler(file_handler)
 logger.addHandler(console_handler)
 
+# 設定 logger 等級
+level_map = {
+    "DEBUG": logging.DEBUG,
+    "INFO": logging.INFO,
+    "WARNING": logging.WARNING,
+    "ERROR": logging.ERROR,
+    "CRITICAL": logging.CRITICAL,
+}
+
+if LOG_LEVEL in level_map:
+    level = level_map[LOG_LEVEL]
+    file_handler.setLevel(level)
+    console_handler.setLevel(level)
+    logger.setLevel(level)
+    logging.info(f"Logging level set to {LOG_LEVEL}")
+else:
+    logging.warning(f"Invalid LOGGING_LEVEL '{LOG_LEVEL}' specified. Defaulting to WARNING.")
+    file_handler.setLevel(logging.WARNING)
+    console_handler.setLevel(logging.WARNING)
+    logger.setLevel(logging.WARNING)
 
 
+
+### ----------- App Factory ----------- ###
 def create_app(test_config=None):
     # Load environment variables from .env file
     load_dotenv()
@@ -150,7 +170,6 @@ def create_app(test_config=None):
         pass
 
 
-
     @app.route('/', methods=['GET', 'POST'])
     def main_page():
         # connect to database first
@@ -203,7 +222,6 @@ def create_app(test_config=None):
         return render_template('home_page.html', files=files, openai_api_key=OPEN_API_KEY)
 
 
-
     @app.route('/processingFile/<filename>/<time_stamp>/<platforms>', methods=['GET', 'POST'])
     def tempPage_processingFile(filename, time_stamp, platforms):
         try:
@@ -224,7 +242,6 @@ def create_app(test_config=None):
             app.logger.warning("start processingFile")
 
         return redirect(url_for('main_page'))
-
 
 
     @app.route('/show_data/<stamp>/<filename>', methods=['GET'])
@@ -264,13 +281,11 @@ def create_app(test_config=None):
                                 data_var=f"<p>Error reading file: {str(e)}</p>")
 
 
-
     @app.route('/download/<stamp>/<filename>', methods=['GET'])
     def download_file(filename, stamp):
         output_filename = f"links_{stamp}_{filename}"
         return send_file(f"data/outputs/{output_filename}",
                         as_attachment=True)
-
 
 
     @app.route('/delete/<stamp>/<filename>', methods=['POST'])
@@ -311,16 +326,12 @@ def create_app(test_config=None):
         except Exception as e:
             app.logger.error(f"Error deleting file {filename} with stamp {stamp}: {e}")
             return jsonify({'status': 'error', 'message': f'Error deleting file: {str(e)}'}), 500
-
-    
-
     
 
     @app.route('/how_to_use', methods=['GET'])
     def how_to_use():
         return render_template('how_to_use.html')
     
-
 
     @app.route('/updates', methods=['GET'])
     def updates():
@@ -346,6 +357,7 @@ def create_app(test_config=None):
             app.logger.error(f"Error loading updates: {e}")
             return render_template('updates.html', updates_data=None, error=str(e))
 
+
     @app.route('/updates/data', methods=['GET'])
     def get_updates_data():
         """Async endpoint to fetch updates data"""
@@ -367,6 +379,7 @@ def create_app(test_config=None):
         except Exception as e:
             app.logger.error(f"Error loading updates data: {e}")
             return jsonify({'status': 'error', 'message': str(e)}), 500
+
 
     @app.route('/updates/refresh', methods=['POST'])
     def refresh_updates():
@@ -390,6 +403,7 @@ def create_app(test_config=None):
         current_date = datetime.now().strftime('%Y-%m-%d')
         return render_template('trending_coupang.html', current_date=current_date)
 
+
     @app.route('/eval', methods=['GET'])
     def eval_report():
         """Display evaluation metrics from data/eval.csv in an interactive table"""
@@ -403,6 +417,7 @@ def create_app(test_config=None):
         except Exception as e:
             app.logger.error(f"Error rendering eval page: {e}")
             return render_template('eval.html', file_created=None, error=str(e))
+
 
     @app.route('/eval_data', methods=['GET'])
     def eval_data():
@@ -425,6 +440,7 @@ def create_app(test_config=None):
             app.logger.error(f"Error loading eval data: {e}")
             return jsonify({'success': False, 'message': 'Internal server error'}), 500
 
+
     @app.route('/download_eval', methods=['GET'])
     def download_eval():
         """Download the raw evaluation CSV"""
@@ -437,6 +453,7 @@ def create_app(test_config=None):
             app.logger.error(f"Error in download_eval: {e}")
             return "Internal server error", 500
 
+
     def get_category_mapping():
         """Map display names to file names"""
         return {
@@ -448,16 +465,19 @@ def create_app(test_config=None):
             'Home Electronic': 'home_electronic'
         }
 
+
     def get_file_name_from_display(display_name):
         """Convert display name to file name"""
         mapping = get_category_mapping()
         return mapping.get(display_name, display_name.lower().replace(' ', '_'))
+
 
     def get_display_name_from_file(file_name):
         """Convert file name to display name"""
         mapping = get_category_mapping()
         reverse_mapping = {v: k for k, v in mapping.items()}
         return reverse_mapping.get(file_name, file_name.replace('_', ' ').title())
+
 
     @app.route('/trending_data', methods=['GET'])
     def trending_data():
@@ -516,6 +536,7 @@ def create_app(test_config=None):
         except Exception as e:
             app.logger.error(f"Error in trending_data: {str(e)}")
             return jsonify({'success': False, 'message': 'Internal server error'}), 500
+
 
     @app.route('/download_trending', methods=['GET'])
     def download_trending():
@@ -603,18 +624,17 @@ def create_app(test_config=None):
             app.logger.error(f"Error in download_trending: {str(e)}")
             return "Internal server error", 500
 
+
     @app.route('/about', methods=['GET'])
     def about():
         return render_template('about.html')
     
-
 
     @app.route('/test', methods=['GET'])
     def test():
         1/0  # raises an error
         return "<p>Hello, World!</p>"
     
-
 
     @app.route('/test2', methods=['GET'])
     def test2():
@@ -644,7 +664,6 @@ def create_app(test_config=None):
                 db.commit()
             finally:
                 app.logger.debug("this is the end of processingFile")
-
 
 
     from .db import init_app
@@ -677,4 +696,3 @@ def create_app(test_config=None):
     # app.run()
 
     return app
-
