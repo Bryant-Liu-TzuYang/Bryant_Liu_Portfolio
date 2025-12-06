@@ -1,0 +1,55 @@
+##################################
+# DEVELOPMENT ENVIRONMENT CONFIG
+##################################
+
+# ============================================================
+# Category 1: ABSOLUTELY REQUIRED
+# ============================================================
+# Email Configuration (SMTP) - Required for core email functionality
+SMTP_USER=your_email@gmail.com
+SMTP_PASSWORD=your_app_password
+
+# ============================================================
+# Category 2: CAN USE DEFAULTS (But Change in Production)
+# ============================================================
+# Security Configuration - Has insecure defaults for dev
+SECRET_KEY=dev-secret-key-for-local-development
+JWT_SECRET_KEY=dev-jwt-secret-key-for-local
+
+# SMTP Server Configuration - Gmail defaults work for dev
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USE_TLS=true
+
+# ============================================================
+# Category 3: CAN SKIP ENTIRELY
+# ============================================================
+# Database Configuration - Defaults to SQLite, only needed for MySQL testing
+# MYSQL_ROOT_PASSWORD=password
+# MYSQL_DATABASE=notion_email_dev
+# MYSQL_USER=user
+# MYSQL_PASSWORD=password
+# DATABASE_URL=mysql+pymysql://user:password@localhost:3306/notion_email_dev
+
+# Celery/Background Tasks - Not needed for basic dev
+# REDIS_URL=redis://localhost:6379/0
+
+# Frontend Configuration - Defaults work perfectly for local dev
+# FRONTEND_URL=http://localhost:3000
+# REACT_APP_API_URL=/api
+
+# Logging Configuration - Defaults are fine for dev
+# LOG_LEVEL=INFO
+# LOG_TO_STDOUT=false
+# REACT_APP_LOG_LEVEL=info
+# REACT_APP_SEND_LOGS_TO_SERVER=true
+
+# Email Template Variables - Cosmetic only
+# FROM_EMAIL_NAME=Notion Email Vocabulary
+# SUPPORT_EMAIL=support@notionemail.com
+
+# Notion Integration - Users can provide via UI
+# NOTION_API_KEY=your_notion_api_key_here
+
+# Flask Environment - Auto-defaults to development
+# FLASK_ENV=development 

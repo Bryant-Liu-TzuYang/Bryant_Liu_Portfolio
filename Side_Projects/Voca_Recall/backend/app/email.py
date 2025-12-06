@@ -6,7 +6,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import random
 from datetime import datetime
-from .models import User, NotionDatabase, EmailSettings, EmailLog, db
+from .models import User, NotionDatabase, NotionToken, EmailSettings, EmailLog, db
 from . import celery
 from .logging_config import get_logger
 from .middleware import log_api_call, log_function_call
@@ -226,12 +226,41 @@ def send_test_email():
             return jsonify({'error': 'User not found'}), 404
         
         data = request.get_json()
-        api_key = data.get('notion_api_key')
-        database_id = data.get('database_id')
+        database_pk = data.get('database_pk')
         vocabulary_count = data.get('vocabulary_count', 5)
         
-        if not api_key or not database_id:
-            return jsonify({'error': 'Notion API key and database ID are required'}), 400
+        # Support both new (database_pk) and legacy (notion_api_key + database_id) methods
+        if database_pk:
+            # New method: use stored database and token
+            database = NotionDatabase.query.filter_by(
+                id=database_pk,
+                user_id=current_user_id
+            ).first()
+            
+            if not database:
+                return jsonify({'error': 'Database not found'}), 404
+            
+            if not database.token_id:
+                return jsonify({'error': 'Database has no associated token. Please update the database configuration.'}), 400
+            
+            token = NotionToken.query.filter_by(
+                id=database.token_id,
+                user_id=current_user_id,
+                is_active=True
+            ).first()
+            
+            if not token:
+                return jsonify({'error': 'Token not found or inactive'}), 404
+            
+            api_key = token.token
+            database_id = database.database_id
+        else:
+            # Legacy method: use provided API key and database ID
+            api_key = data.get('notion_api_key')
+            database_id = data.get('database_id')
+            
+            if not api_key or not database_id:
+                return jsonify({'error': 'Either database_pk or (notion_api_key and database_id) are required'}), 400
         
         # Get vocabulary items
         vocabulary_items = get_vocabulary_from_notion(api_key, database_id, vocabulary_count)

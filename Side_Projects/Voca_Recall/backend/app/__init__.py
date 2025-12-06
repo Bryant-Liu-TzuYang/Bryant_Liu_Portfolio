@@ -91,5 +91,35 @@ def create_app(config_name=None):
         db.create_all()
         logger.info("Database tables created/verified")
     
+    # Validate SMTP credentials on startup
+    with app.app_context():
+        from .smtp_validator import validate_smtp_from_config
+        logger.info("Validating SMTP credentials...")
+        success, error = validate_smtp_from_config(app.config)
+        
+        if not success:
+            logger.error("=" * 70)
+            logger.error("⚠️  SMTP CREDENTIALS VALIDATION FAILED!")
+            logger.error(f"Error: {error}")
+            logger.error("")
+            logger.error("Email functionality will not work until this is resolved.")
+            logger.error("Please check your .env file and update:")
+            logger.error("  - SMTP_USER")
+            logger.error("  - SMTP_PASSWORD")
+            logger.error("  - SMTP_HOST")
+            logger.error("  - SMTP_PORT")
+            logger.error("")
+            logger.error("For Gmail users:")
+            logger.error("  1. Enable 2-factor authentication")
+            logger.error("  2. Generate App Password: https://myaccount.google.com/apppasswords")
+            logger.error("  3. Use App Password (not your regular password)")
+            logger.error("=" * 70)
+            
+            # In production, you might want to prevent startup
+            if config_name == 'production':
+                raise RuntimeError(f"SMTP validation failed: {error}")
+        else:
+            logger.info("✅ SMTP credentials validated successfully")
+    
     logger.info("Notion Email application initialized successfully")
     return app 

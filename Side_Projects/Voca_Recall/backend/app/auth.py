@@ -87,10 +87,17 @@ def login():
         # Find user by email
         user = User.query.filter_by(email=data['email']).first()
         
-        if not user or not user.check_password(data['password']):
-            logger.warning(f"Login failed: invalid credentials for '{data.get('email')}'")
-            return jsonify({'error': 'Invalid email or password'}), 401
+        # Check if user exists
+        if not user:
+            logger.warning(f"Login failed: user not found for '{data.get('email')}'")
+            return jsonify({'error': 'No account found with this email address'}), 401
         
+        # Check if password is correct
+        if not user.check_password(data['password']):
+            logger.warning(f"Login failed: incorrect password for '{data.get('email')}'")
+            return jsonify({'error': 'Incorrect password'}), 401
+        
+        # Check if account is active
         if not user.is_active:
             logger.warning(f"Login failed: account deactivated for '{data.get('email')}'")
             return jsonify({'error': 'Account is deactivated'}), 401

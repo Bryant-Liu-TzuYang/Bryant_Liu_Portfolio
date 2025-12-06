@@ -45,27 +45,42 @@ notion-email/
 The project includes a unified setup script that handles both environment configuration and Docker management:
 
 ```bash
-# First time setup
-./setup.sh env          # Validate environment configuration
-# Edit .env with your actual values
-./setup.sh dev          # Start development environment
+# First time setup for development (with interactive wizard)
+./setup.sh dev          # Creates .env and offers interactive configuration
+# Choose 'y' to use wizard or 'n' to configure manually
+# If manual: edit .env, then run './setup.sh dev' again
+
+# First time setup for production (with interactive wizard)
+./setup.sh prod         # Creates .env and offers interactive configuration
+# Wizard will guide you through all required settings
+# If manual: edit .env, then run './setup.sh prod' again
 
 # Other commands
-./setup.sh prod         # Setup production environment
 ./setup.sh stop         # Stop all services
 ./setup.sh logs         # View logs
 ./setup.sh cleanup      # Clean up containers and volumes
 ```
 
-The `dev` and `prod` commands automatically validate your environment before starting services.
+**Interactive Setup Features:**
+- **Development**: Configure SMTP credentials, optionally add Notion API key
+- **Production**: Auto-generates security keys, guides through database, email, and frontend setup
+- **Flexible**: Type `skip` at any prompt to exit and configure manually
+- **Safe**: Only prompts for configuration on first run (when `.env` is created)
 
-**What the script does:**
-1. Creates `.env` file from template if needed
-2. Validates required environment variables:
-   - `SECRET_KEY`, `JWT_SECRET_KEY` - Security keys
-   - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD` - Email configuration
-3. Provides setup guidance (Gmail App Passwords, security notes, etc.)
-4. Starts Docker containers and services
+The `dev` and `prod` commands automatically:
+1. **Create `.env` file** from the appropriate template (`dev-env.example` or `prod-env.example`)
+2. **Offer interactive setup** - Guide you through configuring required variables:
+   - Development: SMTP credentials, optional Notion API key
+   - Production: Security keys, database, SMTP, frontend URL, Redis
+3. **Validate environment variables** before starting services
+4. **Start Docker containers** and services
+
+**Interactive Setup Options**:
+- Type `y` to use the interactive wizard
+- Type `n` or `skip` to configure `.env` manually
+- At any prompt, type `skip` to exit and configure manually
+
+**Note**: If `.env` already exists, the script will use it instead of creating a new one from the template.
 
 **Development environment** includes:
 - Frontend: http://localhost:3000
@@ -118,16 +133,24 @@ The documentation provides:
 
 For **development**, you only need to set:
 ```bash
-# Minimal .env for development
+# Minimal .env for development (created from backend/dev-env.example)
 SMTP_USER=your_email@gmail.com
 SMTP_PASSWORD=your_gmail_app_password
 ```
 
-All other variables have sensible defaults. See [ENV_VARIABLES.md](docs/ENV_VARIABLES.md) for the complete development and production templates.
+For **production**, see the complete configuration in `backend/prod-env.example`.
+
+All other variables have sensible defaults. See [ENV_VARIABLES.md](docs/ENV_VARIABLES.md) for detailed explanations and the complete development and production templates.
 
 ## Documentation
 
+### Setup & Configuration
+- **[SETUP_QUICK_REFERENCE.md](docs/SETUP_QUICK_REFERENCE.md)** ⚡ Quick reference card
+- **[INTERACTIVE_SETUP.md](docs/INTERACTIVE_SETUP.md)** - Interactive setup wizard guide
+- **[SETUP_FLOW.md](docs/SETUP_FLOW.md)** - Visual setup flow diagrams
 - **[ENV_VARIABLES.md](docs/ENV_VARIABLES.md)** - Comprehensive environment variables guide
+
+### Operations
 - **[LOGGING.md](docs/LOGGING.md)** - Logging system documentation
 - **[DEPLOYMENT.md](docs/DEPLOYMENT.md)** - Deployment guide
 
@@ -201,7 +224,32 @@ The application includes a secure password reset system:
 - Update `SMTP_HOST` and `SMTP_PORT` accordingly
 - Use appropriate authentication credentials in `SMTP_USER` and `SMTP_PASSWORD`
 
-The setup script (`./setup.sh env`) will validate these settings and provide detailed guidance.
+### SMTP Validation
+
+The application automatically validates SMTP credentials at two critical points:
+
+1. **During Setup** (`./setup.sh dev` or `./setup.sh prod`)
+   - Validates credentials after interactive configuration
+   - Development: Warns but allows continuation
+   - Production: Fails setup if credentials are invalid
+
+2. **On Application Startup**
+   - Validates credentials when Flask initializes
+   - Development: Logs warnings but continues
+   - Production: Prevents startup if credentials are invalid
+
+**Manual Validation**:
+```bash
+# Test your SMTP credentials anytime
+python3 backend/validate_smtp.py
+```
+
+**Common Validation Errors**:
+- **Authentication Failed**: Check username/password, use App Password for Gmail
+- **Connection Failed**: Verify SMTP_HOST and SMTP_PORT, check firewall
+- **Placeholder Detected**: Replace example values with actual credentials
+
+For detailed troubleshooting, see `docs/Updates/20251206_smtp_validation.md`.
 
 ## License
 

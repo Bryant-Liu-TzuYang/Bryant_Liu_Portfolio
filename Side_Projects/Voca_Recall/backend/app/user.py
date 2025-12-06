@@ -67,70 +67,7 @@ def update_profile():
         db.session.rollback()
         return jsonify({'error': 'Failed to update profile', 'details': str(e)}), 500
 
-@user_bp.route('/settings', methods=['GET'])
-@jwt_required()
-def get_settings():
-    """Get user email settings"""
-    try:
-        current_user_id = int(get_jwt_identity())
-        email_settings = EmailSettings.query.filter_by(user_id=current_user_id).first()
-        
-        if not email_settings:
-            return jsonify({'error': 'Email settings not found'}), 404
-        
-        return jsonify({
-            'email_settings': email_settings.to_dict()
-        }), 200
-        
-    except Exception as e:
-        return jsonify({'error': 'Failed to get settings', 'details': str(e)}), 500
 
-@user_bp.route('/settings', methods=['PUT'])
-@jwt_required()
-def update_settings():
-    """Update user email settings"""
-    try:
-        current_user_id = int(get_jwt_identity())
-        data = request.get_json()
-        
-        # Get or create email settings
-        email_settings = EmailSettings.query.filter_by(user_id=current_user_id).first()
-        
-        if not email_settings:
-            email_settings = EmailSettings(user_id=current_user_id)
-            db.session.add(email_settings)
-        
-        # Update settings
-        if data.get('vocabulary_count') and isinstance(data['vocabulary_count'], int):
-            if 1 <= data['vocabulary_count'] <= 50:  # Limit to reasonable range
-                email_settings.vocabulary_count = data['vocabulary_count']
-            else:
-                return jsonify({'error': 'Vocabulary count must be between 1 and 50'}), 400
-        
-        if data.get('send_time'):
-            try:
-                from datetime import datetime
-                send_time = datetime.strptime(data['send_time'], '%H:%M').time()
-                email_settings.send_time = send_time
-            except ValueError:
-                return jsonify({'error': 'Invalid time format. Use HH:MM'}), 400
-        
-        if data.get('timezone'):
-            email_settings.timezone = data['timezone']
-        
-        if data.get('is_active') is not None:
-            email_settings.is_active = bool(data['is_active'])
-        
-        db.session.commit()
-        
-        return jsonify({
-            'message': 'Settings updated successfully',
-            'email_settings': email_settings.to_dict()
-        }), 200
-        
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'error': 'Failed to update settings', 'details': str(e)}), 500
 
 @user_bp.route('/stats', methods=['GET'])
 @jwt_required()

@@ -18,40 +18,34 @@ import LoggingStatus from '../components/LoggingStatus';
 
 const Settings = () => {
   const { user, updateProfile } = useAuth();
-  const [emailSettings, setEmailSettings] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [sendingTest, setSendingTest] = useState(false);
   const [activeTab, setActiveTab] = useState('profile');
+  const [databases, setDatabases] = useState([]);
+  const [selectedDatabase, setSelectedDatabase] = useState('');
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
-    setValue,
   } = useForm();
 
   useEffect(() => {
-    fetchSettings();
+    fetchDatabases();
+    setLoading(false);
   }, []);
 
-  const fetchSettings = async () => {
+  const fetchDatabases = async () => {
     try {
-      const response = await axios.get('/api/user/settings');
-      setEmailSettings(response.data.email_settings);
-      
-      // Set form values
-      if (response.data.email_settings) {
-        setValue('vocabulary_count', response.data.email_settings.vocabulary_count);
-        setValue('send_time', response.data.email_settings.send_time);
-        setValue('timezone', response.data.email_settings.timezone);
-        setValue('is_active', response.data.email_settings.is_active);
+      const response = await axios.get('/api/databases');
+      setDatabases(response.data.databases);
+      if (response.data.databases.length > 0) {
+        setSelectedDatabase(response.data.databases[0].id.toString());
       }
     } catch (error) {
-      console.error('Failed to fetch settings:', error);
-    } finally {
-      setLoading(false);
+      console.error('Failed to fetch databases:', error);
     }
   };
 
@@ -66,31 +60,19 @@ const Settings = () => {
     }
   };
 
-  const onEmailSettingsSubmit = async (data) => {
-    try {
-      await axios.put('/api/user/settings', data);
-      toast.success('Email settings updated successfully!');
-      fetchSettings();
-    } catch (error) {
-      const message = error.response?.data?.error || 'Failed to update email settings';
-      toast.error(message);
-    }
-  };
-
   const sendTestEmail = async () => {
+    if (!selectedDatabase) {
+      toast.error('Please select a database first or add one on the Databases page');
+      return;
+    }
+
+    const vocabularyCount = prompt('How many vocabulary items? (default: 5)', '5');
+    if (vocabularyCount === null) return;
+
     setSendingTest(true);
     try {
-      const apiKey = prompt('Please enter your Notion API key:');
-      if (!apiKey) return;
-
-      const databaseId = prompt('Please enter your database ID:');
-      if (!databaseId) return;
-
-      const vocabularyCount = prompt('How many vocabulary items? (default: 5)', '5');
-
       await axios.post('/api/email/send-test', {
-        notion_api_key: apiKey,
-        database_id: databaseId,
+        database_pk: parseInt(selectedDatabase),
         vocabulary_count: parseInt(vocabularyCount) || 5,
       });
 
@@ -238,105 +220,60 @@ const Settings = () => {
         <div className="space-y-6">
           <div className="card">
             <h2 className="text-xl font-semibold text-gray-900 mb-6">Email Preferences</h2>
-            <form onSubmit={handleSubmit(onEmailSettingsSubmit)} className="space-y-6">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                <p className="text-sm text-blue-800">
-                  <strong>Note:</strong> Email frequency is now configured per database. Go to the Databases page to set individual frequencies for each connected database.
-                </p>
-              </div>
-              
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <div>
-                  <label htmlFor="vocabulary_count" className="form-label">
-                    Vocabulary Count
-                  </label>
-                  <input
-                    id="vocabulary_count"
-                    type="number"
-                    min="1"
-                    max="50"
-                    className={`input-field ${
-                      errors.vocabulary_count ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''
-                    }`}
-                    {...register('vocabulary_count', {
-                      required: 'Vocabulary count is required',
-                      min: { value: 1, message: 'Minimum 1 vocabulary item' },
-                      max: { value: 50, message: 'Maximum 50 vocabulary items' },
-                    })}
-                  />
-                  {errors.vocabulary_count && (
-                    <p className="mt-1 text-sm text-red-600">{errors.vocabulary_count.message}</p>
-                  )}
-                </div>
-              </div>
+            
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <p className="text-sm text-blue-800">
+                <strong>Note:</strong> Email frequency and vocabulary count are now configured per database. 
+                Go to the <a href="/databases" className="underline font-semibold">Databases page</a> to set individual settings for each connected database.
+              </p>
+            </div>
 
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <div>
-                  <label htmlFor="send_time" className="form-label">
-                    Send Time
-                  </label>
-                  <input
-                    id="send_time"
-                    type="time"
-                    className="input-field"
-                    {...register('send_time')}
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="timezone" className="form-label">
-                    Timezone
-                  </label>
-                  <select
-                    id="timezone"
-                    className="input-field"
-                    {...register('timezone')}
+            <div className="space-y-4">
+              {databases.length > 0 ? (
+                <>
+                  <div>
+                    <label htmlFor="test-database" className="form-label">
+                      Select Database for Test Email
+                    </label>
+                    <select
+                      id="test-database"
+                      value={selectedDatabase}
+                      onChange={(e) => setSelectedDatabase(e.target.value)}
+                      className="input-field"
+                    >
+                      {databases.map((db) => (
+                        <option key={db.id} value={db.id}>
+                          {db.database_name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={sendTestEmail}
+                    disabled={sendingTest}
+                    className="btn-secondary inline-flex items-center"
                   >
-                    <option value="UTC">UTC</option>
-                    <option value="America/New_York">Eastern Time</option>
-                    <option value="America/Chicago">Central Time</option>
-                    <option value="America/Denver">Mountain Time</option>
-                    <option value="America/Los_Angeles">Pacific Time</option>
-                    <option value="Europe/London">London</option>
-                    <option value="Europe/Paris">Paris</option>
-                    <option value="Asia/Tokyo">Tokyo</option>
-                  </select>
+                    {sendingTest ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600 mr-2"></div>
+                    ) : (
+                      <Send className="h-4 w-4 mr-2" />
+                    )}
+                    Send Test Email
+                  </button>
+                </>
+              ) : (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <p className="text-sm text-yellow-800">
+                    No databases found. Please add a database on the{' '}
+                    <a href="/databases" className="underline font-semibold">
+                      Databases page
+                    </a>{' '}
+                    to send test emails.
+                  </p>
                 </div>
-              </div>
-
-              <div className="flex items-center">
-                <input
-                  id="is_active"
-                  type="checkbox"
-                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                  {...register('is_active')}
-                />
-                <label htmlFor="is_active" className="ml-2 block text-sm text-gray-900">
-                  Enable email notifications
-                </label>
-              </div>
-
-              <div className="flex justify-between">
-                <button
-                  type="button"
-                  onClick={sendTestEmail}
-                  disabled={sendingTest}
-                  className="btn-secondary inline-flex items-center"
-                >
-                  {sendingTest ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600 mr-2"></div>
-                  ) : (
-                    <Send className="h-4 w-4 mr-2" />
-                  )}
-                  Send Test Email
-                </button>
-
-                <button type="submit" className="btn-primary inline-flex items-center">
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Settings
-                </button>
-              </div>
-            </form>
+              )}
+            </div>
           </div>
 
           {/* Email Logs */}

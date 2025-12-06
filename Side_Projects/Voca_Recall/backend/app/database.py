@@ -323,11 +323,24 @@ def test_database_connection(database_id):
         if not database:
             return jsonify({'error': 'Database not found'}), 404
         
-        data = request.get_json()
+        data = request.get_json() or {}
         api_key = data.get('notion_api_key')
         
+        # If API key not provided, use stored token
         if not api_key:
-            return jsonify({'error': 'Notion API key is required'}), 400
+            if not database.token_id:
+                return jsonify({'error': 'Database has no associated token. Please update the database configuration.'}), 400
+            
+            token = NotionToken.query.filter_by(
+                id=database.token_id,
+                user_id=current_user_id,
+                is_active=True
+            ).first()
+            
+            if not token:
+                return jsonify({'error': 'Token not found or inactive'}), 404
+            
+            api_key = token.token
         
         # Test connection and get sample data
         is_valid, result = validate_notion_database(api_key, database.database_id)

@@ -296,7 +296,7 @@ These variables have defaults but should be configured for production for optima
 
 ## Development `.env` Template
 
-**Minimal configuration for local development:**
+**Minimal configuration for local development** (from `backend/dev-env.example`):
 
 ```bash
 ##################################
@@ -333,17 +333,28 @@ SMTP_PASSWORD=your_gmail_app_password
 # FLASK_ENV=development
 ```
 
-**Setup Instructions:**
-1. Copy `backend/env.example` to `backend/.env`
-2. Set `SMTP_USER` and `SMTP_PASSWORD` (use Gmail App Password)
+**Setup Instructions (Automated - Recommended):**
+1. Run `./setup.sh dev` to create `.env` from `backend/dev-env.example`
+2. Choose `y` for interactive setup wizard:
+   - Enter SMTP credentials (use Gmail App Password)
+   - Optionally add Notion API key
+3. Script validates and starts services automatically
+
+**Setup Instructions (Manual):**
+1. Run `./setup.sh dev` and choose `n` or `skip` for interactive setup
+2. Edit `.env` and set `SMTP_USER` and `SMTP_PASSWORD` 
 3. Optionally set `NOTION_API_KEY`
-4. Run `python app.py` - SQLite will be created automatically
+4. Run `./setup.sh dev` again to start services
+
+**Alternative Manual Setup:**
+1. Copy `backend/dev-env.example` to `.env` (in project root)
+2. Follow manual steps 2-4 above
 
 ---
 
 ## Production `.env` Template
 
-**Complete production configuration:**
+**Complete production configuration** (from `backend/prod-env.example`):
 
 ```bash
 ##################################
@@ -408,6 +419,26 @@ LOG_TO_STDOUT=true
 REACT_APP_LOG_LEVEL=warn
 REACT_APP_SEND_LOGS_TO_SERVER=true
 ```
+
+**Setup Instructions (Automated - Recommended):**
+1. Run `./setup.sh prod` to create `.env` from `backend/prod-env.example`
+2. Choose `y` for interactive setup wizard:
+   - Auto-generates `SECRET_KEY` and `JWT_SECRET_KEY`
+   - Configure database (Docker MySQL or external)
+   - Set SMTP credentials
+   - Set frontend URL
+   - Configure Redis
+   - Optional: Notion API key, email template variables
+3. Script validates and starts services automatically
+
+**Setup Instructions (Manual):**
+1. Run `./setup.sh prod` and choose `n` or `skip` for interactive setup
+2. Edit `.env` with all production values (see checklist below)
+3. Run `./setup.sh prod` again to start services
+
+**Alternative Manual Setup:**
+1. Copy `backend/prod-env.example` to `.env` (in project root)
+2. Follow manual steps 2-3 above
 
 **Production Deployment Checklist:**
 1. ✅ Generate unique `SECRET_KEY` and `JWT_SECRET_KEY`

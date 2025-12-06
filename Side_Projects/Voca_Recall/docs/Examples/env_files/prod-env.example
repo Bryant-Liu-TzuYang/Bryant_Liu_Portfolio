@@ -1,0 +1,56 @@
+##################################
+# PRODUCTION ENVIRONMENT CONFIG
+##################################
+
+# ============================================================
+# Category 1: CRITICAL VARIABLES (MUST BE SET)
+# ============================================================
+
+# Database Configuration - REQUIRED for production
+# Use DATABASE_URL for external/managed database:
+DATABASE_URL=mysql+pymysql://user:password@host:3306/database
+
+# OR use these for Docker Compose deployment:
+MYSQL_ROOT_PASSWORD=your_mysql_root_password
+MYSQL_DATABASE=notion_email_prod
+MYSQL_USER=notion_user
+MYSQL_PASSWORD=your_mysql_password
+
+# Security Configuration - MUST GENERATE NEW KEYS!
+# Generate with: python -c "import secrets; print(secrets.token_urlsafe(32))"
+SECRET_KEY=your-super-secret-key-change-this-in-production
+JWT_SECRET_KEY=your-jwt-secret-key-change-this-in-production
+
+# Email Configuration (SMTP) - REQUIRED for core functionality
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your_email@gmail.com
+SMTP_PASSWORD=your_app_password
+SMTP_USE_TLS=true
+
+# Notion Integration - RECOMMENDED for production
+NOTION_API_KEY=your_notion_api_key_here
+
+# Environment Configuration - REQUIRED
+FLASK_ENV=production
+
+# ============================================================
+# Category 2: HIGHLY RECOMMENDED VARIABLES
+# ============================================================
+
+# Celery/Background Tasks - Required for scheduled email sending
+REDIS_URL=redis://your-redis-host:6379/0
+
+# Frontend Configuration - REQUIRED for password reset emails
+FRONTEND_URL=https://yourdomain.com
+REACT_APP_API_URL=/api
+
+# Logging Configuration - Production defaults are sensible
+LOG_LEVEL=WARNING
+LOG_TO_STDOUT=true
+REACT_APP_LOG_LEVEL=warn
+REACT_APP_SEND_LOGS_TO_SERVER=true
+
+# Email Template Variables - Professional appearance
+FROM_EMAIL_NAME=Notion Email Vocabulary
+SUPPORT_EMAIL=support@notionemail.com

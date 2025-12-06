@@ -115,12 +115,7 @@ const Databases = () => {
   const handleTestConnection = async (databaseId) => {
     setTestingConnection(databaseId);
     try {
-      const apiKey = prompt('Please enter your Notion API key:');
-      if (!apiKey) return;
-
-      const response = await axios.post(`/api/databases/${databaseId}/test`, {
-        notion_api_key: apiKey,
-      });
+      const response = await axios.post(`/api/databases/${databaseId}/test`, {});
 
       toast.success('Connection successful!');
       console.log('Test results:', response.data);
