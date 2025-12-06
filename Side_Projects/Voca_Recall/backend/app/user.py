@@ -101,9 +101,6 @@ def update_settings():
             db.session.add(email_settings)
         
         # Update settings
-        if data.get('frequency') in ['daily', 'weekly', 'custom']:
-            email_settings.frequency = data['frequency']
-        
         if data.get('vocabulary_count') and isinstance(data['vocabulary_count'], int):
             if 1 <= data['vocabulary_count'] <= 50:  # Limit to reasonable range
                 email_settings.vocabulary_count = data['vocabulary_count']

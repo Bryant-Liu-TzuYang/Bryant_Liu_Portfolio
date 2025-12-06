@@ -43,7 +43,6 @@ const Settings = () => {
       
       // Set form values
       if (response.data.email_settings) {
-        setValue('frequency', response.data.email_settings.frequency);
         setValue('vocabulary_count', response.data.email_settings.vocabulary_count);
         setValue('send_time', response.data.email_settings.send_time);
         setValue('timezone', response.data.email_settings.timezone);
@@ -240,22 +239,13 @@ const Settings = () => {
           <div className="card">
             <h2 className="text-xl font-semibold text-gray-900 mb-6">Email Preferences</h2>
             <form onSubmit={handleSubmit(onEmailSettingsSubmit)} className="space-y-6">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <p className="text-sm text-blue-800">
+                  <strong>Note:</strong> Email frequency is now configured per database. Go to the Databases page to set individual frequencies for each connected database.
+                </p>
+              </div>
+              
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <div>
-                  <label htmlFor="frequency" className="form-label">
-                    Email Frequency
-                  </label>
-                  <select
-                    id="frequency"
-                    className="input-field"
-                    {...register('frequency')}
-                  >
-                    <option value="daily">Daily</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="custom">Custom</option>
-                  </select>
-                </div>
-
                 <div>
                   <label htmlFor="vocabulary_count" className="form-label">
                     Vocabulary Count

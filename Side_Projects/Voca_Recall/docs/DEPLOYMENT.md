@@ -1,145 +1,123 @@
 # Deployment Guide
 
-This guide will help you deploy the Notion Email Vocabulary Recall application on both development (M1 MacBook Pro) and production (Ubuntu Linux) environments.
+Deploy the Notion Email Vocabulary Recall application on development (M1 MacBook Pro) and production (Ubuntu Linux) environments.
 
 ## Prerequisites
 
-### For Development (M1 MacBook Pro)
-- Docker Desktop for Mac (with Apple Silicon support)
+**Development:**
+- Docker Desktop for Mac (Apple Silicon support)
 - Git
-- Terminal access
 
-### For Production (Ubuntu Linux)
-- Ubuntu 20.04 or later
-- Docker Engine
-- Docker Compose
+**Production:**
+- Ubuntu 20.04+
+- Docker Engine & Docker Compose
 - Git
-- Nginx (optional, for reverse proxy)
-- SSL certificates (for HTTPS)
+- (Optional) Nginx for reverse proxy, SSL certificates
 
 ## Quick Start
 
-### 1. Clone the Repository
+### Using Setup Script (Recommended)
+
 ```bash
+# First time setup
+./setup.sh env          # Validate environment configuration
+# Edit .env with your actual values
+./setup.sh dev          # Start development environment
+
+# Other commands
+./setup.sh prod         # Setup production environment
+./setup.sh stop         # Stop all services
+./setup.sh logs         # View logs
+./setup.sh cleanup      # Clean up containers and volumes
+```
+
+### Manual Setup
+
+```bash
+# Clone repository
 git clone <your-repository-url>
 cd notion-email
-```
 
-### 2. Setup Environment
-```bash
-# Copy environment template
-cp env.example .env
-
-# Edit the .env file with your configuration
-nano .env
-```
-
-### 3. Run the Application
-
-#### Development (M1 MacBook Pro)
-```bash
-# Use the setup script
-./setup.sh dev
-
-# Or manually
+# Development
 docker-compose up --build -d
-```
 
-#### Production (Ubuntu Linux)
-```bash
-# Use the setup script
-./setup.sh prod
-
-# Or manually
+# Production
 docker-compose -f docker-compose.prod.yml up --build -d
 ```
 
 ## Environment Configuration
 
-### Required Environment Variables
+**📖 Complete Documentation: [ENV_VARIABLES.md](ENV_VARIABLES.md)**
 
-Create a `.env` file in the root directory with the following variables:
+For comprehensive information about all environment variables, including:
+- Development vs. Production requirements
+- Detailed variable descriptions and defaults
+- Security best practices
+- Configuration templates
+- Troubleshooting guide
 
+Please refer to the [ENV_VARIABLES.md](ENV_VARIABLES.md) documentation.
+
+### Quick Reference
+
+The setup script (`./setup.sh env`) automatically creates a `.env` file from `backend/env.example` and validates required variables.
+
+**Development - Minimal Required:**
+- `SMTP_USER`, `SMTP_PASSWORD` - Email credentials
+
+**Production - Critical Required:**
+- `DATABASE_URL` (or MySQL variables) - Production database
+- `SECRET_KEY`, `JWT_SECRET_KEY` - **Generate new secure keys!**
+- `SMTP_USER`, `SMTP_PASSWORD` - Email credentials
+- `FLASK_ENV=production` - Environment mode
+- `FRONTEND_URL` - Your domain (for password reset links)
+- `REDIS_URL` - For scheduled email tasks
+
+### Gmail Setup (Recommended for Development)
+
+1. Enable 2-factor authentication on your Google account
+2. Generate App Password at https://myaccount.google.com/apppasswords
+3. Use App Password (not regular password) in `SMTP_PASSWORD`
+4. Set `SMTP_HOST=smtp.gmail.com` and `SMTP_PORT=587`
+
+**Generate Secure Keys for Production:**
 ```bash
-# Database Configuration
-MYSQL_ROOT_PASSWORD=your_secure_mysql_root_password
-MYSQL_DATABASE=notion_email_prod
-MYSQL_USER=notion_user
-MYSQL_PASSWORD=your_secure_mysql_password
-
-# Flask Configuration
-SECRET_KEY=your-super-secret-key-change-this-in-production
-JWT_SECRET_KEY=your-jwt-secret-key-change-this-in-production
-
-# Notion API
-NOTION_API_KEY=your_notion_api_key_here
-
-# Email Configuration (Gmail example)
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your_email@gmail.com
-SMTP_PASSWORD=your_app_password
-
-# Frontend Configuration
-REACT_APP_API_URL=http://localhost:5000
+python -c "import secrets; print(secrets.token_urlsafe(32))"
 ```
 
-### Getting Notion API Key
-
-1. Go to [Notion Developers](https://developers.notion.com/)
-2. Create a new integration
-3. Copy the "Internal Integration Token"
-4. Add the integration to your database with appropriate permissions
-
-### Setting up Gmail for SMTP
-
-1. Enable 2-Factor Authentication on your Gmail account
-2. Generate an App Password:
-   - Go to Google Account settings
-   - Security → 2-Step Verification → App passwords
-   - Generate a new app password for "Mail"
-3. Use the generated password as `SMTP_PASSWORD`
-
-## Development Setup (M1 MacBook Pro)
-
-### Features
-- Hot reloading for both frontend and backend
-- Volume mounting for live code changes
-- Development-friendly logging
-- Easy debugging
+## Development Environment
 
 ### Access Points
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:5000
-- **MySQL**: localhost:3306
-- **Redis**: localhost:6379
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:5000
+- MySQL: localhost:3306
+- Redis: localhost:6379
 
-### Development Commands
+### Commands
 ```bash
-# Start development environment
-./setup.sh dev
-
-# View logs
-./setup.sh logs
-
-# Stop services
-./setup.sh stop
-
-# Clean up
-./setup.sh cleanup
+./setup.sh env      # Validate environment
+./setup.sh dev      # Start development
+./setup.sh logs     # View logs
+./setup.sh stop     # Stop services
+./setup.sh cleanup  # Clean up containers and volumes
 ```
 
-## Production Setup (Ubuntu Linux)
+### Features
+- Hot reloading for frontend and backend
+- Live code changes via volume mounting
+- Development-friendly logging
+
+## Production Environment
 
 ### Server Requirements
-- **CPU**: 2+ cores
-- **RAM**: 4GB+ (8GB recommended)
-- **Storage**: 20GB+ available space
-- **Network**: Stable internet connection
+- CPU: 2+ cores
+- RAM: 4GB+ (8GB recommended)
+- Storage: 20GB+
+- Ubuntu 20.04+
 
-### Installation Steps
+### Installation
 
-#### 1. Install Docker and Docker Compose
+1. **Install Docker & Docker Compose**
 ```bash
 # Update system
 sudo apt update && sudo apt upgrade -y
@@ -147,180 +125,143 @@ sudo apt update && sudo apt upgrade -y
 # Install Docker
 curl -fsSL https://get.docker.com -o get-docker.sh
 sudo sh get-docker.sh
-
-# Add user to docker group
 sudo usermod -aG docker $USER
 
 # Install Docker Compose
 sudo curl -L "https://github.com/docker/compose/releases/download/v2.20.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
 
-# Logout and login again for group changes to take effect
+# Logout and login for group changes
 ```
 
-#### 2. Clone and Setup Application
+2. **Deploy Application**
 ```bash
-# Clone repository
 git clone <your-repository-url>
 cd notion-email
-
-# Setup environment
-cp env.example .env
-nano .env  # Edit with production values
-
-# Make setup script executable
 chmod +x setup.sh
-```
-
-#### 3. Deploy Application
-```bash
-# Deploy production environment
 ./setup.sh prod
-
-# Check status
-docker-compose -f docker-compose.prod.yml ps
 ```
 
-### Production Access Points
-- **Application**: http://your-domain.com (or http://localhost)
-- **API**: http://your-domain.com/api
-- **Health Check**: http://your-domain.com/api/health
+### Access Points
+- Application: http://your-domain.com (or http://localhost)
+- API: http://your-domain.com/api
+- Health Check: http://your-domain.com/api/health
 
-### SSL/HTTPS Setup (Optional)
+### SSL/HTTPS Setup
 
-#### Using Let's Encrypt with Certbot
+**Let's Encrypt:**
 ```bash
-# Install Certbot
 sudo apt install certbot python3-certbot-nginx
-
-# Get SSL certificate
 sudo certbot --nginx -d your-domain.com
-
-# Auto-renewal
-sudo crontab -e
-# Add: 0 12 * * * /usr/bin/certbot renew --quiet
 ```
 
-#### Using Cloudflare (Recommended)
-1. Point your domain to Cloudflare
-2. Enable "Always Use HTTPS"
-3. Set SSL/TLS encryption mode to "Full (strict)"
+**Cloudflare (Recommended):**
+- Point domain to Cloudflare
+- Enable "Always Use HTTPS"
+- Set SSL/TLS to "Full (strict)"
 
-## Monitoring and Maintenance
+## Monitoring & Maintenance
 
-### Health Checks
+### Health & Status
 ```bash
-# Check application health
 curl http://localhost/api/health
-
-# Check container status
 docker-compose -f docker-compose.prod.yml ps
 ```
 
 ### Logs
 ```bash
-# View all logs
+# All logs
 docker-compose -f docker-compose.prod.yml logs
 
-# View specific service logs
+# Specific service
 docker-compose -f docker-compose.prod.yml logs backend
-docker-compose -f docker-compose.prod.yml logs frontend
-docker-compose -f docker-compose.prod.yml logs celery
 ```
 
 ### Database Backup
 ```bash
-# Create backup
+# Backup
 docker exec notion_email_mysql_prod mysqldump -u root -p notion_email_prod > backup.sql
 
-# Restore backup
+# Restore
 docker exec -i notion_email_mysql_prod mysql -u root -p notion_email_prod < backup.sql
 ```
 
 ### Updates
 ```bash
-# Pull latest changes
 git pull origin main
-
-# Rebuild and restart
 docker-compose -f docker-compose.prod.yml down
 docker-compose -f docker-compose.prod.yml up --build -d
 ```
 
 ## Troubleshooting
 
-### Common Issues
-
-#### 1. Port Already in Use
+### Port Conflicts
 ```bash
-# Check what's using the port
 sudo netstat -tulpn | grep :80
-sudo netstat -tulpn | grep :5000
-
-# Kill the process or change ports in docker-compose.yml
+# Kill process or change ports in docker-compose.yml
 ```
 
-#### 2. Database Connection Issues
+### Database Issues
 ```bash
-# Check MySQL container
+# Check logs
 docker-compose -f docker-compose.prod.yml logs mysql
 
-# Reset database (WARNING: This will delete all data)
+# Reset (WARNING: Deletes all data)
 docker-compose -f docker-compose.prod.yml down -v
 docker-compose -f docker-compose.prod.yml up -d
 ```
 
-#### 3. Email Not Sending
-- Check SMTP credentials in `.env`
-- Verify Gmail app password is correct
-- Check firewall settings
-- Review email logs: `docker-compose -f docker-compose.prod.yml logs celery`
+### Email Not Sending
+- Verify SMTP credentials in `.env`
+- Check Gmail App Password
+- Review logs: `docker-compose -f docker-compose.prod.yml logs celery`
 
-#### 4. Notion API Issues
-- Verify Notion API key is correct
+### Notion API Issues
+- Verify API key
 - Check database permissions
 - Ensure integration is added to database
 
-### Performance Optimization
+## Performance Optimization
 
-#### For High Traffic
-1. **Scale Celery workers**:
-   ```bash
-   # Edit docker-compose.prod.yml
-   celery:
-     command: celery -A app.celery worker --loglevel=info --concurrency=8
-   ```
+**Scale Celery workers:**
+```yaml
+celery:
+  command: celery -A app.celery worker --loglevel=info --concurrency=8
+```
 
-2. **Add Redis persistence**:
-   ```yaml
-   redis:
-     volumes:
-       - redis_data_prod:/data
-   ```
+**Add Redis persistence:**
+```yaml
+redis:
+  volumes:
+    - redis_data_prod:/data
+```
 
-3. **Database optimization**:
-   ```sql
-   -- Add indexes for better performance
-   CREATE INDEX idx_email_logs_user_id ON email_logs(user_id);
-   CREATE INDEX idx_email_logs_sent_at ON email_logs(sent_at);
-   ```
+**Database indexes:**
+```sql
+CREATE INDEX idx_email_logs_user_id ON email_logs(user_id);
+CREATE INDEX idx_email_logs_sent_at ON email_logs(sent_at);
+```
 
-## Security Considerations
+## Security
 
-### Production Security Checklist
+### Production Checklist
 - [ ] Change all default passwords
-- [ ] Use strong, unique passwords
+- [ ] Use strong, unique passwords (generate with `openssl rand -hex 32`)
 - [ ] Enable HTTPS/SSL
-- [ ] Configure firewall rules
+- [ ] Configure firewall
 - [ ] Regular security updates
 - [ ] Database backups
-- [ ] Monitor logs for suspicious activity
+- [ ] Monitor logs
 - [ ] Use environment variables for secrets
-- [ ] Implement rate limiting (optional)
+- [ ] Enable rate limiting (optional)
 
-### Firewall Configuration (Ubuntu)
+### Password Reset Security
+- Reset tokens expire after 1 hour
+- Tokens can only be used once
+- All attempts are logged
+
+### Firewall (Ubuntu)
 ```bash
-# Allow SSH, HTTP, HTTPS
 sudo ufw allow ssh
 sudo ufw allow 80
 sudo ufw allow 443
@@ -329,12 +270,11 @@ sudo ufw enable
 
 ## Support
 
-For issues and questions:
-1. Check the troubleshooting section above
+1. Check troubleshooting section
 2. Review application logs
 3. Check GitHub issues
-4. Create a new issue with detailed information
+4. Create new issue with details
 
 ## License
 
-This project is licensed under the MIT License. 
+MIT License 

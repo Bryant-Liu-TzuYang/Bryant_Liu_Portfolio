@@ -40,7 +40,46 @@ notion-email/
 
 ## Quick Start
 
-### Development (M1 MacBook Pro)
+### Using Setup Script (Recommended)
+
+The project includes a unified setup script that handles both environment configuration and Docker management:
+
+```bash
+# First time setup
+./setup.sh env          # Validate environment configuration
+# Edit .env with your actual values
+./setup.sh dev          # Start development environment
+
+# Other commands
+./setup.sh prod         # Setup production environment
+./setup.sh stop         # Stop all services
+./setup.sh logs         # View logs
+./setup.sh cleanup      # Clean up containers and volumes
+```
+
+The `dev` and `prod` commands automatically validate your environment before starting services.
+
+**What the script does:**
+1. Creates `.env` file from template if needed
+2. Validates required environment variables:
+   - `SECRET_KEY`, `JWT_SECRET_KEY` - Security keys
+   - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD` - Email configuration
+3. Provides setup guidance (Gmail App Passwords, security notes, etc.)
+4. Starts Docker containers and services
+
+**Development environment** includes:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:5000
+- MySQL: localhost:3306
+- Redis: localhost:6379
+
+**Production environment** includes:
+- Application: http://localhost (or your domain)
+- API: http://localhost/api
+
+### Manual Setup
+
+#### Development (M1 MacBook Pro)
 
 1. **Clone and setup**:
    ```bash
@@ -57,7 +96,7 @@ notion-email/
    - Frontend: http://localhost:3000
    - Backend API: http://localhost:5000
 
-### Production (Ubuntu Linux)
+#### Production (Ubuntu Linux)
 
 1. **Deploy with production Docker Compose**:
    ```bash
@@ -66,28 +105,35 @@ notion-email/
 
 ## Environment Variables
 
-Create `.env` files in both backend and frontend directories:
+**📖 For complete environment variable documentation, see [ENV_VARIABLES.md](docs/ENV_VARIABLES.md)**
 
-### Backend (.env)
-```
-FLASK_ENV=development
-SECRET_KEY=your-secret-key
-DATABASE_URL=mysql://user:password@localhost/notion_email
-NOTION_API_KEY=your-notion-api-key
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your-email@gmail.com
-SMTP_PASSWORD=your-app-password
+The documentation provides:
+- Detailed categorization for Development and Production environments
+- Required vs. optional variables
+- Security best practices
+- Configuration templates
+- Troubleshooting guide
+
+### Quick Setup
+
+For **development**, you only need to set:
+```bash
+# Minimal .env for development
+SMTP_USER=your_email@gmail.com
+SMTP_PASSWORD=your_gmail_app_password
 ```
 
-### Frontend (.env)
-```
-REACT_APP_API_URL=http://localhost:5000
-```
+All other variables have sensible defaults. See [ENV_VARIABLES.md](docs/ENV_VARIABLES.md) for the complete development and production templates.
+
+## Documentation
+
+- **[ENV_VARIABLES.md](docs/ENV_VARIABLES.md)** - Comprehensive environment variables guide
+- **[LOGGING.md](docs/LOGGING.md)** - Logging system documentation
+- **[DEPLOYMENT.md](docs/DEPLOYMENT.md)** - Deployment guide
 
 ## Logging
 
-The application includes a comprehensive logging system for both backend and frontend. See [LOGGING.md](LOGGING.md) for detailed documentation.
+The application includes a comprehensive logging system for both backend and frontend. See [LOGGING.md](docs/LOGGING.md) for detailed documentation.
 
 ### Backend Logging
 - Structured logs with request tracking
@@ -143,12 +189,20 @@ The application includes a secure password reset system:
 - All attempts are logged for security monitoring
 - Secure token generation using cryptographic methods
 
-### Setup Password Reset
-Run the setup script to configure password reset:
-```bash
-./setup-password-reset.sh
-```
+### Email Configuration for Password Reset
+
+**Gmail Setup** (recommended for development):
+1. Enable 2-factor authentication on your Google account
+2. Generate an App Password at https://myaccount.google.com/apppasswords
+3. Use the App Password in `SMTP_PASSWORD` (not your regular password)
+4. Set `SMTP_HOST=smtp.gmail.com` and `SMTP_PORT=587`
+
+**Other Email Providers**:
+- Update `SMTP_HOST` and `SMTP_PORT` accordingly
+- Use appropriate authentication credentials in `SMTP_USER` and `SMTP_PASSWORD`
+
+The setup script (`./setup.sh env`) will validate these settings and provide detailed guidance.
 
 ## License
 
-MIT License 
+MIT License

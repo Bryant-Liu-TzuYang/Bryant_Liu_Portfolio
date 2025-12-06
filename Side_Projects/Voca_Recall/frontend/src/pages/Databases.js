@@ -10,15 +10,21 @@ import {
   ExternalLink, 
   TestTube,
   CheckCircle,
-  XCircle
+  XCircle,
+  Key,
+  Clock,
+  AlertCircle
 } from 'lucide-react';
 
 const Databases = () => {
   const [databases, setDatabases] = useState([]);
+  const [tokens, setTokens] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showTokenManager, setShowTokenManager] = useState(false);
   const [testingConnection, setTestingConnection] = useState(null);
   const [editingDatabase, setEditingDatabase] = useState(null);
+  const [useStoredToken, setUseStoredToken] = useState(true);
 
   const {
     register,
@@ -30,6 +36,7 @@ const Databases = () => {
 
   useEffect(() => {
     fetchDatabases();
+    fetchTokens();
   }, []);
 
   const fetchDatabases = async () => {
@@ -44,13 +51,33 @@ const Databases = () => {
     }
   };
 
+  const fetchTokens = async () => {
+    try {
+      const response = await axios.get('/api/databases/tokens');
+      setTokens(response.data.tokens);
+    } catch (error) {
+      console.error('Failed to fetch tokens:', error);
+    }
+  };
+
   const onSubmit = async (data) => {
     try {
       // Build payload expected by backend
       const payload = {
-        notion_api_key: data.notion_api_key,
         database_url: data.database_url,
+        frequency: data.frequency || 'daily'
       };
+
+      // Add token info based on selection
+      if (useStoredToken && data.token_id) {
+        payload.token_id = parseInt(data.token_id);
+      } else if (data.notion_api_key) {
+        payload.notion_api_key = data.notion_api_key;
+        payload.token_name = data.token_name || 'My Token';
+      } else {
+        toast.error('Please provide a token or select a stored token');
+        return;
+      }
 
       if (editingDatabase) {
         await axios.put(`/api/databases/${editingDatabase.id}`, payload);
@@ -61,8 +88,10 @@ const Databases = () => {
         toast.success('Database added successfully!');
       }
       fetchDatabases();
+      fetchTokens();
       reset();
       setShowAddForm(false);
+      setUseStoredToken(true);
     } catch (error) {
       const message = error.response?.data?.error || 'Failed to save database';
       toast.error(message);
@@ -106,8 +135,28 @@ const Databases = () => {
   const handleEdit = (database) => {
     setEditingDatabase(database);
     setValue('database_url', database.database_url);
-  setValue('notion_api_key', '');
+    setValue('frequency', database.frequency || 'daily');
+    if (database.token_id) {
+      setValue('token_id', database.token_id);
+      setUseStoredToken(true);
+    } else {
+      setValue('notion_api_key', '');
+      setUseStoredToken(false);
+    }
     setShowAddForm(true);
+  };
+
+  const handleUpdateFrequency = async (databaseId, newFrequency) => {
+    try {
+      await axios.put(`/api/databases/${databaseId}`, {
+        frequency: newFrequency
+      });
+      toast.success('Frequency updated successfully!');
+      fetchDatabases();
+    } catch (error) {
+      const message = error.response?.data?.error || 'Failed to update frequency';
+      toast.error(message);
+    }
   };
 
   const handleCancel = () => {
@@ -156,29 +205,106 @@ const Databases = () => {
             {editingDatabase ? 'Edit Database' : 'Add New Database'}
           </h2>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {/* Integration Token */}
+            {/* Privacy Notice */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start space-x-3">
+              <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+              <div className="text-sm text-blue-800">
+                <p className="font-medium mb-1">Privacy Notice</p>
+                <p>We store your Notion integration tokens securely to enable automatic email delivery. Your tokens are encrypted and never shared with third parties.</p>
+              </div>
+            </div>
+
+            {/* Token Selection */}
             <div>
-              <label htmlFor="notion_api_key" className="form-label">
-                Integration Token
-              </label>
-              <input
-                id="notion_api_key"
-                type="password"
-                className={`input-field ${
-                  errors.notion_api_key ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''
-                }`}
-                placeholder="secret_xxx from your Notion integration"
-                {...register('notion_api_key', {
-                  required: 'Integration Token is required',
-                  minLength: { value: 10, message: 'Token looks too short' },
-                })}
-              />
-              {errors.notion_api_key && (
-                <p className="mt-1 text-sm text-red-600">{errors.notion_api_key.message}</p>
+              <label className="form-label">Token Source</label>
+              <div className="flex items-center space-x-4 mb-3">
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    checked={useStoredToken}
+                    onChange={() => setUseStoredToken(true)}
+                    className="mr-2"
+                  />
+                  <span className="text-sm">Use stored token</span>
+                </label>
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    checked={!useStoredToken}
+                    onChange={() => setUseStoredToken(false)}
+                    className="mr-2"
+                  />
+                  <span className="text-sm">Add new token</span>
+                </label>
+              </div>
+
+              {useStoredToken ? (
+                <div>
+                  <select
+                    id="token_id"
+                    className="input-field"
+                    {...register('token_id', {
+                      required: useStoredToken ? 'Please select a token' : false
+                    })}
+                  >
+                    <option value="">Select a token</option>
+                    {tokens.map(token => (
+                      <option key={token.id} value={token.id}>
+                        {token.token_name} ({token.database_count} databases)
+                      </option>
+                    ))}
+                  </select>
+                  {errors.token_id && (
+                    <p className="mt-1 text-sm text-red-600">{errors.token_id.message}</p>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setShowTokenManager(true)}
+                    className="mt-2 text-sm text-blue-600 hover:text-blue-700 flex items-center"
+                  >
+                    <Key className="h-4 w-4 mr-1" />
+                    Manage tokens
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div>
+                    <label htmlFor="token_name" className="form-label text-sm">
+                      Token Name (optional)
+                    </label>
+                    <input
+                      id="token_name"
+                      type="text"
+                      className="input-field"
+                      placeholder="e.g., My Workspace Token"
+                      {...register('token_name')}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="notion_api_key" className="form-label">
+                      Integration Token
+                    </label>
+                    <input
+                      id="notion_api_key"
+                      type="password"
+                      className={`input-field ${
+                        errors.notion_api_key ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''
+                      }`}
+                      placeholder="secret_xxx from your Notion integration"
+                      {...register('notion_api_key', {
+                        required: !useStoredToken ? 'Integration Token is required' : false,
+                        minLength: { value: 10, message: 'Token looks too short' },
+                      })}
+                    />
+                    {errors.notion_api_key && (
+                      <p className="mt-1 text-sm text-red-600">{errors.notion_api_key.message}</p>
+                    )}
+                    <p className="mt-1 text-sm text-gray-500">
+                      Create a Notion internal integration and copy its secret. This token will be saved securely.
+                    </p>
+                  </div>
+                </div>
               )}
-              <p className="mt-1 text-sm text-gray-500">
-                Create a Notion internal integration and copy its secret. We do not store your token.
-              </p>
             </div>
 
             <div>
@@ -207,6 +333,26 @@ const Databases = () => {
               <p className="mt-1 text-sm text-gray-500">
                 Paste the Notion database page URL (the ID is embedded) or the 32-character database ID.
                 Example: https://www.notion.so/workspace/<strong>xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</strong>
+              </p>
+            </div>
+
+            {/* Email Frequency */}
+            <div>
+              <label htmlFor="frequency" className="form-label flex items-center">
+                <Clock className="h-4 w-4 mr-2" />
+                Email Frequency
+              </label>
+              <select
+                id="frequency"
+                className="input-field"
+                {...register('frequency')}
+              >
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="custom">Custom</option>
+              </select>
+              <p className="mt-1 text-sm text-gray-500">
+                How often you want to receive vocabulary emails from this database.
               </p>
             </div>
 
@@ -243,17 +389,30 @@ const Databases = () => {
           databases.map((database) => (
             <div key={database.id} className="card">
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-4 flex-grow">
                   <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                     <Database className="h-6 w-6 text-blue-600" />
                   </div>
-                  <div>
+                  <div className="flex-grow">
                     <h3 className="text-lg font-medium text-gray-900">
                       {database.database_name}
                     </h3>
-                    <p className="text-sm text-gray-500">
-                      Added on {new Date(database.created_at).toLocaleDateString()}
-                    </p>
+                    <div className="flex items-center space-x-4 text-sm text-gray-500 mt-1">
+                      <span>Added on {new Date(database.created_at).toLocaleDateString()}</span>
+                      <span className="flex items-center">
+                        <Clock className="h-3 w-3 mr-1" />
+                        <select
+                          value={database.frequency || 'daily'}
+                          onChange={(e) => handleUpdateFrequency(database.id, e.target.value)}
+                          className="border-0 bg-transparent text-sm focus:ring-0 p-0 pr-6 cursor-pointer hover:text-blue-600"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <option value="daily">Daily</option>
+                          <option value="weekly">Weekly</option>
+                          <option value="custom">Custom</option>
+                        </select>
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -320,6 +479,70 @@ const Databases = () => {
           ))
         )}
       </div>
+
+      {/* Token Manager Modal */}
+      {showTokenManager && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-semibold text-gray-900 flex items-center">
+                  <Key className="h-5 w-5 mr-2" />
+                  Manage Notion Tokens
+                </h2>
+                <button
+                  onClick={() => setShowTokenManager(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <XCircle className="h-6 w-6" />
+                </button>
+              </div>
+
+              {tokens.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <Key className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                  <p>No tokens stored yet.</p>
+                  <p className="text-sm mt-2">Add a database with a new token to get started.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {tokens.map(token => (
+                    <div key={token.id} className="border rounded-lg p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="font-medium text-gray-900">{token.token_name}</h3>
+                          <p className="text-sm text-gray-500 mt-1">
+                            {token.database_count} database(s) connected
+                          </p>
+                          <p className="text-xs text-gray-400 mt-1">
+                            Added on {new Date(token.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className={`px-2 py-1 rounded text-xs ${
+                            token.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          }`}>
+                            {token.is_active ? 'Active' : 'Inactive'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="mt-6 flex justify-end">
+                <button
+                  onClick={() => setShowTokenManager(false)}
+                  className="btn-secondary"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

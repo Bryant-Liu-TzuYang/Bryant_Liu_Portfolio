@@ -17,6 +17,7 @@ class User(db.Model):
     
     # Relationships
     databases = db.relationship('NotionDatabase', backref='user', lazy=True, cascade='all, delete-orphan')
+    notion_tokens = db.relationship('NotionToken', backref='user', lazy=True, cascade='all, delete-orphan')
     email_settings = db.relationship('EmailSettings', backref='user', lazy=True, uselist=False, cascade='all, delete-orphan')
     password_reset_tokens = db.relationship('PasswordResetToken', backref='user', lazy=True, cascade='all, delete-orphan')
     
@@ -99,15 +100,45 @@ class PasswordResetToken(db.Model):
             'used_at': self.used_at.isoformat() if self.used_at else None
         }
 
+class NotionToken(db.Model):
+    """Notion API token model for storing user tokens"""
+    __tablename__ = 'notion_tokens'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    token = db.Column(db.String(255), nullable=False)  # Encrypted token
+    token_name = db.Column(db.String(100), nullable=True)  # Optional label for the token
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    databases = db.relationship('NotionDatabase', backref='notion_token', lazy=True)
+    
+    def to_dict(self, include_token=False):
+        """Convert to dictionary"""
+        result = {
+            'id': self.id,
+            'token_name': self.token_name,
+            'is_active': self.is_active,
+            'created_at': self.created_at.isoformat(),
+            'database_count': len(self.databases)
+        }
+        if include_token:
+            result['token'] = self.token
+        return result
+
 class NotionDatabase(db.Model):
     """Notion database model"""
     __tablename__ = 'notion_databases'
     
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    token_id = db.Column(db.Integer, db.ForeignKey('notion_tokens.id'), nullable=True)  # Link to stored token
     database_id = db.Column(db.String(255), nullable=False)
     database_name = db.Column(db.String(255), nullable=False)
     database_url = db.Column(db.String(500), nullable=False)
+    frequency = db.Column(db.String(20), default='daily')  # daily, weekly, custom - per database
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -119,8 +150,10 @@ class NotionDatabase(db.Model):
             'database_id': self.database_id,
             'database_name': self.database_name,
             'database_url': self.database_url,
+            'frequency': self.frequency,
             'is_active': self.is_active,
-            'created_at': self.created_at.isoformat()
+            'created_at': self.created_at.isoformat(),
+            'token_id': self.token_id
         }
 
 class EmailSettings(db.Model):
@@ -129,7 +162,6 @@ class EmailSettings(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    frequency = db.Column(db.String(20), default='daily')  # daily, weekly, custom
     vocabulary_count = db.Column(db.Integer, default=10)
     send_time = db.Column(db.Time, default=datetime.strptime('09:00', '%H:%M').time())
     timezone = db.Column(db.String(50), default='UTC')
@@ -141,7 +173,6 @@ class EmailSettings(db.Model):
         """Convert to dictionary"""
         return {
             'id': self.id,
-            'frequency': self.frequency,
             'vocabulary_count': self.vocabulary_count,
             'send_time': self.send_time.strftime('%H:%M'),
             'timezone': self.timezone,

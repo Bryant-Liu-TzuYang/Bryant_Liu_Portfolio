@@ -28,6 +28,12 @@ def send_email(to_email, subject, html_content, text_content=None):
             logger.warning("SMTP credentials not configured, cannot send email")
             return False, "SMTP credentials not configured"
         
+        # Ensure smtp_user is a string (decode if bytes)
+        if isinstance(smtp_user, bytes):
+            smtp_user = smtp_user.decode('utf-8')
+        else:
+            smtp_user = str(smtp_user)
+        
         msg = MIMEMultipart('alternative')
         msg['Subject'] = subject
         msg['From'] = smtp_user
@@ -41,8 +47,13 @@ def send_email(to_email, subject, html_content, text_content=None):
         html_part = MIMEText(html_content, 'html')
         msg.attach(html_part)
         
-        # Ensure password is a string
-        password = str(smtp_password) if smtp_password else ""
+        # Ensure password is a string (decode if bytes)
+        if isinstance(smtp_password, bytes):
+            password = smtp_password.decode('utf-8')
+        elif smtp_password:
+            password = str(smtp_password)
+        else:
+            password = ""
         
         # Send email
         with smtplib.SMTP(current_app.config['SMTP_HOST'], current_app.config['SMTP_PORT']) as server:

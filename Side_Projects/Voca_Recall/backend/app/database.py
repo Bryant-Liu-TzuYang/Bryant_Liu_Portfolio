@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from notion_client import Client
 import re
-from .models import NotionDatabase, User, db
+from .models import NotionDatabase, NotionToken, User, db
 from .logging_config import get_logger
 from .middleware import log_api_call, log_function_call
 
@@ -60,16 +60,31 @@ def validate_notion_database(api_key, database_id):
 def add_database():
     """Add a new Notion database.
 
-    Requires: notion_api_key (integration token) and database_url or database_id.
+    Requires: notion_api_key (integration token) or token_id, and database_url or database_id.
     We always connect/validate using the database ID, not the URL.
     """
     try:
         current_user_id = int(get_jwt_identity())
         data = request.get_json() or {}
 
+        # Get API key either from direct input or from stored token
         api_key = data.get('notion_api_key')
-        if not api_key:
-            return jsonify({'error': 'Integration Token (notion_api_key) is required'}), 400
+        token_id = data.get('token_id')
+        
+        if not api_key and not token_id:
+            return jsonify({'error': 'Integration Token (notion_api_key) or token_id is required'}), 400
+        
+        # If token_id provided, fetch the token
+        notion_token = None
+        if token_id:
+            notion_token = NotionToken.query.filter_by(
+                id=token_id,
+                user_id=current_user_id,
+                is_active=True
+            ).first()
+            if not notion_token:
+                return jsonify({'error': 'Token not found or inactive'}), 404
+            api_key = notion_token.token
 
         # Accept either explicit database_id or a URL containing it
         provided_id = data.get('database_id')
@@ -97,14 +112,31 @@ def add_database():
             return jsonify({'error': 'Failed to validate Notion database', 'details': result}), 400
         database_name = result or 'Untitled Database'
 
+        # If a new token was provided (not token_id), store it
+        if data.get('notion_api_key') and not token_id:
+            notion_token = NotionToken(
+                user_id=current_user_id,
+                token=api_key,
+                token_name=data.get('token_name', 'Default Token')
+            )
+            db.session.add(notion_token)
+            db.session.flush()  # Get the token ID
+
         # Use provided URL if available, otherwise store a minimal URL-like reference
         stored_url = database_url or f"https://www.notion.so/{database_id}"
+        
+        # Get frequency from request, default to 'daily'
+        frequency = data.get('frequency', 'daily')
+        if frequency not in ['daily', 'weekly', 'custom']:
+            frequency = 'daily'
 
         notion_db = NotionDatabase(
             user_id=current_user_id,
             database_id=database_id,
             database_name=database_name,
             database_url=stored_url,
+            token_id=notion_token.id if notion_token else None,
+            frequency=frequency
         )
 
         db.session.add(notion_db)
@@ -163,7 +195,8 @@ def update_database(database_pk):
 
     Supports updating:
     - is_active flag
-    - database_url (and consequently database_id + database_name), requires notion_api_key
+    - frequency (daily, weekly, custom)
+    - database_url (and consequently database_id + database_name), requires notion_api_key or token_id
     """
     try:
         current_user_id = int(get_jwt_identity())
@@ -180,12 +213,31 @@ def update_database(database_pk):
         # Toggle active status
         if data.get('is_active') is not None:
             database.is_active = bool(data['is_active'])
+        
+        # Update frequency
+        if data.get('frequency') in ['daily', 'weekly', 'custom']:
+            database.frequency = data['frequency']
 
         # If database_url is provided, re-extract ID and validate with token
         if data.get('database_url') or data.get('database_id'):
+            # Get API key either from direct input or from stored token
             api_key = data.get('notion_api_key')
-            if not api_key:
-                return jsonify({'error': 'Integration Token is required when changing database'}), 400
+            token_id = data.get('token_id')
+            
+            if not api_key and not token_id:
+                return jsonify({'error': 'Integration Token or token_id is required when changing database'}), 400
+            
+            # If token_id provided, fetch the token
+            if token_id:
+                notion_token = NotionToken.query.filter_by(
+                    id=token_id,
+                    user_id=current_user_id,
+                    is_active=True
+                ).first()
+                if not notion_token:
+                    return jsonify({'error': 'Token not found or inactive'}), 404
+                api_key = notion_token.token
+                database.token_id = token_id
 
             new_id = extract_database_id(data.get('database_id') or data.get('database_url'))
             if not new_id:
@@ -209,6 +261,17 @@ def update_database(database_pk):
             database.database_name = result or 'Untitled Database'
             if data.get('database_url'):
                 database.database_url = data['database_url']
+            
+            # Store new token if provided directly
+            if data.get('notion_api_key') and not token_id:
+                notion_token = NotionToken(
+                    user_id=current_user_id,
+                    token=api_key,
+                    token_name=data.get('token_name', 'Default Token')
+                )
+                db.session.add(notion_token)
+                db.session.flush()
+                database.token_id = notion_token.id
 
         db.session.commit()
 
@@ -306,4 +369,139 @@ def test_database_connection(database_id):
             return jsonify({'error': 'Failed to fetch sample data', 'details': str(e)}), 500
         
     except Exception as e:
-        return jsonify({'error': 'Failed to test connection', 'details': str(e)}), 500 
+        return jsonify({'error': 'Failed to test connection', 'details': str(e)}), 500
+
+
+# Token Management Endpoints
+
+@database_bp.route('/tokens', methods=['GET'])
+@jwt_required()
+@log_api_call("Get Notion tokens")
+def get_tokens():
+    """Get user's stored Notion tokens"""
+    try:
+        current_user_id = int(get_jwt_identity())
+        tokens = NotionToken.query.filter_by(user_id=current_user_id).all()
+        
+        return jsonify({
+            'tokens': [token.to_dict(include_token=False) for token in tokens]
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': 'Failed to get tokens', 'details': str(e)}), 500
+
+
+@database_bp.route('/tokens', methods=['POST'])
+@jwt_required()
+@log_api_call("Add Notion token")
+def add_token():
+    """Add a new Notion token"""
+    try:
+        current_user_id = int(get_jwt_identity())
+        data = request.get_json() or {}
+        
+        token = data.get('notion_api_key')
+        if not token:
+            return jsonify({'error': 'notion_api_key is required'}), 400
+        
+        token_name = data.get('token_name', 'My Token')
+        
+        # Check if token already exists for this user
+        existing_token = NotionToken.query.filter_by(
+            user_id=current_user_id,
+            token=token
+        ).first()
+        
+        if existing_token:
+            return jsonify({'error': 'This token is already stored'}), 409
+        
+        # Optionally validate the token by trying to list databases (requires API call)
+        # For now, we'll just store it
+        
+        notion_token = NotionToken(
+            user_id=current_user_id,
+            token=token,
+            token_name=token_name
+        )
+        
+        db.session.add(notion_token)
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Token added successfully',
+            'token': notion_token.to_dict(include_token=False)
+        }), 201
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': 'Failed to add token', 'details': str(e)}), 500
+
+
+@database_bp.route('/tokens/<int:token_id>', methods=['PUT'])
+@jwt_required()
+@log_api_call("Update Notion token")
+def update_token(token_id):
+    """Update a Notion token"""
+    try:
+        current_user_id = int(get_jwt_identity())
+        token = NotionToken.query.filter_by(
+            id=token_id,
+            user_id=current_user_id
+        ).first()
+        
+        if not token:
+            return jsonify({'error': 'Token not found'}), 404
+        
+        data = request.get_json() or {}
+        
+        if data.get('token_name'):
+            token.token_name = data['token_name']
+        
+        if data.get('is_active') is not None:
+            token.is_active = bool(data['is_active'])
+        
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Token updated successfully',
+            'token': token.to_dict(include_token=False)
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': 'Failed to update token', 'details': str(e)}), 500
+
+
+@database_bp.route('/tokens/<int:token_id>', methods=['DELETE'])
+@jwt_required()
+@log_api_call("Delete Notion token")
+def delete_token(token_id):
+    """Delete a Notion token"""
+    try:
+        current_user_id = int(get_jwt_identity())
+        token = NotionToken.query.filter_by(
+            id=token_id,
+            user_id=current_user_id
+        ).first()
+        
+        if not token:
+            return jsonify({'error': 'Token not found'}), 404
+        
+        # Check if any databases are using this token
+        using_databases = NotionDatabase.query.filter_by(token_id=token_id).count()
+        
+        if using_databases > 0:
+            return jsonify({
+                'error': f'Cannot delete token. {using_databases} database(s) are using this token. Please reassign them first.'
+            }), 400
+        
+        db.session.delete(token)
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Token deleted successfully'
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': 'Failed to delete token', 'details': str(e)}), 500 
