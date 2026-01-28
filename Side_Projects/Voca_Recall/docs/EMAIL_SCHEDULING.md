@@ -16,11 +16,10 @@ This document covers the email scheduling system, monitoring tools, and troubles
    - Executes email sending tasks
    - Container: `voca_recaller_celery`
 
-3. **Celery Beat Scheduler** (`backend/beat.py`)
-   - Dynamically loads email service schedules from database
-   - Triggers email tasks at scheduled times
-   - Reloads schedules every 5 minutes to pick up new services
-   - Container: `voca_recaller_celery_beat`
+3. **Database Poller Scheduler** (`backend/scheduler.py`)
+   - Queries database for due services
+   - Triggers email tasks
+   - Container: `voca_recaller_celery_beat` (running `scheduler.py`)
 
 4. **Email Tracking System** (`email_logs` table)
    - Logs every sent email with timestamp, status, and content
@@ -29,9 +28,9 @@ This document covers the email scheduling system, monitoring tools, and troubles
 ### Flow
 
 ```
-User creates EmailService → Database stores config → 
-Celery Beat reads schedules (every 5 min) → 
-At scheduled time, Beat sends task to Redis → 
+User creates EmailService → Database stores config (next_run_at) → 
+Scheduler Poller queries DB (every 1 min) → 
+If due, Scheduler sends task to Redis → 
 Celery Worker picks up task → 
 Worker executes send_email_service_task → 
 Email sent and logged to email_logs table
@@ -39,30 +38,26 @@ Email sent and logged to email_logs table
 
 ## Implementation Details
 
-### 1. Celery Beat Scheduler (`backend/beat.py`)
+### 1. Database Poller Scheduler (`backend/scheduler.py`)
 
-**Purpose**: Dynamically load and schedule email services
+**Purpose**: Persistently check database for due email services
 
-**Key Functions**:
-- `load_email_service_schedule()`: Reads active EmailService records and creates cron schedules
-- Auto-reloads schedules every 5 minutes via `reload_email_schedules` task
+**Key Logic**:
+- Runs a loop every 60 seconds
+- Queries database for `EmailService` where:
+  - `is_active` is True
+  - `status` is 'PENDING'
+  - `next_run_at` <= current time (UTC)
+- Triggers `send_email_service_task` for each due service
+- Updates `next_run_at` to the next scheduled time
 
-**Schedule Creation Logic**:
-```python
-# Daily: Send at specified hour:minute every day
-schedule = crontab(hour=9, minute=0)  # 9:00 AM daily
-
-# Weekly: Send at specified time on Mondays
-schedule = crontab(hour=9, minute=0, day_of_week=1)
-
-# Monthly: Send on 1st of month
-schedule = crontab(hour=9, minute=0, day_of_month=1)
-```
+**Schedule Calculation**:
+- `calculate_next_run` method in `EmailService` model handles timezone conversion and frequency (daily/weekly/monthly).
+- Schedules are calculated in UTC.
 
 **Timezone Handling**: 
-- Email services store `send_time` in their local timezone (e.g., Asia/Taipei)
-- Celery Beat converts to UTC for scheduling
-- Example: 09:42 Taipei time = 01:42 UTC (scheduled time)
+- Email services store `send_time` in their local timezone.
+- Calculation logic converts this to UTC for `next_run_at`.
 
 ### 2. Email Sending Task (`backend/app/email.py`)
 
@@ -86,19 +81,12 @@ schedule = crontab(hour=9, minute=0, day_of_month=1)
 - Continues with other services if one fails
 - Error details stored in `email_logs.error_message`
 
-### 3. Schedule Reloading (`reload_email_schedules`)
+### 3. Schedule Reloading
 
-**Purpose**: Pick up new/updated services without restart
+*Obsolete with Database Poller architecture.*
+The `reload_email_schedules` task is no longer used. The poller query handles all active services dynamically.
 
-**Frequency**: Every 5 minutes
-
-**Process**:
-1. Query all active EmailService records
-2. Generate cron schedules
-3. Update Celery Beat configuration
-4. Log number of loaded schedules
-
-**Note**: After changing email service configuration, either wait up to 5 minutes for auto-reload or restart Celery Beat: `docker restart voca_recaller_celery_beat`
+**Note**: The scheduler automatically picks up changes to service configuration immediately (within 60s), as it queries the database on every tick. No restart is required.
 
 ## Email Tracking System
 
@@ -184,7 +172,7 @@ celery-beat:
     - celery
   networks:
     - voca_recaller_network
-  command: python beat.py
+  command: python scheduler.py
 ```
 
 
@@ -270,9 +258,10 @@ docker exec voca_recaller_mysql mysql -uuser -ppassword voca_recaller_dev -e \
 
 **Symptom**: Updated send_time but old schedule still runs
 
-**Solution**: Celery Beat auto-reloads every 5 minutes. For immediate update:
+**Solution**: The poller recalculates `next_run_at` immediately when `EmailService` is updated.
+If persistent issues occur, check if the scheduler loop is stuck:
 ```bash
-docker restart voca_recaller_celery_beat
+docker logs voca_recaller_celery_beat --tail 50
 ```
 
 ## Monitoring & Health Checks

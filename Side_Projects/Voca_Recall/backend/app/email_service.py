@@ -143,17 +143,12 @@ def create_email_service():
             is_active=data.get('is_active', True)
         )
         
+        # Calculate initial run time
+        service.next_run_at = service.calculate_next_run(datetime.utcnow())
+        service.status = 'PENDING'
+        
         db.session.add(service)
         db.session.commit()
-        
-        logger.info(f"Created email service {service.id} for user {current_user_id}")
-        
-        # Trigger immediate schedule reload so the new service is picked up
-        try:
-            reload_email_schedules.apply_async()
-            logger.info("Triggered immediate schedule reload after creating email service")
-        except Exception as reload_error:
-            logger.warning(f"Failed to trigger schedule reload: {reload_error}")
         
         return jsonify({
             'message': 'Email service created successfully',
@@ -230,17 +225,17 @@ def update_email_service(service_id):
         
         if 'is_active' in data:
             service.is_active = bool(data['is_active'])
+            
+        # Recalculate next_run_at if scheduling parameters changed
+        if any(key in data for key in ['send_time', 'timezone', 'frequency', 'is_active']):
+            # If reactivating, or changing schedule, update next_run_at
+            # We calculate from NOW, because if service was inactive or time changed, we want the *next* logical run.
+            service.next_run_at = service.calculate_next_run(datetime.utcnow())
+            service.status = 'PENDING'
         
         db.session.commit()
         
         logger.info(f"Updated email service {service_id} for user {current_user_id}")
-        
-        # Trigger immediate schedule reload to pick up the changes
-        try:
-            reload_email_schedules.apply_async()
-            logger.info("Triggered immediate schedule reload after updating email service")
-        except Exception as reload_error:
-            logger.warning(f"Failed to trigger schedule reload: {reload_error}")
         
         return jsonify({
             'message': 'Email service updated successfully',
@@ -270,13 +265,6 @@ def delete_email_service(service_id):
         db.session.commit()
         
         logger.info(f"Deleted email service {service_id} for user {current_user_id}")
-        
-        # Trigger immediate schedule reload to remove the deleted service
-        try:
-            reload_email_schedules.apply_async()
-            logger.info("Triggered immediate schedule reload after deleting email service")
-        except Exception as reload_error:
-            logger.warning(f"Failed to trigger schedule reload: {reload_error}")
         
         return jsonify({'message': 'Email service deleted successfully'}), 200
         

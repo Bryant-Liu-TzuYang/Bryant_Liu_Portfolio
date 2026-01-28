@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 import secrets
+import pytz
 from . import db, bcrypt
 
 class User(db.Model):
@@ -188,12 +189,69 @@ class EmailService(db.Model):
     
     # Status
     is_active = db.Column(db.Boolean, default=True)
+    status = db.Column(db.String(20), default='PENDING') # PENDING, PROCESSING, COMPLETED, FAILED
     
     # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     last_sent_at = db.Column(db.DateTime, nullable=True)
+    next_run_at = db.Column(db.DateTime, nullable=True)
     
+    def calculate_next_run(self, from_time=None):
+        """
+        Calculate next run time in UTC based on schedule.
+        Returns a naive UTC datetime object suitable for DB storage.
+        """
+        if not from_time:
+            from_time = datetime.utcnow()
+            
+        # Ensure from_time is aware (UTC) for usage with pytz, or handle naive consistently
+        if from_time.tzinfo is None:
+            from_time = pytz.utc.localize(from_time)
+            
+        try:
+            tz = pytz.timezone(self.timezone)
+        except pytz.UnknownTimeZoneError:
+            tz = pytz.UTC
+            
+        # Convert reference time to service local time
+        now_local = from_time.astimezone(tz)
+        
+        # Base candidate: same date as now_local, but with configured time
+        target_local = now_local.replace(
+            hour=self.send_time.hour, 
+            minute=self.send_time.minute, 
+            second=0, 
+            microsecond=0
+        )
+        
+        if self.frequency == 'daily':
+            if target_local <= now_local:
+                target_local += timedelta(days=1)
+                
+        elif self.frequency == 'weekly':
+            # Default: Monday (0)
+            target_weekday = 0 
+            current_weekday = target_local.weekday()
+            days_ahead = (target_weekday - current_weekday) % 7
+            target_local += timedelta(days=days_ahead)
+            
+            if target_local <= now_local:
+                target_local += timedelta(weeks=1)
+                
+        elif self.frequency == 'monthly':
+            # Default: 1st of month
+            target_local = target_local.replace(day=1)
+            if target_local <= now_local:
+                # Next month
+                if target_local.month == 12:
+                    target_local = target_local.replace(year=target_local.year + 1, month=1)
+                else:
+                    target_local = target_local.replace(month=target_local.month + 1)
+        
+        # Convert back to UTC and make naive
+        return target_local.astimezone(pytz.utc).replace(tzinfo=None)
+
     def to_dict(self):
         """Convert to dictionary"""
         return {
@@ -209,7 +267,9 @@ class EmailService(db.Model):
             'date_range_start': self.date_range_start.isoformat() if self.date_range_start else None,
             'date_range_end': self.date_range_end.isoformat() if self.date_range_end else None,
             'is_active': self.is_active,
+            'status': self.status,
             'last_sent_at': self.last_sent_at.isoformat() + 'Z' if self.last_sent_at else None,
+            'next_run_at': self.next_run_at.isoformat() + 'Z' if self.next_run_at else None,
             'created_at': self.created_at.isoformat() + 'Z'
         }
 

@@ -118,7 +118,7 @@ services:
       - celery
     networks:
       - voca_recaller_network
-    command: python beat.py
+    command: python scheduler.py
 
   # React Frontend
   frontend:
