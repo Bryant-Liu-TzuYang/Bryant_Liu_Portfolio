@@ -4,7 +4,9 @@ from .models import User, EmailService, NotionDatabase, db
 from .logging_config import get_logger
 from .middleware import log_api_call
 from datetime import datetime
+import pytz
 from .email import reload_email_schedules
+from .redis_utils import add_to_schedule, remove_from_schedule
 
 email_service_bp = Blueprint('email_service', __name__)
 logger = get_logger(__name__)
@@ -150,6 +152,15 @@ def create_email_service():
         db.session.add(service)
         db.session.commit()
         
+        # Add to Redis Schedule
+        if service.is_active and service.next_run_at:
+            try:
+                # Ensure UTC timestamp
+                timestamp = service.next_run_at.replace(tzinfo=pytz.UTC).timestamp()
+                add_to_schedule(service.id, timestamp)
+            except Exception as e:
+                logger.error(f"Failed to add service {service.id} to Redis schedule: {e}")
+
         return jsonify({
             'message': 'Email service created successfully',
             'service': service.to_dict()
@@ -235,6 +246,16 @@ def update_email_service(service_id):
         
         db.session.commit()
         
+        # Update Redis Schedule
+        try:
+            if service.is_active and service.next_run_at:
+                timestamp = service.next_run_at.replace(tzinfo=pytz.UTC).timestamp()
+                add_to_schedule(service_id, timestamp)
+            else:
+                remove_from_schedule(service_id)
+        except Exception as e:
+            logger.error(f"Failed to update Redis schedule for service {service_id}: {e}")
+        
         logger.info(f"Updated email service {service_id} for user {current_user_id}")
         
         return jsonify({
@@ -263,6 +284,12 @@ def delete_email_service(service_id):
         
         db.session.delete(service)
         db.session.commit()
+        
+        # Remove from Redis Schedule
+        try:
+            remove_from_schedule(service_id)
+        except Exception as e:
+            logger.error(f"Failed to remove service {service_id} from Redis schedule: {e}")
         
         logger.info(f"Deleted email service {service_id} for user {current_user_id}")
         

@@ -16,8 +16,8 @@ This document covers the email scheduling system, monitoring tools, and troubles
    - Executes email sending tasks
    - Container: `voca_recaller_celery`
 
-3. **Database Poller Scheduler** (`backend/scheduler.py`)
-   - Queries database for due services
+3. **Redis Scheduler** (`backend/scheduler.py`)
+   - Polls Redis ZSET for due tasks
    - Triggers email tasks
    - Container: `voca_recaller_celery_beat` (running `scheduler.py`)
 
@@ -28,8 +28,8 @@ This document covers the email scheduling system, monitoring tools, and troubles
 ### Flow
 
 ```
-User creates EmailService → Database stores config (next_run_at) → 
-Scheduler Poller queries DB (every 1 min) → 
+User creates EmailService → Database stores config → Redis ZSET updated → 
+Scheduler polls Redis (every 1s) → 
 If due, Scheduler sends task to Redis → 
 Celery Worker picks up task → 
 Worker executes send_email_service_task → 
@@ -38,26 +38,26 @@ Email sent and logged to email_logs table
 
 ## Implementation Details
 
-### 1. Database Poller Scheduler (`backend/scheduler.py`)
+### 1. Redis Priority Queue Scheduler (`backend/scheduler.py`)
 
-**Purpose**: Persistently check database for due email services
+**Purpose**: High-precision scheduling using Redis Sorted Sets (ZSET)
 
 **Key Logic**:
-- Runs a loop every 60 seconds
-- Queries database for `EmailService` where:
-  - `is_active` is True
-  - `status` is 'PENDING'
-  - `next_run_at` <= current time (UTC)
-- Triggers `send_email_service_task` for each due service
-- Updates `next_run_at` to the next scheduled time
+- **Storage**: Redis ZSET `email_schedule`. Member: `Service_ID`, Score: `Unix Timestamp`.
+- **Polling**:
+  - Runs every 1 second (high precision).
+  - `zrangebyscore`: Fetches tasks where score <= current timestamp.
+- **Execution**:
+  - Removes task from Redis (prevents double execution).
+  - Triggers `send_email_service_task` (Celery).
+  - Calculates next run time.
+  - Adds task back to Redis with new timestamp.
 
-**Schedule Calculation**:
-- `calculate_next_run` method in `EmailService` model handles timezone conversion and frequency (daily/weekly/monthly).
-- Schedules are calculated in UTC.
+**Sync Phase**:
+- On startup, the scheduler populates Redis from the SQL database to ensure consistency.
 
 **Timezone Handling**: 
-- Email services store `send_time` in their local timezone.
-- Calculation logic converts this to UTC for `next_run_at`.
+- `EmailService` calculates UTC timestamps for Redis scores.
 
 ### 2. Email Sending Task (`backend/app/email.py`)
 
