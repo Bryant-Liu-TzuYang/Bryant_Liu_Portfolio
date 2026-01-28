@@ -1,0 +1,70 @@
+# ============================================================
+# CONFIGMAP - Non-sensitive configuration data
+# ============================================================
+# ConfigMaps store configuration that your apps can read
+# Use this for non-sensitive data like URLs, feature flags, etc.
+# For passwords and keys, use Secrets instead
+# ============================================================
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: voca-recaller-config
+  namespace: voca-recaller
+data:
+  # Flask configuration
+  FLASK_ENV: "production"
+  FLASK_DEBUG: "0"
+  
+  # Database connection (hostname uses k8s service name)
+  # Format: mysql://user:password@host:port/database
+  # We'll use the Service name "mysql" as the hostname
+  DATABASE_HOST: "mysql"
+  DATABASE_PORT: "3306"
+  DATABASE_NAME: "voca_recaller"
+  
+  # Redis connection for Celery
+  REDIS_HOST: "redis"
+  REDIS_PORT: "6379"
+  # Full Redis URL for Celery
+  CELERY_BROKER_URL: "redis://redis:6379/0"
+  CELERY_RESULT_BACKEND: "redis://redis:6379/0"
+  
+  # Email configuration (non-sensitive parts)
+  # You'll need to update these with your actual SMTP settings
+  MAIL_SERVER: "smtp.gmail.com"
+  MAIL_PORT: "587"
+  MAIL_USE_TLS: "True"
+  MAIL_USE_SSL: "False"
+  
+  # Application URLs - IMPORTANT: Update these with your domain
+  FRONTEND_URL: "http://your-domain.com"
+  BACKEND_URL: "http://your-domain.com/api"
+  
+  # Logging
+  LOG_LEVEL: "INFO"
+
+---
+# ============================================================
+# CONFIGMAP - MySQL initialization script
+# ============================================================
+# This ConfigMap holds your database initialization SQL
+# It's mounted into the MySQL container at startup
+# ============================================================
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-init-script
+  namespace: voca-recaller
+data:
+  # If you have an init.sql file, paste its contents here
+  # Or you can leave it empty if your app creates tables automatically
+  init.sql: |
+    -- Your database initialization script goes here
+    -- For example:
+    -- CREATE DATABASE IF NOT EXISTS voca_recaller;
+    -- USE voca_recaller;
+    -- CREATE TABLE IF NOT EXISTS users (...);
+    
+    -- Leave empty if your Flask app handles migrations

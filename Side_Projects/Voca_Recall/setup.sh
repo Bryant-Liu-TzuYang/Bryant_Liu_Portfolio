@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Notion Email Vocabulary Recall - Setup Script
+# Voca Recaller - Setup Script
 # This script helps you set up the application for development and production
 
 set -e
 
-echo "🚀 Notion Email Vocabulary Recall - Setup Script"
+echo "🚀 Voca Recaller - Setup Script"
 echo "================================================"
 
 # Function to check if variable exists in .env
@@ -290,12 +290,12 @@ interactive_setup() {
             fi
             update_env_var "MYSQL_ROOT_PASSWORD" "$mysql_root_pass"
             
-            read -p "Database name [notion_email_prod]: " mysql_db
-            mysql_db=${mysql_db:-notion_email_prod}
+            read -p "Database name [voca_recaller_prod]: " mysql_db
+            mysql_db=${mysql_db:-voca_recaller_prod}
             update_env_var "MYSQL_DATABASE" "$mysql_db"
             
-            read -p "MySQL user [notion_user]: " mysql_user
-            mysql_user=${mysql_user:-notion_user}
+            read -p "MySQL user [voca_recaller_user]: " mysql_user
+            mysql_user=${mysql_user:-voca_recaller_user}
             update_env_var "MYSQL_USER" "$mysql_user"
             
             read -p "MySQL password: " mysql_pass

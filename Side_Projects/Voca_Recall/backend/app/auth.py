@@ -55,9 +55,10 @@ def register():
         
         logger.info(f"User registered successfully: {user.email} (ID: {user.id})")
         
-        # Create access and refresh tokens
-        access_token = create_access_token(identity=user.id)
-        refresh_token = create_refresh_token(identity=user.id)
+        # Create access and refresh tokens with role
+        additional_claims = {"role": user.role}
+        access_token = create_access_token(identity=user.id, additional_claims=additional_claims)
+        refresh_token = create_refresh_token(identity=user.id, additional_claims=additional_claims)
         
         return jsonify({
             'message': 'User registered successfully',
@@ -104,9 +105,10 @@ def login():
         
         logger.info(f"User logged in successfully: {user.email} (ID: {user.id})")
         
-        # Create access and refresh tokens
-        access_token = create_access_token(identity=str(user.id))
-        refresh_token = create_refresh_token(identity=str(user.id))
+        # Create access and refresh tokens with role
+        additional_claims = {"role": user.role}
+        access_token = create_access_token(identity=str(user.id), additional_claims=additional_claims)
+        refresh_token = create_refresh_token(identity=str(user.id), additional_claims=additional_claims)
         
         return jsonify({
             'message': 'Login successful',
@@ -127,7 +129,11 @@ def refresh():
     try:
         current_user_id = get_jwt_identity()
         logger.info(f"Token refresh for user ID: {current_user_id}")
-        new_access_token = create_access_token(identity=current_user_id)
+        
+        # Get user to include updated role in new token
+        user = User.query.get(int(current_user_id))
+        additional_claims = {"role": user.role} if user else {}
+        new_access_token = create_access_token(identity=current_user_id, additional_claims=additional_claims)
         
         return jsonify({
             'access_token': new_access_token
@@ -211,7 +217,7 @@ def forgot_password():
         # Create password reset email
         reset_url = f"{current_app.config['FRONTEND_URL']}/reset-password?token={reset_token}"
         
-        subject = "Password Reset Request - Notion Email Vocabulary"
+        subject = "Password Reset Request - Voca Recaller"
         html_content = f"""
         <!DOCTYPE html>
         <html>
@@ -234,7 +240,7 @@ def forgot_password():
                 </div>
                 <div class="content">
                     <p>Hello {user.first_name},</p>
-                    <p>We received a request to reset your password for your Notion Email Vocabulary account.</p>
+                    <p>We received a request to reset your password for your Voca Recaller account.</p>
                     
                     <div class="warning">
                         <strong>⚠️ Security Notice:</strong> This link is valid for 1 hour only and can only be used once.
@@ -259,11 +265,11 @@ def forgot_password():
         """
         
         text_content = f"""
-        Password Reset Request - Notion Email Vocabulary
+        Password Reset Request - Voca Recaller
         
         Hello {user.first_name},
         
-        We received a request to reset your password for your Notion Email Vocabulary account.
+        We received a request to reset your password for your Voca Recaller account.
         
         Click this link to reset your password (valid for 1 hour):
         {reset_url}
@@ -271,7 +277,7 @@ def forgot_password():
         If you didn't request this password reset, please ignore this email. Your password will remain unchanged.
         
         Best regards,
-        Notion Email Vocabulary Team
+        Voca Recaller Team
         """
         
         # Send password reset email
@@ -366,7 +372,7 @@ def reset_password():
                         <strong>✅ Success!</strong> Your password has been reset successfully.
                     </div>
                     
-                    <p>Your password for your Notion Email Vocabulary account has been changed. You can now log in with your new password.</p>
+                    <p>Your password for your Voca Recaller account has been changed. You can now log in with your new password.</p>
                     
                     <p>If you didn't make this change, please contact our support team immediately.</p>
                     
@@ -381,16 +387,16 @@ def reset_password():
         """
         
         text_content = f"""
-        Password Reset Successful - Notion Email Vocabulary
+        Password Reset Successful - Voca Recaller
         
         Hello {user.first_name},
         
-        Your password for your Notion Email Vocabulary account has been changed successfully. You can now log in with your new password.
+        Your password for your Voca Recaller account has been changed successfully. You can now log in with your new password.
         
-        If you didn't make this change, please contact our support team immediately.
+        If you didn't make this change, please contact support immediately.
         
         Best regards,
-        Notion Email Vocabulary Team
+        Voca Recaller Team
         """
         
         # Send confirmation email (don't fail if this fails)

@@ -153,6 +153,14 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const isDeveloper = () => {
+    return user && (user.role === 'developer' || user.role === 'admin');
+  };
+
+  const isAdmin = () => {
+    return user && user.role === 'admin';
+  };
+
   const value = {
     user,
     loading,
@@ -162,6 +170,8 @@ export const AuthProvider = ({ children }) => {
     refreshToken,
     updateProfile,
     isAuthenticated: !!user,
+    isDeveloper,
+    isAdmin,
   };
 
   return (

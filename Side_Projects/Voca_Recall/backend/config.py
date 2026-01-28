@@ -36,7 +36,7 @@ class DevelopmentConfig(Config):
     """Development configuration"""
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-        f'sqlite:///{os.path.join(basedir, "instance", "notion_email_dev.db")}'
+        f'sqlite:///{os.path.join(basedir, "instance", "voca_recaller_dev.db")}'
     LOG_LEVEL = 'DEBUG'
 
 class ProductionConfig(Config):

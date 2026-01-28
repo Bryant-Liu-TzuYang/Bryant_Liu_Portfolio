@@ -1,13 +1,13 @@
 
-from app import create_app, db
-from app.models import User, NotionDatabase, EmailSettings
+from app.models import User, NotionDatabase, NotionToken, EmailService, EmailLog
+from application import app  # Reuse the app creation from application.py
+
 import os
 
 os.environ["FLASK_ENV"] = "development"
-app = create_app()
 
 with app.app_context():
-    print("Flask shell ready! Available models: User, NotionDatabase, EmailSettings")
+    print("Flask shell ready! Available models: User, NotionDatabase, NotionToken, EmailService, EmailLog")
     print("Example queries:")
     print("  User.query.all()")
     print("  User.query.filter_by(email='your@email.com').first()")

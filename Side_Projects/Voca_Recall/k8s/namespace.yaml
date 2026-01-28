@@ -1,0 +1,18 @@
+# ============================================================
+# NAMESPACE - Organizes all your app resources
+# ============================================================
+# Think of a namespace as a "folder" in Kubernetes that keeps
+# all your app's resources (pods, services, etc.) together
+# and separated from other applications.
+# ============================================================
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  # This is the name of your namespace - you'll reference this
+  # in all other configuration files
+  name: voca-recaller
+  labels:
+    # Labels help you identify and filter resources
+    name: voca-recaller
+    environment: production

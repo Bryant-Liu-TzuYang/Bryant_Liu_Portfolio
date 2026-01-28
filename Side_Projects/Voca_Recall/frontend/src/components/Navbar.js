@@ -4,22 +4,28 @@ import { useAuth } from '../contexts/AuthContext';
 import { 
   BookOpen, 
   Database, 
+  Mail,
   Settings, 
   LogOut, 
   User,
+  Users,
   Menu,
-  X
+  X,
+  FileText
 } from 'lucide-react';
 
 const Navbar = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: BookOpen },
     { name: 'Databases', href: '/databases', icon: Database },
+    { name: 'Services', href: '/services', icon: Mail },
+    { name: 'Email Logs', href: '/email-logs', icon: FileText },
     { name: 'Settings', href: '/settings', icon: Settings },
+    ...(isAdmin() ? [{ name: 'Manage Users', href: '/manage-users', icon: Users }] : []),
   ];
 
   const isActive = (path) => location.pathname === path;
@@ -32,7 +38,7 @@ const Navbar = () => {
             <Link to="/dashboard" className="flex items-center">
               <BookOpen className="h-8 w-8 text-primary-600" />
               <span className="ml-2 text-xl font-bold text-gray-900">
-                Notion Email
+                Voca Recaller
               </span>
             </Link>
           </div>

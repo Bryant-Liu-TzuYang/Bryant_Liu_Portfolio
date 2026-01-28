@@ -1,0 +1,151 @@
+# ============================================================
+# MYSQL STATEFULSET - Database with persistent identity
+# ============================================================
+# StatefulSet is used for stateful applications like databases
+# Unlike Deployment, it maintains a persistent identity for pods
+# (same name, same storage) even after restarts.
+# ============================================================
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+  namespace: voca-recaller
+spec:
+  # Service name for stable network identity
+  # This creates DNS entries like: mysql-0.mysql.voca-recaller.svc.cluster.local
+  serviceName: mysql
+  
+  # Number of MySQL instances (keep at 1 unless you set up replication)
+  replicas: 1
+  
+  # How to identify which pods belong to this StatefulSet
+  selector:
+    matchLabels:
+      app: mysql
+  
+  # Pod template - defines what each MySQL pod looks like
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - name: mysql
+        # MySQL image version - match what you tested in docker-compose
+        image: mysql:8.0
+        
+        # Restart policy
+        # Always = restart if it crashes
+        imagePullPolicy: IfNotPresent
+        
+        # Environment variables for MySQL configuration
+        env:
+        # Root password - we'll get this from a Secret (created later)
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: voca-recaller-secrets
+              key: mysql-root-password
+        
+        # Database name to create automatically
+        - name: MYSQL_DATABASE
+          value: "voca_recaller"
+        
+        # Ports this container exposes
+        ports:
+        - containerPort: 3306
+          name: mysql
+          protocol: TCP
+        
+        # Where to mount the persistent storage inside the container
+        volumeMounts:
+        - name: mysql-storage
+          mountPath: /var/lib/mysql  # MySQL stores data here
+        
+        # Initialize the database with your SQL script
+        - name: mysql-init
+          mountPath: /docker-entrypoint-initdb.d  # MySQL runs scripts here on first start
+        
+        # Resource limits - prevents MySQL from using too much CPU/memory
+        # Adjust these based on your server capacity
+        resources:
+          requests:
+            memory: "512Mi"  # Minimum memory guaranteed
+            cpu: "250m"      # Minimum CPU (250 millicores = 0.25 cores)
+          limits:
+            memory: "1Gi"    # Maximum memory allowed
+            cpu: "500m"      # Maximum CPU allowed
+        
+        # Health checks - Kubernetes uses these to know if MySQL is working
+        # livenessProbe = "is MySQL alive?" If not, restart it
+        livenessProbe:
+          exec:
+            command:
+            - mysqladmin
+            - ping
+            - -h
+            - localhost
+          initialDelaySeconds: 30  # Wait 30s after start before checking
+          periodSeconds: 10        # Check every 10 seconds
+          timeoutSeconds: 5        # Give up if no response in 5s
+        
+        # readinessProbe = "is MySQL ready to accept connections?"
+        # If not ready, don't send traffic to it
+        readinessProbe:
+          exec:
+            command:
+            - mysqladmin
+            - ping
+            - -h
+            - localhost
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+      
+      # Volumes that can be mounted into containers
+      volumes:
+      # Persistent storage - this connects to the PVC we created
+      - name: mysql-storage
+        persistentVolumeClaim:
+          claimName: mysql-pvc
+      
+      # ConfigMap containing your init.sql file
+      - name: mysql-init
+        configMap:
+          name: mysql-init-script
+
+---
+# ============================================================
+# MYSQL SERVICE - Network access to MySQL
+# ============================================================
+# A Service creates a stable network endpoint for accessing pods
+# Even if pods restart and get new IP addresses, the Service
+# IP/DNS name stays the same
+# ============================================================
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+  namespace: voca-recaller
+  labels:
+    app: mysql
+spec:
+  # ClusterIP = only accessible within the Kubernetes cluster
+  # (your backend can reach it, but not the outside internet)
+  type: ClusterIP
+  
+  # This Service will forward traffic to pods with this label
+  selector:
+    app: mysql
+  
+  # Port mapping
+  ports:
+  - port: 3306        # Port the Service listens on
+    targetPort: 3306  # Port on the MySQL pod (container port)
+    protocol: TCP
+    name: mysql
+  
+  # clusterIP: None would make this a "Headless Service"
+  # Useful for StatefulSets, but we use a regular service here

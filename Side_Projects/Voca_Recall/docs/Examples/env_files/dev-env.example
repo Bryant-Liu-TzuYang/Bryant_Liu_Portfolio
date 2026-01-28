@@ -26,10 +26,10 @@ SMTP_USE_TLS=true
 # ============================================================
 # Database Configuration - Defaults to SQLite, only needed for MySQL testing
 # MYSQL_ROOT_PASSWORD=password
-# MYSQL_DATABASE=notion_email_dev
+# MYSQL_DATABASE=voca_recaller_dev
 # MYSQL_USER=user
 # MYSQL_PASSWORD=password
-# DATABASE_URL=mysql+pymysql://user:password@localhost:3306/notion_email_dev
+# DATABASE_URL=mysql+pymysql://user:password@localhost:3306/voca_recaller_dev
 
 # Celery/Background Tasks - Not needed for basic dev
 # REDIS_URL=redis://localhost:6379/0
@@ -45,7 +45,7 @@ SMTP_USE_TLS=true
 # REACT_APP_SEND_LOGS_TO_SERVER=true
 
 # Email Template Variables - Cosmetic only
-# FROM_EMAIL_NAME=Notion Email Vocabulary
+# FROM_EMAIL_NAME=Voca Recaller
 # SUPPORT_EMAIL=support@notionemail.com
 
 # Notion Integration - Users can provide via UI

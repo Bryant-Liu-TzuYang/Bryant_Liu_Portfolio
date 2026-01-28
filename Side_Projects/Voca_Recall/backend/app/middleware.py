@@ -1,7 +1,14 @@
-from flask import request, g
+"""
+2026/1/21. Bryant: Wrappers for logging and authentication
+"""
+
+
+from flask import request, g, jsonify
 from functools import wraps
 import time
+from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
 from .logging_config import get_logger, log_request_info, log_response_info
+from .models import User
 
 logger = get_logger(__name__)
 
@@ -141,5 +148,45 @@ def log_api_call(operation: str = None):
                 )
                 raise
         
+        return wrapper
+    return decorator
+
+
+def developer_required():
+    """
+    Decorator to require developer or admin role for accessing an endpoint
+    """
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            verify_jwt_in_request()
+            user_id = get_jwt_identity()
+            
+            user = User.query.get(user_id)
+            if not user or user.role not in ['developer', 'admin']:
+                logger.warning(f"Unauthorized access attempt to developer endpoint by user {user_id}")
+                return jsonify({'error': 'Developer or admin access required'}), 403
+            
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
+
+
+def admin_required():
+    """
+    Decorator to require admin role for accessing an endpoint
+    """
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            verify_jwt_in_request()
+            user_id = get_jwt_identity()
+            
+            user = User.query.get(user_id)
+            if not user or user.role != 'admin':
+                logger.warning(f"Unauthorized access attempt to admin endpoint by user {user_id}")
+                return jsonify({'error': 'Admin access required'}), 403
+            
+            return func(*args, **kwargs)
         return wrapper
     return decorator

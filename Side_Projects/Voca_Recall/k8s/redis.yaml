@@ -1,0 +1,102 @@
+# ============================================================
+# REDIS DEPLOYMENT - Message broker for Celery
+# ============================================================
+# Redis is used by Celery for task queuing
+# Deployment is simpler than StatefulSet - good for stateless
+# or easily-replaceable components
+# ============================================================
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: voca-recaller
+spec:
+  # Only need 1 Redis instance for simple setups
+  replicas: 1
+  
+  selector:
+    matchLabels:
+      app: redis
+  
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+      - name: redis
+        # Redis image - alpine is a smaller, lightweight version
+        image: redis:7-alpine
+        
+        # Command to run Redis with some optimizations
+        command:
+        - redis-server
+        - --appendonly yes  # Enable AOF persistence (saves data to disk)
+        - --maxmemory 256mb # Limit memory usage
+        - --maxmemory-policy allkeys-lru  # Remove least recently used keys when full
+        
+        ports:
+        - containerPort: 6379
+          name: redis
+          protocol: TCP
+        
+        # Resource limits
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        
+        # Health checks
+        livenessProbe:
+          tcpSocket:
+            port: 6379
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        
+        readinessProbe:
+          exec:
+            command:
+            - redis-cli
+            - ping
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        
+        # Optional: persist Redis data (task queue usually doesn't need persistence)
+        # Uncomment if you want to keep task queue data across restarts
+        # volumeMounts:
+        # - name: redis-storage
+        #   mountPath: /data
+      
+      # Uncomment if you enabled volumeMounts above
+      # volumes:
+      # - name: redis-storage
+      #   emptyDir: {}  # Temporary storage, lost on pod deletion
+      #   # OR use PVC for real persistence:
+      #   # persistentVolumeClaim:
+      #   #   claimName: redis-pvc
+
+---
+# ============================================================
+# REDIS SERVICE - Network access to Redis
+# ============================================================
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: voca-recaller
+  labels:
+    app: redis
+spec:
+  type: ClusterIP
+  selector:
+    app: redis
+  ports:
+  - port: 6379
+    targetPort: 6379
+    protocol: TCP
+    name: redis

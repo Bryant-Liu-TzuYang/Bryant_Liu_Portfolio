@@ -4,11 +4,11 @@ services:
   # MySQL Database
   mysql:
     image: mysql:8.0
-    container_name: notion_email_mysql_prod
+    container_name: voca_recaller_mysql_prod
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-notion_email_prod}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-voca_recaller_prod}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
@@ -16,31 +16,31 @@ services:
     volumes:
       - mysql_data_prod:/var/lib/mysql
     networks:
-      - notion_email_network_prod
+      - voca_recaller_network_prod
     command: --default-authentication-plugin=mysql_native_password
 
   # Redis for Celery
   redis:
     image: redis:7-alpine
-    container_name: notion_email_redis_prod
+    container_name: voca_recaller_redis_prod
     restart: unless-stopped
     ports:
       - "6379:6379"
     volumes:
       - redis_data_prod:/data
     networks:
-      - notion_email_network_prod
+      - voca_recaller_network_prod
 
   # Flask Backend
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: notion_email_backend_prod
+    container_name: voca_recaller_backend_prod
     restart: unless-stopped
     environment:
       - FLASK_ENV=production
-      - DATABASE_URL=mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql:3306/${MYSQL_DATABASE:-notion_email_prod}
+      - DATABASE_URL=mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql:3306/${MYSQL_DATABASE:-voca_recaller_prod}
       - REDIS_URL=redis://redis:6379/0
       - SECRET_KEY=${SECRET_KEY}
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
@@ -55,7 +55,7 @@ services:
       - mysql
       - redis
     networks:
-      - notion_email_network_prod
+      - voca_recaller_network_prod
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
       interval: 30s
@@ -67,11 +67,11 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: notion_email_celery_prod
+    container_name: voca_recaller_celery_prod
     restart: unless-stopped
     environment:
       - FLASK_ENV=production
-      - DATABASE_URL=mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql:3306/${MYSQL_DATABASE:-notion_email_prod}
+      - DATABASE_URL=mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql:3306/${MYSQL_DATABASE:-voca_recaller_prod}
       - REDIS_URL=redis://redis:6379/0
       - SECRET_KEY=${SECRET_KEY}
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
@@ -85,7 +85,7 @@ services:
       - redis
       - backend
     networks:
-      - notion_email_network_prod
+      - voca_recaller_network_prod
     command: celery -A app.celery worker --loglevel=info --concurrency=4
 
   # Celery Beat (Scheduler)
@@ -93,11 +93,11 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: notion_email_celery_beat_prod
+    container_name: voca_recaller_celery_beat_prod
     restart: unless-stopped
     environment:
       - FLASK_ENV=production
-      - DATABASE_URL=mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql:3306/${MYSQL_DATABASE:-notion_email_prod}
+      - DATABASE_URL=mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql:3306/${MYSQL_DATABASE:-voca_recaller_prod}
       - REDIS_URL=redis://redis:6379/0
       - SECRET_KEY=${SECRET_KEY}
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
@@ -111,13 +111,13 @@ services:
       - redis
       - backend
     networks:
-      - notion_email_network_prod
+      - voca_recaller_network_prod
     command: celery -A app.celery beat --loglevel=info
 
   # Nginx Reverse Proxy
   nginx:
     image: nginx:alpine
-    container_name: notion_email_nginx_prod
+    container_name: voca_recaller_nginx_prod
     restart: unless-stopped
     ports:
       - "80:80"
@@ -130,24 +130,24 @@ services:
       - backend
       - frontend
     networks:
-      - notion_email_network_prod
+      - voca_recaller_network_prod
 
   # React Frontend
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: notion_email_frontend_prod
+    container_name: voca_recaller_frontend_prod
     restart: unless-stopped
     environment:
       - REACT_APP_API_URL=${REACT_APP_API_URL:-http://localhost:5000}
     networks:
-      - notion_email_network_prod
+      - voca_recaller_network_prod
 
 volumes:
   mysql_data_prod:
   redis_data_prod:
 
 networks:
-  notion_email_network_prod:
+  voca_recaller_network_prod:
     driver: bridge 

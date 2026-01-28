@@ -124,19 +124,13 @@ def add_database():
 
         # Use provided URL if available, otherwise store a minimal URL-like reference
         stored_url = database_url or f"https://www.notion.so/{database_id}"
-        
-        # Get frequency from request, default to 'daily'
-        frequency = data.get('frequency', 'daily')
-        if frequency not in ['daily', 'weekly', 'custom']:
-            frequency = 'daily'
 
         notion_db = NotionDatabase(
             user_id=current_user_id,
             database_id=database_id,
             database_name=database_name,
             database_url=stored_url,
-            token_id=notion_token.id if notion_token else None,
-            frequency=frequency
+            token_id=notion_token.id if notion_token else None
         )
 
         db.session.add(notion_db)
@@ -195,7 +189,6 @@ def update_database(database_pk):
 
     Supports updating:
     - is_active flag
-    - frequency (daily, weekly, custom)
     - database_url (and consequently database_id + database_name), requires notion_api_key or token_id
     """
     try:
@@ -213,10 +206,6 @@ def update_database(database_pk):
         # Toggle active status
         if data.get('is_active') is not None:
             database.is_active = bool(data['is_active'])
-        
-        # Update frequency
-        if data.get('frequency') in ['daily', 'weekly', 'custom']:
-            database.frequency = data['frequency']
 
         # If database_url is provided, re-extract ID and validate with token
         if data.get('database_url') or data.get('database_id'):

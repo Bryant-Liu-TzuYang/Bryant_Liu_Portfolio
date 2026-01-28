@@ -35,30 +35,6 @@ const Dashboard = () => {
     }
   };
 
-  const quickActions = [
-    {
-      title: 'Add Database',
-      description: 'Connect a new Notion database',
-      icon: Plus,
-      href: '/databases',
-      color: 'bg-blue-500',
-    },
-    {
-      title: 'Email Settings',
-      description: 'Configure your email preferences',
-      icon: Settings,
-      href: '/settings',
-      color: 'bg-green-500',
-    },
-    {
-      title: 'View Logs',
-      description: 'Check your email history',
-      icon: Mail,
-      href: '/settings',
-      color: 'bg-purple-500',
-    },
-  ];
-
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -140,32 +116,13 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="mb-8">
+      {/* Quick Actions - Hidden for now, may add useful functions later */}
+      {/* <div className="mb-8">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {quickActions.map((action) => {
-            const Icon = action.icon;
-            return (
-              <Link
-                key={action.title}
-                to={action.href}
-                className="card hover:shadow-md transition-shadow duration-200"
-              >
-                <div className="flex items-center">
-                  <div className={`w-10 h-10 ${action.color} rounded-lg flex items-center justify-center`}>
-                    <Icon className="h-6 w-6 text-white" />
-                  </div>
-                  <div className="ml-4">
-                    <h3 className="text-lg font-medium text-gray-900">{action.title}</h3>
-                    <p className="text-sm text-gray-500">{action.description}</p>
-                  </div>
-                </div>
-              </Link>
-            );
-          })}
+          Add quick action items here in the future
         </div>
-      </div>
+      </div> */}
 
       {/* Getting Started */}
       {(!stats?.databases_count || stats.databases_count === 0) && (
@@ -173,7 +130,7 @@ const Dashboard = () => {
           <div className="text-center">
             <BookOpen className="mx-auto h-12 w-12 text-blue-600 mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              Get Started with Notion Email
+              Get Started with Voca Recaller
             </h3>
             <p className="text-gray-600 mb-6">
               Connect your first Notion database to start receiving daily vocabulary emails.

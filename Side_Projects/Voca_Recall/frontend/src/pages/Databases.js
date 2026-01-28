@@ -12,9 +12,13 @@ import {
   CheckCircle,
   XCircle,
   Key,
-  Clock,
-  AlertCircle
+  AlertCircle,
+  Mail,
+  ChevronDown,
+  ChevronUp,
+  Clock
 } from 'lucide-react';
+import EmailServiceModal from '../components/EmailServiceModal';
 
 const Databases = () => {
   const [databases, setDatabases] = useState([]);
@@ -25,6 +29,11 @@ const Databases = () => {
   const [testingConnection, setTestingConnection] = useState(null);
   const [editingDatabase, setEditingDatabase] = useState(null);
   const [useStoredToken, setUseStoredToken] = useState(true);
+  const [emailServices, setEmailServices] = useState({});
+  const [showEmailServiceModal, setShowEmailServiceModal] = useState(false);
+  const [selectedDatabase, setSelectedDatabase] = useState(null);
+  const [editingService, setEditingService] = useState(null);
+  const [expandedDatabases, setExpandedDatabases] = useState({});
 
   const {
     register,
@@ -43,6 +52,10 @@ const Databases = () => {
     try {
       const response = await axios.get('/api/databases');
       setDatabases(response.data.databases);
+      // Fetch email services for each database
+      response.data.databases.forEach(db => {
+        fetchEmailServices(db.id);
+      });
     } catch (error) {
       console.error('Failed to fetch databases:', error);
       toast.error('Failed to load databases');
@@ -60,12 +73,61 @@ const Databases = () => {
     }
   };
 
+  const fetchEmailServices = async (databaseId) => {
+    try {
+      const response = await axios.get(`/api/email-services/database/${databaseId}`);
+      setEmailServices(prev => ({
+        ...prev,
+        [databaseId]: response.data.services
+      }));
+    } catch (error) {
+      console.error(`Failed to fetch email services for database ${databaseId}:`, error);
+    }
+  };
+
+  const handleAddEmailService = (database) => {
+    setSelectedDatabase(database);
+    setEditingService(null);
+    setShowEmailServiceModal(true);
+  };
+
+  const handleEditEmailService = (database, service) => {
+    setSelectedDatabase(database);
+    setEditingService(service);
+    setShowEmailServiceModal(true);
+  };
+
+  const handleDeleteEmailService = async (serviceId, databaseId) => {
+    if (!window.confirm('Are you sure you want to delete this email service?')) {
+      return;
+    }
+
+    try {
+      await axios.delete(`/api/email-services/${serviceId}`);
+      toast.success('Email service deleted successfully');
+      fetchEmailServices(databaseId);
+    } catch (error) {
+      const message = error.response?.data?.error || 'Failed to delete email service';
+      toast.error(message);
+    }
+  };
+
+  const handleEmailServiceSave = (service) => {
+    fetchEmailServices(service.database_id);
+  };
+
+  const toggleDatabaseExpand = (databaseId) => {
+    setExpandedDatabases(prev => ({
+      ...prev,
+      [databaseId]: !prev[databaseId]
+    }));
+  };
+
   const onSubmit = async (data) => {
     try {
       // Build payload expected by backend
       const payload = {
-        database_url: data.database_url,
-        frequency: data.frequency || 'daily'
+        database_url: data.database_url
       };
 
       // Add token info based on selection
@@ -130,7 +192,6 @@ const Databases = () => {
   const handleEdit = (database) => {
     setEditingDatabase(database);
     setValue('database_url', database.database_url);
-    setValue('frequency', database.frequency || 'daily');
     if (database.token_id) {
       setValue('token_id', database.token_id);
       setUseStoredToken(true);
@@ -139,19 +200,6 @@ const Databases = () => {
       setUseStoredToken(false);
     }
     setShowAddForm(true);
-  };
-
-  const handleUpdateFrequency = async (databaseId, newFrequency) => {
-    try {
-      await axios.put(`/api/databases/${databaseId}`, {
-        frequency: newFrequency
-      });
-      toast.success('Frequency updated successfully!');
-      fetchDatabases();
-    } catch (error) {
-      const message = error.response?.data?.error || 'Failed to update frequency';
-      toast.error(message);
-    }
   };
 
   const handleCancel = () => {
@@ -186,7 +234,7 @@ const Databases = () => {
         </div>
         <button
           onClick={() => setShowAddForm(true)}
-          className="btn-primary inline-flex items-center"
+          className="btn-primary inline-flex items-center cursor-pointer"
         >
           <Plus className="h-4 w-4 mr-2" />
           Add Database
@@ -331,26 +379,6 @@ const Databases = () => {
               </p>
             </div>
 
-            {/* Email Frequency */}
-            <div>
-              <label htmlFor="frequency" className="form-label flex items-center">
-                <Clock className="h-4 w-4 mr-2" />
-                Email Frequency
-              </label>
-              <select
-                id="frequency"
-                className="input-field"
-                {...register('frequency')}
-              >
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-                <option value="custom">Custom</option>
-              </select>
-              <p className="mt-1 text-sm text-gray-500">
-                How often you want to receive vocabulary emails from this database.
-              </p>
-            </div>
-
             <div className="flex space-x-4">
               <button type="submit" className="btn-primary">
                 {editingDatabase ? 'Update Database' : 'Add Database'}
@@ -381,7 +409,11 @@ const Databases = () => {
             </button>
           </div>
         ) : (
-          databases.map((database) => (
+          databases.map((database) => {
+            const services = emailServices[database.id] || [];
+            const isExpanded = expandedDatabases[database.id];
+            
+            return (
             <div key={database.id} className="card">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4 flex-grow">
@@ -395,17 +427,8 @@ const Databases = () => {
                     <div className="flex items-center space-x-4 text-sm text-gray-500 mt-1">
                       <span>Added on {new Date(database.created_at).toLocaleDateString()}</span>
                       <span className="flex items-center">
-                        <Clock className="h-3 w-3 mr-1" />
-                        <select
-                          value={database.frequency || 'daily'}
-                          onChange={(e) => handleUpdateFrequency(database.id, e.target.value)}
-                          className="border-0 bg-transparent text-sm focus:ring-0 p-0 pr-6 cursor-pointer hover:text-blue-600"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <option value="daily">Daily</option>
-                          <option value="weekly">Weekly</option>
-                          <option value="custom">Custom</option>
-                        </select>
+                        <Mail className="h-3 w-3 mr-1" />
+                        {services.length} service{services.length !== 1 ? 's' : ''}
                       </span>
                     </div>
                   </div>
@@ -433,7 +456,7 @@ const Databases = () => {
                   <button
                     onClick={() => handleTestConnection(database.id)}
                     disabled={testingConnection === database.id}
-                    className="p-2 text-gray-400 hover:text-blue-600 transition-colors duration-200"
+                    className="p-2 text-gray-400 hover:text-blue-600 transition-colors duration-200 cursor-pointer"
                     title="Test connection"
                   >
                     {testingConnection === database.id ? (
@@ -455,7 +478,7 @@ const Databases = () => {
 
                   <button
                     onClick={() => handleEdit(database)}
-                    className="p-2 text-gray-400 hover:text-blue-600 transition-colors duration-200"
+                    className="p-2 text-gray-400 hover:text-blue-600 transition-colors duration-200 cursor-pointer"
                     title="Edit database"
                   >
                     <Edit className="h-4 w-4" />
@@ -463,15 +486,116 @@ const Databases = () => {
 
                   <button
                     onClick={() => handleDelete(database.id)}
-                    className="p-2 text-gray-400 hover:text-red-600 transition-colors duration-200"
+                    className="p-2 text-gray-400 hover:text-red-600 transition-colors duration-200 cursor-pointer"
                     title="Delete database"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
+
+                  <button
+                    onClick={() => toggleDatabaseExpand(database.id)}
+                    className="p-2 text-gray-400 hover:text-blue-600 transition-colors duration-200 cursor-pointer"
+                    title={isExpanded ? "Hide email services" : "Show email services"}
+                  >
+                    {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </button>
                 </div>
               </div>
+
+              {/* Email Services Section */}
+              {isExpanded && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-sm font-semibold text-gray-900 flex items-center">
+                      <Mail className="h-4 w-4 mr-2" />
+                      Email Services ({services.length})
+                    </h4>
+                    <button
+                      onClick={() => handleAddEmailService(database)}
+                      className="btn-secondary text-sm py-1 px-3 inline-flex items-center cursor-pointer"
+                    >
+                      <Plus className="h-3 w-3 mr-1" />
+                      Add Service
+                    </button>
+                  </div>
+
+                  {services.length === 0 ? (
+                    <div className="text-center py-6 bg-gray-50 rounded-lg">
+                      <Mail className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                      <p className="text-sm text-gray-500 mb-3">
+                        No email services configured for this database
+                      </p>
+                      <button
+                        onClick={() => handleAddEmailService(database)}
+                        className="btn-primary text-sm py-1 px-4 inline-flex items-center cursor-pointer"
+                      >
+                        <Plus className="h-3 w-3 mr-1" />
+                        Create First Service
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {services.map((service) => (
+                        <div
+                          key={service.id}
+                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                        >
+                          <div className="flex-grow">
+                            <div className="flex items-center space-x-2">
+                              <h5 className="text-sm font-medium text-gray-900">
+                                {service.service_name}
+                              </h5>
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                                service.is_active
+                                  ? 'bg-green-100 text-green-800'
+                                  : 'bg-gray-100 text-gray-800'
+                              }`}>
+                                {service.is_active ? 'Active' : 'Inactive'}
+                              </span>
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                {service.selection_method}
+                              </span>
+                            </div>
+                            <div className="flex items-center space-x-4 text-xs text-gray-500 mt-1">
+                              <span className="flex items-center">
+                                <Clock className="h-3 w-3 mr-1" />
+                                {service.send_time} ({service.timezone})
+                              </span>
+                              <span>{service.frequency}</span>
+                              <span>{service.vocabulary_count} items</span>
+                              {service.last_sent_at && (
+                                <span>Last sent: {new Date(service.last_sent_at).toLocaleDateString()}</span>
+                              )}
+                            </div>
+                            {service.description && (
+                              <p className="text-xs text-gray-500 mt-1">{service.description}</p>
+                            )}
+                          </div>
+                          <div className="flex items-center space-x-1 ml-4">
+                            <button
+                              onClick={() => handleEditEmailService(database, service)}
+                              className="p-1.5 text-gray-400 hover:text-blue-600 transition-colors cursor-pointer"
+                              title="Edit service"
+                            >
+                              <Edit className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteEmailService(service.id, database.id)}
+                              className="p-1.5 text-gray-400 hover:text-red-600 transition-colors cursor-pointer"
+                              title="Delete service"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-          ))
+          );
+          })
         )}
       </div>
 
@@ -538,6 +662,19 @@ const Databases = () => {
           </div>
         </div>
       )}
+
+      {/* Email Service Modal */}
+      <EmailServiceModal
+        isOpen={showEmailServiceModal}
+        onClose={() => {
+          setShowEmailServiceModal(false);
+          setSelectedDatabase(null);
+          setEditingService(null);
+        }}
+        database={selectedDatabase}
+        service={editingService}
+        onSave={handleEmailServiceSave}
+      />
     </div>
   );
 };

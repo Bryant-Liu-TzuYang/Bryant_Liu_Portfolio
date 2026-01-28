@@ -17,8 +17,8 @@ from .logging_config import setup_logging, get_logger
 from .middleware import log_requests
 
 def create_celery(app):
-    """Create Celery instance"""
-    # Update Celery config with Redis broker
+    """Create Celery instance with beat scheduler support"""
+    # Update Celery config with Redis broker and beat schedule
     celery.conf.update(
         broker_url=app.config['REDIS_URL'],
         result_backend=app.config['REDIS_URL'],
@@ -29,6 +29,9 @@ def create_celery(app):
         enable_utc=True,
         # Explicitly set broker transport options
         broker_connection_retry_on_startup=True,
+        # Beat scheduler configuration
+        beat_schedule={},  # Will be populated dynamically
+        beat_schedule_filename='/tmp/celerybeat-schedule',  # Store schedule file
     )
     
     class ContextTask(celery.Task):
@@ -76,13 +79,19 @@ def create_app(config_name=None):
     from .user import user_bp
     from .database import database_bp
     from .email import email_bp
+    from .email_service import email_service_bp
     from .frontend_logs import frontend_logs_bp
+    from .tokens import tokens_bp
+    from .admin import admin_bp
     
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(user_bp, url_prefix='/api/user')
     app.register_blueprint(database_bp, url_prefix='/api/databases')
     app.register_blueprint(email_bp, url_prefix='/api/email')
+    app.register_blueprint(email_service_bp, url_prefix='/api/email-services')
     app.register_blueprint(frontend_logs_bp, url_prefix='/api/frontend')
+    app.register_blueprint(tokens_bp, url_prefix='/api/tokens')
+    app.register_blueprint(admin_bp, url_prefix='/api/admin')
     
     logger.info("All blueprints registered")
     

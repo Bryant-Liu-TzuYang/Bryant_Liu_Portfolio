@@ -1,48 +1,67 @@
 # Logging System Documentation
 
-This document describes the comprehensive logging system implemented in the Notion Email Vocabulary Recall application.
-
 ## Overview
 
-The application uses a structured logging approach with different logging levels and contexts for both backend (Python/Flask) and frontend (React/JavaScript) components.
+Comprehensive logging system for the Voca Recaller application with structured logs, request tracking, and automatic error capture for both backend (Python/Flask) and frontend (React/JavaScript).
 
-## Backend Logging (Python/Flask)
+## Key Features
 
-### Features
+### Backend Logging
+- **Structured logs** with timestamps, context, and unique request IDs
+- **Timezone-aware** timestamps (Asia/Taipei)
+- **File rotation** (10MB max, 5 backup files)
+- **Request tracking** across entire request lifecycle
+- **Performance monitoring** with response time tracking
+- **Colored console output** for development
+- **Separate files** for backend and frontend logs
 
-- **Structured Logging**: JSON-like structured logs with timestamps, context, and request IDs
-- **Multiple Log Levels**: DEBUG, INFO, WARNING, ERROR, CRITICAL
-- **File Rotation**: Automatic log file rotation (10MB max, 5 backup files)
-- **Request Tracking**: Each HTTP request gets a unique ID for tracking
-- **Error Handling**: Automatic exception logging with stack traces
-- **Performance Monitoring**: Request/response time tracking
-- **Database Operation Logging**: Special logging for database operations
-- **Colored Console Output**: Development-friendly colored console logs
+### Frontend Logging
+- **Context-aware** logging by component
+- **Backend forwarding** for warnings and errors
+- **API call tracking** with automatic logging
+- **Development/Production modes** with different behaviors
+- **Connection testing** and retry logic
 
-### Configuration
+## Configuration
 
-The logging system is configured in `backend/app/logging_config.py` and can be customized using environment variables:
-
+### Backend (`backend/app/logging_config.py`)
 ```bash
 # Set log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
 LOG_LEVEL=INFO
 
-# Send logs to stdout (useful for Docker containers)
+# Send logs to stdout (for Docker containers)
 LOG_TO_STDOUT=true
 ```
 
-### Log Files
+### Frontend (`.env`)
+```bash
+# Set log level (debug, info, warn, error)
+REACT_APP_LOG_LEVEL=info
 
-Backend logs are written to the `backend/logs/` directory:
+# API base URL
+REACT_APP_API_URL=http://localhost:5000
 
-- `notion-email-backend-YYYY-MM-DD.log` - Backend application logs (INFO level and above)
-- `notion-email-backend-error-YYYY-MM-DD.log` - Backend error logs only (ERROR level and above)
-- `notion-email-frontend-YYYY-MM-DD.log` - Frontend logs forwarded from the web app (INFO level and above)
-- `notion-email-frontend-error-YYYY-MM-DD.log` - Frontend error logs only (ERROR level and above)
+# Enable backend forwarding
+REACT_APP_SEND_LOGS_TO_SERVER=true
+```
 
-### Usage Examples
+## Log Files
 
-#### Basic Logging
+Location: `backend/logs/` directory
+
+**Backend logs:**
+- `notion-email-backend-YYYY-MM-DD.log` - All backend logs (INFO+)
+- `notion-email-backend-error-YYYY-MM-DD.log` - Backend errors only
+
+**Frontend logs** (forwarded to backend):
+- `notion-email-frontend-YYYY-MM-DD.log` - All frontend logs (INFO+)
+- `notion-email-frontend-error-YYYY-MM-DD.log` - Frontend errors only
+
+## Usage Examples
+
+### Backend Logging
+
+**Basic logging:**
 ```python
 from app.logging_config import get_logger
 
@@ -52,10 +71,9 @@ logger.debug("Debug message")
 logger.info("Info message")
 logger.warning("Warning message")
 logger.error("Error message")
-logger.critical("Critical message")
 ```
 
-#### API Endpoint Logging
+**API endpoint logging:**
 ```python
 from app.middleware import log_api_call
 
@@ -66,7 +84,7 @@ def example_endpoint():
     pass
 ```
 
-#### Function Logging
+**Function logging:**
 ```python
 from app.middleware import log_function_call
 
@@ -76,7 +94,7 @@ def send_email(to_email, subject, content):
     pass
 ```
 
-#### Database Operation Logging
+**Database operation logging:**
 ```python
 from app.middleware import log_database_operations
 
@@ -88,61 +106,18 @@ def create_user(user_data):
 
 ### Request Tracking
 
-Each HTTP request gets a unique 8-character request ID that appears in all related log entries:
+Each HTTP request gets a unique 8-character request ID:
 
 ```
-[2025-07-31 10:30:15] INFO in middleware: [a1b2c3d4] GET /api/user/profile - IP: 127.0.0.1 - User: john@example.com - User-Agent: Mozilla/5.0...
-[2025-07-31 10:30:15] INFO in user: [a1b2c3d4] Starting API operation: Get user profile
-[2025-07-31 10:30:15] INFO in user: [a1b2c3d4] API operation Get user profile completed in 45.23ms
-[2025-07-31 10:30:15] INFO in middleware: [a1b2c3d4] Response: 200 - Time: 47.85ms
+[2025-12-08 10:30:15] INFO in middleware: [a1b2c3d4] GET /api/user/profile - IP: 127.0.0.1 - User: john@example.com
+[2025-12-08 10:30:15] INFO in user: [a1b2c3d4] Starting API operation: Get user profile
+[2025-12-08 10:30:15] INFO in user: [a1b2c3d4] API operation completed in 45.23ms
+[2025-12-08 10:30:15] INFO in middleware: [a1b2c3d4] Response: 200 - Time: 47.85ms
 ```
 
-## Frontend Logging (React/JavaScript)
+### Frontend Logging
 
-### Features
-
-- **Context-Aware Logging**: Different loggers for different parts of the app
-- **Development/Production Modes**: Different behavior based on environment
-- **API Call Logging**: Automatic logging of HTTP requests and responses
-- **User Action Tracking**: Log user interactions and navigation
-- **Error Boundary Integration**: Catch and log React errors
-- **Backend Log Forwarding**: Send error and warning logs to backend for persistent storage
-- **Connection Testing**: Built-in connection testing for backend logging
-- **Retry Logic**: Automatic retry for failed log transmissions
-
-### Configuration
-
-Frontend logging is configured using environment variables:
-
-```bash
-# Set log level (debug, info, warn, error)
-REACT_APP_LOG_LEVEL=info
-
-# API base URL for sending logs to server
-REACT_APP_API_URL=http://localhost:5000
-
-# Enable/disable sending logs to backend server
-REACT_APP_SEND_LOGS_TO_SERVER=true
-```
-
-### Backend Integration
-
-Frontend logs (warning and error levels) are automatically sent to the backend and stored separately in:
-- `backend/logs/notion-email-frontend-YYYY-MM-DD.log` (all frontend logs)
-- `backend/logs/notion-email-frontend-error-YYYY-MM-DD.log` (error logs only)
-
-Backend logs remain in:
-- `backend/logs/notion-email-backend-YYYY-MM-DD.log` (backend application logs)
-- `backend/logs/notion-email-backend-error-YYYY-MM-DD.log` (backend error logs)
-
-Backend endpoints:
-- `POST /api/frontend/logs` - Receive frontend logs
-- `POST /api/frontend/logs/test` - Test connection
-- `GET /api/frontend/logs/info` - Get log files information
-
-### Usage Examples
-
-#### Basic Logging
+**Basic logging:**
 ```javascript
 import logger from '../utils/logger';
 
@@ -152,144 +127,105 @@ logger.warn("Warning message", { component: "Dashboard" });
 logger.error("Error message", error, { context: "login" });
 ```
 
-#### Context-Specific Logging
+**Context-specific logging:**
 ```javascript
 import { authLogger, apiLogger, dashboardLogger } from '../utils/logger';
 
-// Auth-related logging
 authLogger.info("User logged in", { userId: user.id });
-
-// API-related logging (handled automatically by apiService)
 apiLogger.apiCall("GET", "/api/user/profile");
-
-// Dashboard-specific logging
 dashboardLogger.userAction("Export data", { format: "csv" });
 ```
 
-#### API Service Integration
+**API calls** (automatically logged by `apiService`):
 ```javascript
 import apiService from '../utils/apiService';
 
-// All API calls are automatically logged
 const response = await apiService.get('/api/user/profile');
-// Logs: API GET /api/user/profile
-// Logs: API GET /api/user/profile - 200 (response time)
-```
-
-#### User Action Logging
-```javascript
-import logger from '../utils/logger';
-
-const handleButtonClick = () => {
-  logger.userAction("Export button clicked", { 
-    page: "dashboard",
-    exportType: "vocabulary"
-  });
-  
-  // Your export logic here
-};
+// Auto-logs: API GET /api/user/profile - 200 (response time)
 ```
 
 ## Log Levels
 
-### Backend (Python)
-- **DEBUG**: Detailed diagnostic information
-- **INFO**: General application flow and important events
-- **WARNING**: Potentially harmful situations
-- **ERROR**: Error events that allow the application to continue
-- **CRITICAL**: Serious errors that may abort the application
+| Level | Backend | Frontend | Usage |
+|-------|---------|----------|-------|
+| **DEBUG** | Detailed diagnostics | Dev only | Troubleshooting |
+| **INFO** | Application flow | General events | Normal operations |
+| **WARNING/WARN** | Potentially harmful | Warnings | Issues to watch |
+| **ERROR** | Errors (app continues) | Error conditions | Failures |
+| **CRITICAL** | Serious errors | N/A | App may abort |
 
-### Frontend (JavaScript)
-- **debug**: Detailed diagnostic information (only in development)
-- **info**: General application flow
-- **warn**: Warning messages
-- **error**: Error conditions
+## Environment-Specific Settings
 
-## Production Considerations
+### Development
+```bash
+# Backend
+LOG_LEVEL=DEBUG
+LOG_TO_STDOUT=true
 
-### Backend
-- Set `LOG_LEVEL=WARNING` or `LOG_LEVEL=ERROR` in production to reduce log volume
-- Use `LOG_TO_STDOUT=true` for containerized deployments
-- Consider external log aggregation services (ELK stack, Fluentd, etc.)
-- Monitor log file sizes and rotation
+# Frontend
+REACT_APP_LOG_LEVEL=debug
+REACT_APP_SEND_LOGS_TO_SERVER=true
+```
 
-### Frontend
-- Set `REACT_APP_LOG_LEVEL=warn` or `REACT_APP_LOG_LEVEL=error` in production
-- Consider implementing log shipping to backend or external service
-- Be mindful of browser console noise in production
+### Production
+```bash
+# Backend
+LOG_LEVEL=WARNING
+LOG_TO_STDOUT=true
 
-## Monitoring and Alerting
+# Frontend
+REACT_APP_LOG_LEVEL=warn
+REACT_APP_SEND_LOGS_TO_SERVER=true
+```
 
-### Log Monitoring
-- Monitor error rates and patterns
-- Set up alerts for critical errors
-- Track API response times and failure rates
-- Monitor user action patterns
+## Log Analysis & Monitoring
 
-### Key Metrics to Track
+### Common Queries
+
+**Find user-specific logs:**
+```bash
+grep "User: john@example.com" backend/logs/notion-email-backend-*.log
+```
+
+**Track specific request:**
+```bash
+grep "a1b2c3d4" backend/logs/notion-email-backend-*.log
+```
+
+**View today's errors:**
+```bash
+cat backend/logs/notion-email-backend-error-$(date +%Y-%m-%d).log
+```
+
+**Check email-related logs:**
+```bash
+grep -i "send_email\|Processing email service" backend/logs/notion-email-backend-$(date +%Y-%m-%d).log
+```
+
+**Monitor API failures:**
+```bash
+grep "API.*failed\|Response: 5[0-9][0-9]" backend/logs/notion-email-backend-*.log
+```
+
+### Key Metrics to Monitor
 - Error rate by endpoint
 - Average response times
 - Failed login attempts
 - Database operation performance
 - Email delivery success/failure rates
+- Request volume patterns
 
-## Log Analysis
+### Integration Options
 
-### Common Log Patterns
+**Log Aggregation Services:**
+- ELK Stack (Elasticsearch, Logstash, Kibana)
+- Fluentd for log collection
+- Splunk for enterprise analysis
+- DataDog for monitoring
+- New Relic for APM
 
-#### Finding User-Specific Logs
-```bash
-# Backend logs for specific user
-grep "User: john@example.com" backend/logs/notion-email-backend-*.log
-
-# Frontend logs (if sending to server)
-grep "userId.*123" backend/logs/notion-email-backend-*.log
-```
-
-#### Request Tracking
-```bash
-# Follow a specific request through all logs
-grep "a1b2c3d4" backend/logs/notion-email-backend-*.log
-```
-
-#### Error Analysis
-```bash
-# All errors in the last day
-grep "ERROR" backend/logs/notion-email-backend-error-$(date +%Y-%m-%d).log
-
-# API failures
-grep "API.*failed" backend/logs/notion-email-backend-*.log
-```
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Log files not created**: Check directory permissions for `backend/logs/`
-2. **No console output**: Verify `LOG_LEVEL` environment variable
-3. **Too many logs**: Increase log level or check for log loops
-4. **Missing request IDs**: Ensure middleware is properly registered
-
-### Performance Impact
-
-- Logging adds minimal overhead in production
-- File I/O is the main performance consideration
-- Use appropriate log levels to balance detail vs. performance
-- Consider async logging for high-traffic applications
-
-## Integration with External Services
-
-### Log Aggregation Services
-The logging system can be integrated with:
-- **ELK Stack** (Elasticsearch, Logstash, Kibana)
-- **Fluentd** for log collection and forwarding
-- **Splunk** for enterprise log analysis
-- **DataDog** for monitoring and alerting
-- **New Relic** for application performance monitoring
-
-### Example ELK Integration
+**Docker integration example:**
 ```yaml
-# docker-compose.yml addition for ELK
 services:
   filebeat:
     image: docker.elastic.co/beats/filebeat:7.15.0
@@ -298,39 +234,85 @@ services:
       - ./filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
 ```
 
-## Security Considerations
+## Troubleshooting
 
-- **PII Logging**: Avoid logging sensitive personal information
-- **Token Logging**: Never log authentication tokens or passwords
-- **Data Sanitization**: Sanitize user input before logging
-- **Access Control**: Restrict access to log files in production
-- **Log Retention**: Implement appropriate log retention policies
+### Common Issues
 
-## Development Tips
+| Issue | Solution |
+|-------|----------|
+| Log files not created | Check `backend/logs/` directory permissions |
+| No console output | Verify `LOG_LEVEL` environment variable |
+| Too many logs | Increase log level (INFO → WARNING → ERROR) |
+| Missing request IDs | Ensure middleware is registered |
+| High disk usage | Check log rotation (10MB max per file) |
 
-1. Use structured logging with consistent field names
-2. Include relevant context in log messages
-3. Use appropriate log levels consistently
-4. Test logging in both development and production environments
-5. Consider log message readability for future debugging
-6. Use request IDs to trace operations across services
-7. Monitor log file growth and rotation
-8. Implement log-based monitoring and alerting
+### Performance Tips
+- Logging adds minimal overhead (~1-2ms per request)
+- File I/O is the main performance factor
+- Use appropriate log levels (WARNING in production)
+- Monitor log file sizes and rotation
+
+## Security Best Practices
+
+**Never log:**
+- Passwords or authentication tokens
+- Full credit card numbers
+- Personal identification numbers (SSN, etc.)
+- API keys or secrets
+
+**Always:**
+- Sanitize user input before logging
+- Restrict log file access in production
+- Implement log retention policies
+- Use structured logging for consistency
 
 ## Example Log Outputs
 
-### Backend Request Flow
+**Backend request flow:**
 ```
-[2025-07-31 10:30:15] INFO in middleware: [a1b2c3d4] POST /api/auth/login - IP: 127.0.0.1 - User: Anonymous - User-Agent: Mozilla/5.0...
-[2025-07-31 10:30:15] INFO in auth: [a1b2c3d4] Starting API operation: User login
-[2025-07-31 10:30:15] INFO in auth: [a1b2c3d4] User login successful for john@example.com
-[2025-07-31 10:30:15] INFO in auth: [a1b2c3d4] API operation User login completed in 234.56ms
-[2025-07-31 10:30:15] INFO in middleware: [a1b2c3d4] Response: 200 - Time: 237.42ms
+[2025-12-08 10:30:15] INFO in middleware: [a1b2c3d4] POST /api/auth/login - IP: 127.0.0.1 - User: Anonymous
+[2025-12-08 10:30:15] INFO in auth: [a1b2c3d4] Starting API operation: User login
+[2025-12-08 10:30:15] INFO in auth: [a1b2c3d4] User login successful for john@example.com
+[2025-12-08 10:30:15] INFO in auth: [a1b2c3d4] API operation completed in 234.56ms
+[2025-12-08 10:30:15] INFO in middleware: [a1b2c3d4] Response: 200 - Time: 237.42ms
 ```
 
-### Frontend API Call
+**Frontend logs:**
 ```
-[10:30:15] [API] INFO: API POST /api/auth/login { method: "POST", url: "/api/auth/login", requestData: "{\"email\":\"john@example.com\"}" }
-[10:30:15] [API] INFO: API POST /api/auth/login - 200 { method: "POST", url: "/api/auth/login", status: 200, responseTime: "245ms" }
+[10:30:15] [API] INFO: API POST /api/auth/login
+[10:30:15] [API] INFO: API POST /api/auth/login - 200 (245ms)
 [10:30:15] [Auth] INFO: User logged in { userId: 123, email: "john@example.com" }
 ```
+
+## Quick Reference
+
+### View Logs
+```bash
+# Today's backend logs
+cat backend/logs/notion-email-backend-$(date +%Y-%m-%d).log
+
+# Today's errors
+cat backend/logs/notion-email-backend-error-$(date +%Y-%m-%d).log
+
+# Follow logs in real-time
+tail -f backend/logs/notion-email-backend-$(date +%Y-%m-%d).log
+
+# Last 50 lines
+tail -50 backend/logs/notion-email-backend-$(date +%Y-%m-%d).log
+```
+
+### Container Logs
+```bash
+# Backend container
+docker logs voca_recaller_backend --tail 50
+
+# Celery worker
+docker logs voca_recaller_celery --tail 50
+
+# Celery beat scheduler
+docker logs voca_recaller_celery_beat --tail 50
+```
+
+## Related Documentation
+- `EMAIL_SCHEDULING.md` - Email system logs and monitoring
+- `check_email_status.sh` - Automated diagnostic script

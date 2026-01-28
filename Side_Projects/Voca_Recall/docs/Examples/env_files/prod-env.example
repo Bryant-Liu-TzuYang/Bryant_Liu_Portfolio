@@ -12,8 +12,8 @@ DATABASE_URL=mysql+pymysql://user:password@host:3306/database
 
 # OR use these for Docker Compose deployment:
 MYSQL_ROOT_PASSWORD=your_mysql_root_password
-MYSQL_DATABASE=notion_email_prod
-MYSQL_USER=notion_user
+MYSQL_DATABASE=voca_recaller_prod
+MYSQL_USER=voca_recaller_user
 MYSQL_PASSWORD=your_mysql_password
 
 # Security Configuration - MUST GENERATE NEW KEYS!
@@ -52,5 +52,5 @@ REACT_APP_LOG_LEVEL=warn
 REACT_APP_SEND_LOGS_TO_SERVER=true
 
 # Email Template Variables - Professional appearance
-FROM_EMAIL_NAME=Notion Email Vocabulary
-SUPPORT_EMAIL=support@notionemail.com
+FROM_EMAIL_NAME=Voca Recaller
+SUPPORT_EMAIL=support@vocarecaller.com

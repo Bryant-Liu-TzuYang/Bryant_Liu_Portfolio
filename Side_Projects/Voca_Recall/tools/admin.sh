@@ -12,7 +12,7 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-echo -e "${BLUE}🔧 Notion Email Admin Tool${NC}"
+echo -e "${BLUE}🔧 Voca Recaller Admin Tool${NC}"
 echo "================================"
 
 # Function to list all users
@@ -139,7 +139,7 @@ view_user() {
     
     docker-compose exec -T backend python -c "
 from app import create_app, db
-from app.models import User, NotionDatabase, EmailSettings
+from app.models import User, NotionDatabase, EmailService
 app = create_app()
 with app.app_context():
     # Try to find by email first, then by ID
@@ -166,17 +166,20 @@ with app.app_context():
     print(f'\n📚 Notion Databases: {len(databases)}')
     for db_item in databases:
         print(f'  - {db_item.database_name} ({db_item.database_id})')
-        print(f'    Frequency: {db_item.frequency}')
     
-    # Show email settings
-    settings = EmailSettings.query.filter_by(user_id=user.id).first()
-    if settings:
-        print(f'\n⚙️  Email Settings:')
-        print(f'  - Vocabulary Count: {settings.vocabulary_count}')
-        print(f'  - Send Time: {settings.send_time}')
-        print(f'  - Active: {settings.is_active}')
+    # Show email services
+    services = EmailService.query.filter_by(user_id=user.id).all()
+    if services:
+        print(f'\n📧 Email Services: {len(services)}')
+        for service in services:
+            print(f'  - {service.service_name}')
+            print(f'    Database ID: {service.database_id}')
+            print(f'    Frequency: {service.frequency}')
+            print(f'    Send Time: {service.send_time} ({service.timezone})')
+            print(f'    Vocabulary Count: {service.vocabulary_count}')
+            print(f'    Active: {service.is_active}')
     else:
-        print(f'\n⚙️  Email Settings: Not configured')
+        print(f'\n📧 Email Services: None configured')
 "
 }
 
@@ -251,21 +254,21 @@ view_stats() {
     echo "================================"
     docker-compose exec -T backend python -c "
 from app import create_app, db
-from app.models import User, NotionDatabase, EmailSettings
+from app.models import User, NotionDatabase, EmailService
 app = create_app()
 with app.app_context():
     total_users = User.query.count()
     active_users = User.query.filter_by(is_active=True).count()
     total_databases = NotionDatabase.query.count()
-    total_email_settings = EmailSettings.query.count()
-    enabled_emails = EmailSettings.query.filter_by(is_active=True).count()
+    total_email_services = EmailService.query.count()
+    enabled_services = EmailService.query.filter_by(is_active=True).count()
     
     print(f'\n👥 Total Users: {total_users}')
     print(f'✅ Active Users: {active_users}')
     print(f'❌ Inactive Users: {total_users - active_users}')
     print(f'\n📚 Total Notion Databases: {total_databases}')
-    print(f'📧 Email Settings Configured: {total_email_settings}')
-    print(f'✉️  Email Notifications Enabled: {enabled_emails}')
+    print(f'📧 Email Services Configured: {total_email_services}')
+    print(f'✉️  Email Services Enabled: {enabled_services}')
 "
 }
 
@@ -276,10 +279,10 @@ backup_database() {
     BACKUP_DIR="./backups"
     mkdir -p $BACKUP_DIR
     TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-    BACKUP_FILE="$BACKUP_DIR/notion_email_backup_$TIMESTAMP.sql"
+    BACKUP_FILE="$BACKUP_DIR/voca_recaller_backup_$TIMESTAMP.sql"
     
     echo "Creating backup..."
-    docker-compose exec -T mysql mysqldump -uuser -ppassword notion_email_dev > "$BACKUP_FILE"
+    docker-compose exec -T mysql mysqldump -uuser -ppassword voca_recaller_dev > "$BACKUP_FILE"
     
     if [ -f "$BACKUP_FILE" ]; then
         SIZE=$(du -h "$BACKUP_FILE" | cut -f1)
@@ -364,7 +367,7 @@ check_status() {
 database_shell() {
     echo -e "\n${GREEN}🗄️  MySQL Shell${NC}"
     echo "================================"
-    docker-compose exec mysql mysql -uuser -ppassword -D notion_email_dev
+    docker-compose exec mysql mysql -uuser -ppassword -D voca_recaller_dev
 }
 
 # Function to access Flask shell

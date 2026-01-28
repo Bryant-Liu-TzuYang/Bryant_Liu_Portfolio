@@ -8,7 +8,11 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import Databases from './pages/Databases';
+import Services from './pages/Services';
 import Settings from './pages/Settings';
+import ManageTokens from './pages/ManageTokens';
+import ManageUsers from './pages/ManageUsers';
+import EmailLogs from './pages/EmailLogs';
 import LoadingSpinner from './components/LoadingSpinner';
 
 function App() {
@@ -19,9 +23,9 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 relative">
       {isAuthenticated && <Navbar />}
-      <main className={isAuthenticated ? 'pt-16' : ''}>
+      <main className={isAuthenticated ? 'pt-16 relative' : 'relative'}>
         <Routes>
           <Route 
             path="/login" 
@@ -48,8 +52,24 @@ function App() {
             element={isAuthenticated ? <Databases /> : <Navigate to="/login" />} 
           />
           <Route 
+            path="/services" 
+            element={isAuthenticated ? <Services /> : <Navigate to="/login" />} 
+          />
+          <Route 
             path="/settings" 
             element={isAuthenticated ? <Settings /> : <Navigate to="/login" />} 
+          />
+          <Route 
+            path="/settings/tokens" 
+            element={isAuthenticated ? <ManageTokens /> : <Navigate to="/login" />} 
+          />
+          <Route 
+            path="/manage-users" 
+            element={isAuthenticated ? <ManageUsers /> : <Navigate to="/login" />} 
+          />
+          <Route 
+            path="/email-logs" 
+            element={isAuthenticated ? <EmailLogs /> : <Navigate to="/login" />} 
           />
           <Route 
             path="/" 

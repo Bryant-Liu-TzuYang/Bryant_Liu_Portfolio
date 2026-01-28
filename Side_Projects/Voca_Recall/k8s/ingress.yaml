@@ -1,0 +1,136 @@
+# ============================================================
+# INGRESS - External access to your application
+# ============================================================
+# Ingress is like a "smart router" that directs external traffic
+# to your services based on URLs. It can also handle SSL/TLS.
+# 
+# PREREQUISITES:
+# 1. You need an Ingress Controller installed in your cluster
+#    Popular options: nginx-ingress, traefik, HAProxy
+#    Install: kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.1/deploy/static/provider/cloud/deploy.yaml
+# 
+# 2. For SSL/HTTPS, you need cert-manager (optional but recommended)
+#    Install: kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.13.0/cert-manager.yaml
+# ============================================================
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: voca-recaller-ingress
+  namespace: voca-recaller
+  annotations:
+    # Ingress controller type (nginx example)
+    kubernetes.io/ingress.class: "nginx"
+    
+    # Nginx-specific settings
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    
+    # CORS settings if needed (adjust based on your needs)
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    
+    # SSL redirect - redirects HTTP to HTTPS (enable after setting up SSL)
+    # nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    
+    # Certificate issuer for automatic HTTPS (requires cert-manager)
+    # Uncomment after installing cert-manager and creating ClusterIssuer
+    # cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    
+    # Increase max body size for file uploads (adjust as needed)
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    
+    # Timeouts
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+
+spec:
+  # TLS/SSL configuration (uncomment after getting certificates)
+  # tls:
+  # - hosts:
+  #   - your-domain.com
+  #   - www.your-domain.com
+  #   secretName: voca-recaller-tls  # cert-manager will create this
+  
+  # Routing rules
+  rules:
+  # Rule for your domain
+  - host: your-domain.com  # REPLACE with your actual domain
+    http:
+      paths:
+      # API routes go to backend
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: backend
+            port:
+              number: 5000
+      
+      # Everything else goes to frontend
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend
+            port:
+              number: 80
+  
+  # Optional: www subdomain redirect or separate rule
+  # - host: www.your-domain.com
+  #   http:
+  #     paths:
+  #     - path: /api
+  #       pathType: Prefix
+  #       backend:
+  #         service:
+  #           name: backend
+  #           port:
+  #             number: 5000
+  #     - path: /
+  #       pathType: Prefix
+  #       backend:
+  #         service:
+  #           name: frontend
+  #           port:
+  #             number: 80
+
+---
+# ============================================================
+# ALTERNATIVE: LoadBalancer Service (simpler but less flexible)
+# ============================================================
+# If you don't want to use Ingress, you can expose services directly
+# using LoadBalancer type. Uncomment the services below.
+# 
+# NOTE: LoadBalancer requires cloud provider support (AWS, GCP, Azure)
+# or MetalLB for bare-metal clusters
+# ============================================================
+
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: frontend-lb
+#   namespace: voca-recaller
+# spec:
+#   type: LoadBalancer
+#   selector:
+#     app: frontend
+#   ports:
+#   - port: 80
+#     targetPort: 80
+#     protocol: TCP
+
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: backend-lb
+#   namespace: voca-recaller
+# spec:
+#   type: LoadBalancer
+#   selector:
+#     app: backend
+#   ports:
+#   - port: 5000
+#     targetPort: 5000
+#     protocol: TCP

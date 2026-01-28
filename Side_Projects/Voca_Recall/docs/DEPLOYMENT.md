@@ -1,6 +1,6 @@
 # Deployment Guide
 
-Deploy the Notion Email Vocabulary Recall application on development (M1 MacBook Pro) and production (Ubuntu Linux) environments.
+Deploy the Voca Recaller application on development (M1 MacBook Pro) and production (Ubuntu Linux) environments.
 
 ## Prerequisites
 
@@ -137,7 +137,7 @@ sudo chmod +x /usr/local/bin/docker-compose
 2. **Deploy Application**
 ```bash
 git clone <your-repository-url>
-cd notion-email
+cd voca-recaller
 chmod +x setup.sh
 ./setup.sh prod
 ```
@@ -180,10 +180,10 @@ docker-compose -f docker-compose.prod.yml logs backend
 ### Database Backup
 ```bash
 # Backup
-docker exec notion_email_mysql_prod mysqldump -u root -p notion_email_prod > backup.sql
+docker exec voca_recaller_mysql_prod mysqldump -u root -p voca_recaller_prod > backup.sql
 
 # Restore
-docker exec -i notion_email_mysql_prod mysql -u root -p notion_email_prod < backup.sql
+docker exec -i voca_recaller_mysql_prod mysql -u root -p voca_recaller_prod < backup.sql
 ```
 
 ### Updates

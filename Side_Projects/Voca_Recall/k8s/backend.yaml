@@ -1,0 +1,180 @@
+# ============================================================
+# BACKEND DEPLOYMENT - Flask application
+# ============================================================
+# This runs your Python Flask backend
+# Multiple replicas provide high availability and load balancing
+# ============================================================
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: voca-recaller
+spec:
+  # Number of backend pods to run
+  # More replicas = more capacity and reliability
+  # Start with 2 for redundancy, scale up as needed
+  replicas: 2
+  
+  selector:
+    matchLabels:
+      app: backend
+  
+  # Rolling update strategy - how to update without downtime
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1        # Max 1 extra pod during update
+      maxUnavailable: 0  # Keep all pods running during update (zero downtime)
+  
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      # Wait for dependencies to be ready before starting
+      initContainers:
+      # This init container waits for MySQL to be ready
+      - name: wait-for-mysql
+        image: busybox:1.35
+        command:
+        - sh
+        - -c
+        - |
+          echo "Waiting for MySQL to be ready..."
+          until nc -z mysql 3306; do
+            echo "MySQL is unavailable - sleeping"
+            sleep 2
+          done
+          echo "MySQL is up!"
+      
+      # Wait for Redis
+      - name: wait-for-redis
+        image: busybox:1.35
+        command:
+        - sh
+        - -c
+        - |
+          echo "Waiting for Redis to be ready..."
+          until nc -z redis 6379; do
+            echo "Redis is unavailable - sleeping"
+            sleep 2
+          done
+          echo "Redis is up!"
+      
+      containers:
+      - name: backend
+        # YOUR DOCKER IMAGE HERE
+        # Build and push your image first: 
+        # docker build -t your-registry/voca-recaller-backend:latest ./backend
+        # docker push your-registry/voca-recaller-backend:latest
+        image: your-registry/voca-recaller-backend:latest
+        imagePullPolicy: Always  # Always pull the latest image
+        
+        ports:
+        - containerPort: 5000
+          name: http
+          protocol: TCP
+        
+        # Environment variables from ConfigMap
+        envFrom:
+        - configMapRef:
+            name: voca-recaller-config
+        
+        # Environment variables from Secret and specific overrides
+        env:
+        # Database credentials
+        - name: DATABASE_USER
+          value: "root"  # Or create a separate user for the app
+        
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: voca-recaller-secrets
+              key: mysql-root-password
+        
+        # Build database URL from components
+        - name: DATABASE_URL
+          value: "mysql://$(DATABASE_USER):$(DATABASE_PASSWORD)@$(DATABASE_HOST):$(DATABASE_PORT)/$(DATABASE_NAME)"
+        
+        # Flask secrets
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: voca-recaller-secrets
+              key: flask-secret-key
+        
+        - name: JWT_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: voca-recaller-secrets
+              key: jwt-secret-key
+        
+        # Email credentials
+        - name: MAIL_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: voca-recaller-secrets
+              key: mail-username
+        
+        - name: MAIL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: voca-recaller-secrets
+              key: mail-password
+        
+        # Resource limits
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        
+        # Health checks
+        # Kubernetes will restart the pod if liveness check fails
+        livenessProbe:
+          httpGet:
+            path: /health  # Make sure your Flask app has this endpoint!
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        # Kubernetes won't send traffic if readiness check fails
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
+
+---
+# ============================================================
+# BACKEND SERVICE - Network access to backend
+# ============================================================
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: voca-recaller
+  labels:
+    app: backend
+spec:
+  type: ClusterIP
+  selector:
+    app: backend
+  ports:
+  - port: 5000
+    targetPort: 5000
+    protocol: TCP
+    name: http
+  
+  # Session affinity - routes requests from same client to same pod
+  # Useful if you have in-memory sessions (but you're using DB, so not needed)
+  # sessionAffinity: ClientIP

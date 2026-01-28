@@ -11,6 +11,7 @@ class User(db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     first_name = db.Column(db.String(50), nullable=False)
     last_name = db.Column(db.String(50), nullable=False)
+    role = db.Column(db.String(20), default='user', nullable=False)  # user, developer, admin
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     is_active = db.Column(db.Boolean, default=True)
@@ -19,6 +20,7 @@ class User(db.Model):
     databases = db.relationship('NotionDatabase', backref='user', lazy=True, cascade='all, delete-orphan')
     notion_tokens = db.relationship('NotionToken', backref='user', lazy=True, cascade='all, delete-orphan')
     email_settings = db.relationship('EmailSettings', backref='user', lazy=True, uselist=False, cascade='all, delete-orphan')
+    email_services = db.relationship('EmailService', backref='user', lazy=True, cascade='all, delete-orphan')
     password_reset_tokens = db.relationship('PasswordResetToken', backref='user', lazy=True, cascade='all, delete-orphan')
     
     def set_password(self, password):
@@ -36,7 +38,8 @@ class User(db.Model):
             'email': self.email,
             'first_name': self.first_name,
             'last_name': self.last_name,
-            'created_at': self.created_at.isoformat(),
+            'role': self.role,
+            'created_at': self.created_at.isoformat() + 'Z',
             'is_active': self.is_active
         }
 
@@ -94,10 +97,10 @@ class PasswordResetToken(db.Model):
         return {
             'id': self.id,
             'token': self.token,
-            'created_at': self.created_at.isoformat(),
-            'expires_at': self.expires_at.isoformat(),
+            'created_at': self.created_at.isoformat() + 'Z',
+            'expires_at': self.expires_at.isoformat() + 'Z',
             'is_used': self.is_used,
-            'used_at': self.used_at.isoformat() if self.used_at else None
+            'used_at': self.used_at.isoformat() + 'Z' if self.used_at else None
         }
 
 class NotionToken(db.Model):
@@ -121,7 +124,7 @@ class NotionToken(db.Model):
             'id': self.id,
             'token_name': self.token_name,
             'is_active': self.is_active,
-            'created_at': self.created_at.isoformat(),
+            'created_at': self.created_at.isoformat() + 'Z',
             'database_count': len(self.databases)
         }
         if include_token:
@@ -138,10 +141,12 @@ class NotionDatabase(db.Model):
     database_id = db.Column(db.String(255), nullable=False)
     database_name = db.Column(db.String(255), nullable=False)
     database_url = db.Column(db.String(500), nullable=False)
-    frequency = db.Column(db.String(20), default='daily')  # daily, weekly, custom - per database
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    email_services = db.relationship('EmailService', backref='database', lazy=True, cascade='all, delete-orphan')
     
     def to_dict(self):
         """Convert to dictionary"""
@@ -150,14 +155,66 @@ class NotionDatabase(db.Model):
             'database_id': self.database_id,
             'database_name': self.database_name,
             'database_url': self.database_url,
-            'frequency': self.frequency,
             'is_active': self.is_active,
-            'created_at': self.created_at.isoformat(),
-            'token_id': self.token_id
+            'created_at': self.created_at.isoformat() + 'Z',
+            'token_id': self.token_id,
+            'email_services_count': len(self.email_services) if hasattr(self, 'email_services') else 0
+        }
+
+class EmailService(db.Model):
+    """Email service model - service-level email settings linked to databases"""
+    __tablename__ = 'email_services'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    database_id = db.Column(db.Integer, db.ForeignKey('notion_databases.id'), nullable=False)
+    
+    # Service identification
+    service_name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    
+    # Email scheduling settings
+    send_time = db.Column(db.Time, default=datetime.strptime('09:00', '%H:%M').time())
+    timezone = db.Column(db.String(50), default='UTC')
+    frequency = db.Column(db.String(20), default='daily')  # daily, weekly, custom
+    
+    # Vocabulary settings
+    vocabulary_count = db.Column(db.Integer, default=10)
+    selection_method = db.Column(db.String(20), default='random')  # random, latest, date_range
+    
+    # Date range settings (for selection_method='date_range')
+    date_range_start = db.Column(db.Date, nullable=True)
+    date_range_end = db.Column(db.Date, nullable=True)
+    
+    # Status
+    is_active = db.Column(db.Boolean, default=True)
+    
+    # Timestamps
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    last_sent_at = db.Column(db.DateTime, nullable=True)
+    
+    def to_dict(self):
+        """Convert to dictionary"""
+        return {
+            'id': self.id,
+            'database_id': self.database_id,
+            'service_name': self.service_name,
+            'description': self.description,
+            'send_time': self.send_time.strftime('%H:%M'),
+            'timezone': self.timezone,
+            'frequency': self.frequency,
+            'vocabulary_count': self.vocabulary_count,
+            'selection_method': self.selection_method,
+            'date_range_start': self.date_range_start.isoformat() if self.date_range_start else None,
+            'date_range_end': self.date_range_end.isoformat() if self.date_range_end else None,
+            'is_active': self.is_active,
+            'last_sent_at': self.last_sent_at.isoformat() + 'Z' if self.last_sent_at else None,
+            'created_at': self.created_at.isoformat() + 'Z'
         }
 
 class EmailSettings(db.Model):
-    """Email settings model"""
+    """Email settings model - DEPRECATED: Use EmailService instead for service-level settings"""
     __tablename__ = 'email_settings'
     
     id = db.Column(db.Integer, primary_key=True)
@@ -194,7 +251,7 @@ class EmailLog(db.Model):
         """Convert to dictionary"""
         return {
             'id': self.id,
-            'sent_at': self.sent_at.isoformat(),
+            'sent_at': self.sent_at.isoformat() + 'Z' if self.sent_at else None,
             'vocabulary_items': self.vocabulary_items,
             'status': self.status,
             'error_message': self.error_message

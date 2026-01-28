@@ -1,0 +1,32 @@
+# ============================================================
+# PERSISTENT VOLUME CLAIM (PVC) - Request storage for MySQL
+# ============================================================
+# A PVC is like asking for a "hard drive" for your database.
+# When your MySQL pod restarts, this ensures your data is NOT lost.
+# The actual storage is provided by your cluster's storage class.
+# ============================================================
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pvc
+  namespace: voca-recaller
+  labels:
+    app: mysql
+spec:
+  # How you want to access this storage
+  # ReadWriteOnce = can be mounted by ONE pod at a time (perfect for databases)
+  accessModes:
+    - ReadWriteOnce
+  
+  # How much storage you need
+  # 10Gi = 10 Gigabytes (adjust based on your database size)
+  resources:
+    requests:
+      storage: 10Gi
+  
+  # storageClassName tells Kubernetes WHAT TYPE of storage to use
+  # Comment this out to use your cluster's default storage class
+  # Or set it to a specific class like "standard", "fast-ssd", etc.
+  # Use "kubectl get storageclass" to see available options
+  # storageClassName: standard

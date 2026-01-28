@@ -1,4 +1,4 @@
-# Notion Email Vocabulary Recall
+# Voca Recaller (Vocabulary Recall)
 
 A web application that helps users recall vocabulary from their Notion databases by sending daily email reminders with random vocabulary items.
 
@@ -7,36 +7,10 @@ A web application that helps users recall vocabulary from their Notion databases
 - User authentication and registration
 - **Password reset functionality with email verification**
 - Connect multiple Notion databases
-- Customizable daily email frequency and vocabulary count
+- Customizable email frequency and vocabulary count per email service
 - Secure storage of user preferences
 - Daily automated email delivery
 - Comprehensive logging system with request tracking and performance monitoring
-
-## Tech Stack
-
-- **Backend**: Flask (Python)
-- **Frontend**: React (JavaScript/TypeScript)
-- **Database**: MySQL
-- **Email Service**: SMTP (configurable)
-- **Notion API**: Official Notion SDK
-
-## Project Structure
-
-```
-notion-email/
-├── backend/                 # Flask backend
-│   ├── app/
-│   ├── requirements.txt
-│   ├── Dockerfile
-│   └── config.py
-├── frontend/               # React frontend
-│   ├── src/
-│   ├── package.json
-│   └── Dockerfile
-├── docker-compose.yml      # Development setup
-├── docker-compose.prod.yml # Production setup
-└── README.md
-```
 
 ## Quick Start
 
@@ -141,6 +115,34 @@ SMTP_PASSWORD=your_gmail_app_password
 For **production**, see the complete configuration in `backend/prod-env.example`.
 
 All other variables have sensible defaults. See [ENV_VARIABLES.md](docs/ENV_VARIABLES.md) for detailed explanations and the complete development and production templates.
+
+## Tech Stack
+
+- **Backend**: Flask (Python)
+- **Frontend**: React (JavaScript/TypeScript)
+- **Database**: MySQL
+- **Email Service**: SMTP (configurable)
+- **Notion API**: Official Notion SDK
+
+## Project Structure
+
+```
+voca-recaller/
+├── backend/                 # Flask backend
+│   ├── app/
+│   ├── requirements.txt
+│   ├── Dockerfile
+│   └── config.py
+├── frontend/               # React frontend
+│   ├── src/
+│   ├── package.json
+│   └── Dockerfile
+├── docker-compose.yml      # Development setup
+├── docker-compose.prod.yml # Production setup
+└── README.md
+```
+
+
 
 ## Documentation
 

@@ -2,11 +2,11 @@ services:
   # MySQL Database
   mysql:
     image: mysql:8.0
-    container_name: notion_email_mysql
+    container_name: voca_recaller_mysql
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: notion_email_dev
+      MYSQL_DATABASE: voca_recaller_dev
       MYSQL_USER: user
       MYSQL_PASSWORD: password
     ports:
@@ -15,28 +15,28 @@ services:
       - mysql_data:/var/lib/mysql
       - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
-      - notion_email_network
+      - voca_recaller_network
 
   # Redis for Celery
   redis:
     image: redis:7-alpine
-    container_name: notion_email_redis
+    container_name: voca_recaller_redis
     restart: unless-stopped
     ports:
       - "6379:6379"
     networks:
-      - notion_email_network
+      - voca_recaller_network
 
   # Flask Backend
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: notion_email_backend
+    container_name: voca_recaller_backend
     restart: unless-stopped
     environment:
       - FLASK_ENV=development
-      - DATABASE_URL=mysql+pymysql://user:password@mysql:3306/notion_email_dev
+      - DATABASE_URL=mysql+pymysql://user:password@mysql:3306/voca_recaller_dev
       - REDIS_URL=redis://redis:6379/0
       - SECRET_KEY=dev-secret-key-change-in-production
       - JWT_SECRET_KEY=dev-jwt-secret-key
@@ -54,19 +54,19 @@ services:
       - mysql
       - redis
     networks:
-      - notion_email_network
-    command: python app.py
+      - voca_recaller_network
+    command: python application.py
 
   # Celery Worker
   celery:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: notion_email_celery
+    container_name: voca_recaller_celery
     restart: unless-stopped
     environment:
       - FLASK_ENV=development
-      - DATABASE_URL=mysql+pymysql://user:password@mysql:3306/notion_email_dev
+      - DATABASE_URL=mysql+pymysql://user:password@mysql:3306/voca_recaller_dev
       - REDIS_URL=redis://redis:6379/0
       - SECRET_KEY=dev-secret-key-change-in-production
       - JWT_SECRET_KEY=dev-jwt-secret-key
@@ -85,26 +85,58 @@ services:
       - redis
       - backend
     networks:
-      - notion_email_network
+      - voca_recaller_network
     command: python -c "from app import create_app, celery; app = create_app(); app.app_context().push(); celery.worker_main(['worker', '--loglevel=info'])"
+
+  # Celery Beat Scheduler
+  celery-beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: voca_recaller_celery_beat
+    restart: unless-stopped
+    environment:
+      - FLASK_ENV=development
+      - DATABASE_URL=mysql+pymysql://user:password@mysql:3306/voca_recaller_dev
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=dev-secret-key-change-in-production
+      - JWT_SECRET_KEY=dev-jwt-secret-key
+      - NOTION_API_KEY=${NOTION_API_KEY}
+      - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    volumes:
+      - ./backend:/app
+      - /app/__pycache__
+    depends_on:
+      - mysql
+      - redis
+      - backend
+      - celery
+    networks:
+      - voca_recaller_network
+    command: python beat.py
 
   # React Frontend
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: notion_email_frontend
+    container_name: voca_recaller_frontend
     restart: unless-stopped
     ports:
       - "3000:80"
     depends_on:
       - backend
     networks:
-      - notion_email_network
+      - voca_recaller_network
 
 volumes:
   mysql_data:
 
 networks:
-  notion_email_network:
+  voca_recaller_network:
     driver: bridge 

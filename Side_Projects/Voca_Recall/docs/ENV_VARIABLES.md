@@ -62,13 +62,13 @@ These variables have **sensible defaults** or are **optional features** that can
 
 | Variable | Description | Default | Why Skippable |
 |----------|-------------|---------|---------------|
-| `DATABASE_URL` | Full database connection string | SQLite: `sqlite:///instance/notion_email_dev.db` | ❌ **Auto-uses SQLite** |
+| `DATABASE_URL` | Full database connection string | SQLite: `sqlite:///instance/voca_recaller_dev.db` | ❌ **Auto-uses SQLite** |
 | `MYSQL_ROOT_PASSWORD` | MySQL root password | N/A | ❌ **Only for MySQL setup** |
 | `MYSQL_DATABASE` | MySQL database name | N/A | ❌ **Only for MySQL setup** |
 | `MYSQL_USER` | MySQL username | N/A | ❌ **Only for MySQL setup** |
 | `MYSQL_PASSWORD` | MySQL user password | N/A | ❌ **Only for MySQL setup** |
 
-**Why Skippable**: The application automatically uses SQLite for local development with zero configuration. Data is stored in `backend/instance/notion_email_dev.db`.
+**Why Skippable**: The application automatically uses SQLite for local development with zero configuration. Data is stored in `backend/instance/voca_recaller_dev.db`.
 
 **When to Set**: Only if you specifically want to test with MySQL in development.
 
@@ -369,8 +369,8 @@ DATABASE_URL=mysql+pymysql://user:password@host:3306/dbname
 
 # OR use these for Docker Compose deployment:
 MYSQL_ROOT_PASSWORD=<strong-random-password>
-MYSQL_DATABASE=notion_email_prod
-MYSQL_USER=notion_user
+MYSQL_DATABASE=voca_recaller_prod
+MYSQL_USER=voca_recaller_user
 MYSQL_PASSWORD=<strong-random-password>
 
 # ============================================================

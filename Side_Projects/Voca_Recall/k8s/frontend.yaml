@@ -1,0 +1,92 @@
+# ============================================================
+# FRONTEND DEPLOYMENT - React application with Nginx
+# ============================================================
+# This serves your React frontend via Nginx web server
+# ============================================================
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: voca-recaller
+spec:
+  # Number of frontend pods
+  # Frontend is stateless, so you can easily scale horizontally
+  replicas: 2
+  
+  selector:
+    matchLabels:
+      app: frontend
+  
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: frontend
+        # YOUR DOCKER IMAGE HERE
+        # Build and push your image first:
+        # docker build -t your-registry/voca-recaller-frontend:latest ./frontend
+        # docker push your-registry/voca-recaller-frontend:latest
+        image: your-registry/voca-recaller-frontend:latest
+        imagePullPolicy: Always
+        
+        ports:
+        - containerPort: 80  # Nginx serves on port 80
+          name: http
+          protocol: TCP
+        
+        # Resource limits - frontend typically needs less than backend
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        
+        # Health checks
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+        
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+
+---
+# ============================================================
+# FRONTEND SERVICE - Network access to frontend
+# ============================================================
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: voca-recaller
+  labels:
+    app: frontend
+spec:
+  type: ClusterIP
+  selector:
+    app: frontend
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+    name: http

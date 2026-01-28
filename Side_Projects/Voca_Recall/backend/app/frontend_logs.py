@@ -104,9 +104,11 @@ def get_frontend_logging_info():
     try:
         import os
         from datetime import datetime
+        import pytz
         
         log_dir = os.path.join(os.path.dirname(__file__), '..', 'logs')
-        today = datetime.now().strftime('%Y-%m-%d')
+        taipei_tz = pytz.timezone('Asia/Taipei')
+        today = datetime.now(taipei_tz).strftime('%Y-%m-%d')
         
         frontend_log_file = f'notion-email-frontend-{today}.log'
         frontend_error_file = f'notion-email-frontend-error-{today}.log'

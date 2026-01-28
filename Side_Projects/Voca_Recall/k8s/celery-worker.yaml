@@ -1,0 +1,141 @@
+# ============================================================
+# CELERY WORKER DEPLOYMENT - Background task processing
+# ============================================================
+# Celery workers handle asynchronous tasks like sending emails
+# They don't need a Service because they pull work from Redis,
+# they don't receive incoming connections
+# ============================================================
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: celery-worker
+  namespace: voca-recaller
+spec:
+  # Number of worker pods
+  # Scale this based on your task volume
+  # More workers = more tasks processed in parallel
+  replicas: 2
+  
+  selector:
+    matchLabels:
+      app: celery-worker
+  
+  template:
+    metadata:
+      labels:
+        app: celery-worker
+    spec:
+      # Wait for dependencies
+      initContainers:
+      - name: wait-for-redis
+        image: busybox:1.35
+        command:
+        - sh
+        - -c
+        - |
+          echo "Waiting for Redis to be ready..."
+          until nc -z redis 6379; do
+            echo "Redis is unavailable - sleeping"
+            sleep 2
+          done
+          echo "Redis is up!"
+      
+      - name: wait-for-mysql
+        image: busybox:1.35
+        command:
+        - sh
+        - -c
+        - |
+          echo "Waiting for MySQL to be ready..."
+          until nc -z mysql 3306; do
+            echo "MySQL is unavailable - sleeping"
+            sleep 2
+          done
+          echo "MySQL is up!"
+      
+      containers:
+      - name: celery-worker
+        # Use the same image as backend (it contains Celery code)
+        image: your-registry/voca-recaller-backend:latest
+        imagePullPolicy: Always
+        
+        # Override the command to run Celery worker instead of Flask
+        # Adjust the command based on your celery_worker.py file
+        command:
+        - celery
+        - -A
+        - celery_worker.celery
+        - worker
+        - --loglevel=info
+        - --concurrency=4  # Number of concurrent tasks per worker
+        
+        # Environment variables - same as backend
+        envFrom:
+        - configMapRef:
+            name: voca-recaller-config
+        
+        env:
+        - name: DATABASE_USER
+          value: "root"
+        
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: voca-recaller-secrets
+              key: mysql-root-password
+        
+        - name: DATABASE_URL
+          value: "mysql://$(DATABASE_USER):$(DATABASE_PASSWORD)@$(DATABASE_HOST):$(DATABASE_PORT)/$(DATABASE_NAME)"
+        
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: voca-recaller-secrets
+              key: flask-secret-key
+        
+        - name: JWT_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: voca-recaller-secrets
+              key: jwt-secret-key
+        
+        - name: MAIL_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: voca-recaller-secrets
+              key: mail-username
+        
+        - name: MAIL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: voca-recaller-secrets
+              key: mail-password
+        
+        # Resource limits
+        # Celery workers can be resource-intensive depending on tasks
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        
+        # Health check for Celery
+        # Celery doesn't have HTTP endpoints, so we use exec
+        livenessProbe:
+          exec:
+            command:
+            - celery
+            - -A
+            - celery_worker.celery
+            - inspect
+            - ping
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+
+# Note: No Service needed for Celery workers
+# They pull tasks from Redis, they don't serve requests

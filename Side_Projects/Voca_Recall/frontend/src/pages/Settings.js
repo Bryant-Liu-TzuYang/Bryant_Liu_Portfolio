@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { 
@@ -12,18 +13,25 @@ import {
   Eye,
   EyeOff,
   Send,
-  Activity
+  Activity,
+  Key,
+  Database,
+  Filter
 } from 'lucide-react';
 import LoggingStatus from '../components/LoggingStatus';
 
 const Settings = () => {
-  const { user, updateProfile } = useAuth();
+  const { user, updateProfile, isDeveloper } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [sendingTest, setSendingTest] = useState(false);
   const [activeTab, setActiveTab] = useState('profile');
   const [databases, setDatabases] = useState([]);
   const [selectedDatabase, setSelectedDatabase] = useState('');
+  const [emailSettings, setEmailSettings] = useState(null);
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [emailServices, setEmailServices] = useState([]);
 
   const {
     register,
@@ -34,6 +42,8 @@ const Settings = () => {
 
   useEffect(() => {
     fetchDatabases();
+    fetchEmailSettings();
+    fetchEmailServices();
     setLoading(false);
   }, []);
 
@@ -46,6 +56,38 @@ const Settings = () => {
       }
     } catch (error) {
       console.error('Failed to fetch databases:', error);
+    }
+  };
+
+  const fetchEmailSettings = async () => {
+    try {
+      const response = await axios.get('/api/user/email-settings');
+      setEmailSettings(response.data);
+    } catch (error) {
+      console.error('Failed to fetch email settings:', error);
+    }
+  };
+
+  const fetchEmailServices = async () => {
+    try {
+      const response = await axios.get('/api/email-services');
+      setEmailServices(response.data.services || []);
+    } catch (error) {
+      console.error('Failed to fetch email services:', error);
+    }
+  };
+
+  const saveEmailSettings = async (updatedSettings) => {
+    setSavingSettings(true);
+    try {
+      const response = await axios.put('/api/user/email-settings', updatedSettings);
+      setEmailSettings(response.data.email_settings);
+      toast.success('Email settings updated successfully!');
+    } catch (error) {
+      const message = error.response?.data?.error || 'Failed to update email settings';
+      toast.error(message);
+    } finally {
+      setSavingSettings(false);
     }
   };
 
@@ -88,7 +130,9 @@ const Settings = () => {
   const tabs = [
     { id: 'profile', name: 'Profile', icon: User },
     { id: 'email', name: 'Email Settings', icon: Mail },
-    { id: 'logging', name: 'Logging', icon: Activity },
+    { id: 'services', name: 'Email Services', icon: Database },
+    ...(isDeveloper() ? [{ id: 'logging', name: 'Logging', icon: Activity }] : []),
+    { id: 'tokens', name: 'Tokens', icon: Key },
   ];
 
   if (loading) {
@@ -219,12 +263,12 @@ const Settings = () => {
       {activeTab === 'email' && (
         <div className="space-y-6">
           <div className="card">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Email Preferences</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">Test Email</h2>
             
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
               <p className="text-sm text-blue-800">
-                <strong>Note:</strong> Email frequency and vocabulary count are now configured per database. 
-                Go to the <a href="/databases" className="underline font-semibold">Databases page</a> to set individual settings for each connected database.
+                <strong>Note:</strong> Email frequency and vocabulary count are configured per email service. 
+                Go to the <a href="/databases" className="underline font-semibold">Databases page</a> to configure individual email services.
               </p>
             </div>
 
@@ -284,10 +328,153 @@ const Settings = () => {
         </div>
       )}
 
+      {/* Email Services Tab */}
+      {activeTab === 'services' && (
+        <div className="space-y-6">
+          <div className="card">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-gray-900 flex items-center">
+                <Database className="h-5 w-5 mr-2" />
+                Email Services Overview
+              </h2>
+              <button
+                onClick={() => navigate('/services')}
+                className="btn-primary text-sm inline-flex items-center"
+              >
+                Manage Services
+              </button>
+            </div>
+
+            {emailServices.length === 0 ? (
+              <div className="text-center py-12">
+                <Mail className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No Email Services</h3>
+                <p className="text-gray-500 mb-6">
+                  Create email services to receive vocabulary emails from your databases
+                </p>
+                <button
+                  onClick={() => navigate('/services')}
+                  className="btn-primary inline-flex items-center"
+                >
+                  Create Service
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {emailServices.map((service) => (
+                  <div
+                    key={service.id}
+                    className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-grow">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <h3 className="text-lg font-medium text-gray-900">
+                            {service.service_name}
+                          </h3>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            service.is_active
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {service.is_active ? 'Active' : 'Inactive'}
+                          </span>
+                        </div>
+
+                        {service.description && (
+                          <p className="text-sm text-gray-600 mb-3">{service.description}</p>
+                        )}
+
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                          <div>
+                            <span className="text-gray-500">Database:</span>
+                            <p className="font-medium text-gray-900">{service.database_name || 'N/A'}</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500 flex items-center">
+                              <Clock className="h-3 w-3 mr-1" />
+                              Send Time:
+                            </span>
+                            <p className="font-medium text-gray-900">
+                              {service.send_time} ({service.timezone})
+                            </p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500 flex items-center">
+                              <Filter className="h-3 w-3 mr-1" />
+                              Selection:
+                            </span>
+                            <p className="font-medium text-gray-900 capitalize">
+                              {service.selection_method.replace('_', ' ')}
+                            </p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">Vocabulary:</span>
+                            <p className="font-medium text-gray-900">
+                              {service.vocabulary_count} items, {service.frequency}
+                            </p>
+                          </div>
+                        </div>
+
+                        {service.selection_method === 'date_range' && (service.date_range_start || service.date_range_end) && (
+                          <div className="mt-3 text-sm text-gray-600 bg-blue-50 p-2 rounded">
+                            <span className="font-medium">Date Range: </span>
+                            {service.date_range_start && `From ${new Date(service.date_range_start).toLocaleDateString()}`}
+                            {service.date_range_start && service.date_range_end && ' '}
+                            {service.date_range_end && `to ${new Date(service.date_range_end).toLocaleDateString()}`}
+                          </div>
+                        )}
+
+                        {service.last_sent_at && (
+                          <div className="mt-2 text-xs text-gray-500">
+                            Last sent: {new Date(service.last_sent_at).toLocaleString()}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                <div className="pt-4 border-t border-gray-200">
+                  <p className="text-sm text-gray-600 mb-3">
+                    <strong>Summary:</strong> You have {emailServices.length} email service{emailServices.length !== 1 ? 's' : ''} configured.
+                    {emailServices.filter(s => s.is_active).length} active, {emailServices.filter(s => !s.is_active).length} inactive.
+                  </p>
+                  <button
+                    onClick={() => navigate('/databases')}
+                    className="btn-secondary inline-flex items-center"
+                  >
+                    <Database className="h-4 w-4 mr-2" />
+                    Manage All Services
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Logging Tab */}
       {activeTab === 'logging' && (
         <div className="space-y-6">
           <LoggingStatus />
+        </div>
+      )}
+
+      {/* Tokens Tab */}
+      {activeTab === 'tokens' && (
+        <div className="card">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Manage Tokens</h2>
+          <p className="text-gray-600 mb-6">
+            Manage your Notion API integration tokens. Tokens are used to connect to your Notion databases.
+          </p>
+          <button
+            onClick={() => navigate('/settings/tokens')}
+            className="btn-primary inline-flex items-center"
+          >
+            <Key className="h-4 w-4 mr-2" />
+            Go to Token Management
+          </button>
         </div>
       )}
     </div>

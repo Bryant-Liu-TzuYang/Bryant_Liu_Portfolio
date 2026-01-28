@@ -3,9 +3,24 @@ import logging.config
 import os
 from datetime import datetime
 from typing import Dict, Any
+import pytz
 
 
-class CustomFormatter(logging.Formatter):
+class TaipeiFormatter(logging.Formatter):
+    """Formatter that uses Taipei timezone for timestamps"""
+    
+    def formatTime(self, record, datefmt=None):
+        """Override formatTime to use Taipei timezone"""
+        taipei_tz = pytz.timezone('Asia/Taipei')
+        ct = datetime.fromtimestamp(record.created, taipei_tz)
+        if datefmt:
+            s = ct.strftime(datefmt)
+        else:
+            s = ct.strftime("%Y-%m-%d %H:%M:%S")
+        return s
+
+
+class CustomFormatter(TaipeiFormatter):
     """Custom formatter with color support for console output"""
     
     # ANSI color codes
@@ -49,8 +64,9 @@ def setup_logging(app_name: str = 'notion-email-backend', log_level: str = None)
     log_dir = os.path.join(os.path.dirname(__file__), '..', 'logs')
     os.makedirs(log_dir, exist_ok=True)
     
-    # Generate log file names with current date
-    today = datetime.now().strftime('%Y-%m-%d')
+    # Generate log file names with current date in Taipei timezone
+    taipei_tz = pytz.timezone('Asia/Taipei')
+    today = datetime.now(taipei_tz).strftime('%Y-%m-%d')
     app_log_file = os.path.join(log_dir, f'{app_name}-{today}.log')
     error_log_file = os.path.join(log_dir, f'{app_name}-error-{today}.log')
     
@@ -138,8 +154,9 @@ def setup_frontend_logging(app_name: str = 'notion-email-frontend', log_level: s
     log_dir = os.path.join(os.path.dirname(__file__), '..', 'logs')
     os.makedirs(log_dir, exist_ok=True)
     
-    # Generate log file names with current date
-    today = datetime.now().strftime('%Y-%m-%d')
+    # Generate log file names with current date in Taipei timezone
+    taipei_tz = pytz.timezone('Asia/Taipei')
+    today = datetime.now(taipei_tz).strftime('%Y-%m-%d')
     frontend_log_file = os.path.join(log_dir, f'{app_name}-{today}.log')
     frontend_error_log_file = os.path.join(log_dir, f'{app_name}-error-{today}.log')
     
@@ -157,7 +174,7 @@ def setup_frontend_logging(app_name: str = 'notion-email-frontend', log_level: s
         backupCount=5
     )
     frontend_file_handler.setLevel(logging.INFO)
-    frontend_file_formatter = logging.Formatter(
+    frontend_file_formatter = TaipeiFormatter(
         '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
     )
