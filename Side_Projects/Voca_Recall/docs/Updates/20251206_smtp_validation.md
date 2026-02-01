@@ -1,5 +1,28 @@
 # SMTP Credential Validation Implementation
 
+## Table of Contents
+- [Overview](#overview)
+- [What Was Implemented](#what-was-implemented)
+  - [1. Backend Validation Module](#1-backend-validation-module-backendappsmtp_validatorpy)
+  - [2. Standalone Validation Script](#2-standalone-validation-script-backendvalidate_smtppy)
+  - [3. Flask Application Startup Validation](#3-flask-application-startup-validation)
+  - [4. Setup Script Integration](#4-setup-script-integration-setupsh)
+- [Validation Checks Performed](#validation-checks-performed)
+- [Error Messages and Troubleshooting](#error-messages-and-troubleshooting)
+  - [Common Error Types](#common-error-types)
+- [Usage Examples](#usage-examples)
+  - [Manual Validation](#manual-validation)
+  - [Through Setup Script](#through-setup-script)
+  - [Validation Output Example](#validation-output-example)
+- [Testing the Implementation](#testing-the-implementation)
+- [Configuration Requirements](#configuration-requirements)
+- [Gmail Setup Instructions](#gmail-setup-instructions)
+- [Integration Points](#integration-points)
+- [Benefits](#benefits)
+- [Files Modified/Created](#files-modifiedcreated)
+- [Future Enhancements](#future-enhancements)
+- [Testing Checklist](#testing-checklist)
+
 ## Overview
 Added comprehensive SMTP credential validation to ensure email functionality works correctly before the application starts.
 

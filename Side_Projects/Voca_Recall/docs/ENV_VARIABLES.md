@@ -2,6 +2,21 @@
 
 This document categorizes all environment variables used in the Voca_Recaller application based on their necessity for proper application functioning in **Development** and **Production** environments.
 
+## Table of Contents
+- [Development Environment](#-development-environment)
+  - [Category 1: Absolutely Required](#category-1-absolutely-required)
+  - [Category 2: Can Use Defaults (But Change in Production)](#category-2-can-use-defaults-but-change-in-production)
+  - [Category 3: Can Skip Entirely](#category-3-can-skip-entirely)
+- [Production Environment](#-production-environment)
+  - [Category 1: Critical Variables (Must Be Set)](#category-1-critical-variables-must-be-set)
+  - [Category 2: Highly Recommended Variables](#category-2-highly-recommended-variables)
+- [Configuration Templates](#-configuration-templates)
+  - [Development .env Template](#development-env-template)
+  - [Production .env Template](#production-env-template)
+- [Security Notes](#security-notes)
+- [Environment-Specific Behavior](#environment-specific-behavior)
+- [Troubleshooting](#troubleshooting)
+
 ---
 
 # 🔧 Development Environment

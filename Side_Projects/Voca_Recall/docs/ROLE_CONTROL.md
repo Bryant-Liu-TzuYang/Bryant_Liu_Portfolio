@@ -1,5 +1,26 @@
 # Role-Based Access Control (RBAC)
 
+## Table of Contents
+- [Overview](#overview)
+- [Quick Setup](#quick-setup)
+  - [1. Run Migration](#1-run-migration)
+  - [2. Restart Backend](#2-restart-backend)
+  - [3. Login & Verify](#3-login--verify)
+- [Access Control Matrix](#access-control-matrix)
+- [Admin Features](#admin-features)
+  - [Web UI (Recommended)](#web-ui-recommended)
+  - [Command Line](#command-line)
+- [API Endpoints](#api-endpoints)
+  - [Admin Endpoints (Require Admin Role)](#admin-endpoints-require-admin-role)
+- [Implementation Details](#implementation-details)
+  - [Backend](#backend)
+  - [Frontend](#frontend)
+  - [Security](#security)
+- [Troubleshooting](#troubleshooting)
+- [Files Modified/Created](#files-modifiedcreated)
+  - [Backend](#backend-1)
+  - [Frontend](#frontend-1)
+
 ## Overview
 
 Three-tier role system for Voca Recaller:

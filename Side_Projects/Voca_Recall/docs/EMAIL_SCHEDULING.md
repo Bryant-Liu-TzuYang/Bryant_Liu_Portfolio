@@ -1,5 +1,26 @@
 # Email Scheduling & Monitoring Guide
 
+## Table of Contents
+- [Overview](#overview)
+- [Architecture](#architecture)
+  - [Components](#components)
+  - [Flow](#flow)
+- [Implementation Details](#implementation-details)
+  - [1. Redis Priority Queue Scheduler](#1-redis-priority-queue-scheduler-backendschedulerpy)
+  - [2. Email Sending Task](#2-email-sending-task-backendappemailpy)
+  - [3. Schedule Reloading](#3-schedule-reloading)
+- [Email Tracking System](#email-tracking-system)
+  - [Email Logs Table](#email-logs-table-email_logs)
+  - [Access Methods](#access-methods)
+- [Database Schema](#database-schema)
+- [Docker Configuration](#docker-configuration)
+- [Testing](#testing)
+- [Troubleshooting Common Issues](#troubleshooting-common-issues)
+  - [Issue 1: Email Not Received at Scheduled Time](#issue-1-email-not-received-at-scheduled-time)
+  - [Issue 2: Failed Email Deliveries](#issue-2-failed-email-deliveries)
+  - [Issue 3: Schedule Not Updating](#issue-3-schedule-not-updating)
+- [Monitoring & Health Checks](#monitoring--health-checks)
+
 ## Overview
 This document covers the email scheduling system, monitoring tools, and troubleshooting for the Voca Recaller application. All scheduled emails are automatically tracked and logged.
 

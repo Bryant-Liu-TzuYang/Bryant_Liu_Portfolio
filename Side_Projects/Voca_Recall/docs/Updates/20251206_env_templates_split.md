@@ -1,5 +1,20 @@
 # Environment Template Split
 
+## Table of Contents
+- [Summary](#summary)
+- [Changes Made](#changes-made)
+  - [1. New Template Files](#1-new-template-files)
+  - [2. Updated setup.sh](#2-updated-setupsh)
+  - [3. Updated Documentation](#3-updated-documentation)
+  - [4. Removed Files](#4-removed-files)
+- [Benefits](#benefits)
+- [Usage Examples](#usage-examples)
+  - [Development Setup](#development-setup)
+  - [Production Setup](#production-setup)
+  - [Switching Environments](#switching-environments)
+  - [Migration Guide](#migration-guide)
+- [Related Files](#related-files)
+
 **Date:** December 6, 2025
 
 ## Summary

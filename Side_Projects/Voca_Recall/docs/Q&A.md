@@ -1,5 +1,21 @@
 # Q&A - Voca Recaller
 
+## Table of Contents
+- [Q: How to test SMTP_USER and SMTP_PASSWORD validity?](#q-how-to-test-smtp_user-and-smtp_password-validity)
+  - [1. Automatic Validation During Setup](#1-automatic-validation-during-setup)
+  - [2. Manual Validation Script](#2-manual-validation-script)
+  - [3. Automatic Validation on App Startup](#3-automatic-validation-on-app-startup)
+  - [What Gets Validated](#what-gets-validated)
+  - [Common Issues and Solutions](#common-issues-and-solutions)
+- [Q: Why am I not receiving scheduled vocabulary emails?](#q-why-am-i-not-receiving-scheduled-vocabulary-emails)
+  - [Architecture Overview](#architecture-overview)
+  - [Checking if Services are Running](#checking-if-services-are-running)
+  - [Common Issues and Solutions](#common-issues-and-solutions-1)
+  - [How Scheduling Works](#how-scheduling-works)
+  - [Verifying It's Working](#verifying-its-working)
+  - [Testing Email Service Manually](#testing-email-service-manually)
+  - [Troubleshooting Checklist](#troubleshooting-checklist)
+
 ## Q: How to test SMTP_USER and SMTP_PASSWORD validity?
 
 **A:** The application provides multiple ways to validate your SMTP credentials:

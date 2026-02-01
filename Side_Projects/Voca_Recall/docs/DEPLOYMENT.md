@@ -1,5 +1,40 @@
 # Deployment Guide
 
+## Table of Contents
+- [Prerequisites](#prerequisites)
+- [Quick Start](#quick-start)
+  - [Using Setup Script (Recommended)](#using-setup-script-recommended)
+  - [Manual Setup](#manual-setup)
+- [Environment Configuration](#environment-configuration)
+  - [Quick Reference](#quick-reference)
+  - [Gmail Setup (Recommended for Development)](#gmail-setup-recommended-for-development)
+- [Development Environment](#development-environment)
+  - [Access Points](#access-points)
+  - [Commands](#commands)
+  - [Features](#features)
+- [Production Environment](#production-environment)
+  - [Server Requirements](#server-requirements)
+  - [Installation](#installation)
+  - [Access Points](#access-points-1)
+  - [SSL/HTTPS Setup](#sslhttps-setup)
+- [Monitoring & Maintenance](#monitoring--maintenance)
+  - [Health & Status](#health--status)
+  - [Logs](#logs)
+  - [Database Backup](#database-backup)
+  - [Updates](#updates)
+- [Troubleshooting](#troubleshooting)
+  - [Port Conflicts](#port-conflicts)
+  - [Database Issues](#database-issues)
+  - [Email Not Sending](#email-not-sending)
+  - [Notion API Issues](#notion-api-issues)
+- [Performance Optimization](#performance-optimization)
+- [Security](#security)
+  - [Production Checklist](#production-checklist)
+  - [Password Reset Security](#password-reset-security)
+  - [Firewall (Ubuntu)](#firewall-ubuntu)
+- [Support](#support)
+- [License](#license)
+
 Deploy the Voca Recaller application on development (M1 MacBook Pro) and production (Ubuntu Linux) environments.
 
 ## Prerequisites

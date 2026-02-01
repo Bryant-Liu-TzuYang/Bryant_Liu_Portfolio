@@ -1,5 +1,27 @@
 # Kubernetes for Absolute Beginners
 
+## Table of Contents
+- [What is Kubernetes (k8s)?](#what-is-kubernetes-k8s)
+  - [Why Use Kubernetes Instead of Docker Compose?](#why-use-kubernetes-instead-of-docker-compose)
+- [Key Concepts Explained Simply](#key-concepts-explained-simply)
+  - [1. Cluster](#1-cluster)
+  - [2. Pod](#2-pod)
+  - [3. Deployment](#3-deployment)
+  - [4. Service](#4-service)
+  - [5. ConfigMap](#5-configmap)
+  - [6. Secret](#6-secret)
+  - [7. Ingress](#7-ingress)
+  - [8. Namespace](#8-namespace)
+  - [9. PersistentVolumeClaim (PVC)](#9-persistentvolumeclaim-pvc)
+- [How They Work Together](#how-they-work-together)
+- [Your Deployment Flow](#your-deployment-flow)
+  - [Step 1: Prepare](#step-1-prepare)
+  - [Step 2: Configure](#step-2-configure)
+  - [Step 3: Deploy](#step-3-deploy)
+  - [Step 4: Verify](#step-4-verify)
+  - [Step 5: Access](#step-5-access)
+- [Common Commands You'll Use](#common-commands-youll-use)
+
 ## What is Kubernetes (k8s)?
 
 Think of Kubernetes as a **smart manager** for your Docker containers. Just like Docker Compose manages multiple containers on one machine, Kubernetes manages containers across **multiple machines** and makes sure they stay running.

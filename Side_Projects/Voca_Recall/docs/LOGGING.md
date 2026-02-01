@@ -1,5 +1,33 @@
 # Logging System Documentation
 
+## Table of Contents
+- [Overview](#overview)
+- [Key Features](#key-features)
+  - [Backend Logging](#backend-logging)
+  - [Frontend Logging](#frontend-logging)
+- [Configuration](#configuration)
+  - [Backend](#backend-backendapplogging_configpy)
+  - [Frontend](#frontend-env)
+- [Log Files](#log-files)
+- [Usage Examples](#usage-examples)
+  - [Backend Logging](#backend-logging-1)
+  - [Request Tracking](#request-tracking)
+  - [Frontend Logging](#frontend-logging-1)
+- [Log Levels](#log-levels)
+- [Environment-Specific Settings](#environment-specific-settings)
+  - [Development](#development)
+  - [Production](#production)
+- [Log Analysis & Monitoring](#log-analysis--monitoring)
+  - [Common Queries](#common-queries)
+  - [Key Metrics to Monitor](#key-metrics-to-monitor)
+  - [Integration Options](#integration-options)
+- [Troubleshooting](#troubleshooting)
+  - [Common Issues](#common-issues)
+  - [Performance Tips](#performance-tips)
+- [Security Best Practices](#security-best-practices)
+- [Example Log Outputs](#example-log-outputs)
+- [Quick Reference](#quick-reference)
+
 ## Overview
 
 Comprehensive logging system for the Voca Recaller application with structured logs, request tracking, and automatic error capture for both backend (Python/Flask) and frontend (React/JavaScript).

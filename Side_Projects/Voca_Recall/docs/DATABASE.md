@@ -1,5 +1,31 @@
 # Database System Documentation
 
+## Table of Contents
+- [Overview](#overview)
+- [Current Database Configuration](#current-database-configuration)
+  - [Production/Docker Environment](#productiondocker-environment)
+  - [Local Development (Docker or Direct MySQL)](#local-development-docker-or-direct-mysql)
+- [Database Tables](#database-tables)
+  - [Core Tables](#core-tables)
+- [Database Architecture](#database-architecture)
+  - [Relationships](#relationships)
+  - [Data Flow](#data-flow)
+- [Database Storage Locations](#database-storage-locations)
+- [Configuration](#configuration)
+  - [Environment Variables](#environment-variables)
+  - [Configuration Files](#configuration-files)
+- [Database Operations](#database-operations)
+  - [Access MySQL Database](#access-mysql-database)
+  - [Common Queries](#common-queries)
+- [Database Migrations](#database-migrations)
+  - [Initial Setup](#initial-setup)
+  - [Schema Updates](#schema-updates)
+- [Backup & Recovery](#backup--recovery)
+  - [Backup MySQL Database](#backup-mysql-database)
+  - [Restore MySQL Database](#restore-mysql-database)
+  - [Backup Docker Volume](#backup-docker-volume)
+- [Troubleshooting](#troubleshooting)
+
 ## Overview
 
 Voca Recaller uses **MySQL 8.0** for all active environments (production, Docker-based development, and local development with `DATABASE_URL` set). SQLite is only used by the test configuration and legacy files, and is not part of the normal development workflow.
