@@ -223,7 +223,7 @@ interactive_setup() {
         # Validate SMTP credentials immediately
         echo "🔐 Validating SMTP credentials..."
         if command -v python3 &> /dev/null; then
-            if python3 backend/validate_smtp.py; then
+            if ./.venv/bin/python backend/validate_smtp.py; then
                 echo ""
             else
                 echo ""
