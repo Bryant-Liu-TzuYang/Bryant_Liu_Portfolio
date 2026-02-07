@@ -11,7 +11,7 @@ from .redis_utils import add_to_schedule, remove_from_schedule
 email_service_bp = Blueprint('email_service', __name__)
 logger = get_logger(__name__)
 
-# NOTE: not called, directly called via api
+
 @email_service_bp.route('', methods=['GET'])
 @jwt_required()
 @log_api_call("Get all email services")
@@ -42,7 +42,7 @@ def get_email_services():
         logger.error(f"Failed to get email services for user {current_user_id}: {str(e)}")
         return jsonify({'error': 'Failed to get email services', 'details': str(e)}), 500
 
-# NOTE: not called, directly called via api
+
 @email_service_bp.route('/<int:service_id>', methods=['GET'])
 @jwt_required()
 @log_api_call("Get email service by ID")
@@ -69,8 +69,7 @@ def get_email_service(service_id):
         logger.error(f"Failed to get email service {service_id}: {str(e)}")
         return jsonify({'error': 'Failed to get email service', 'details': str(e)}), 500
 
-# NOTE: not called, directly called via api
-# NOTE: 現在正在研究前端是怎麼呼叫他的！
+
 @email_service_bp.route('', methods=['POST'])
 @jwt_required()
 @log_api_call("Create email service")
@@ -171,7 +170,7 @@ def create_email_service():
         logger.error(f"Failed to create email service: {str(e)}")
         return jsonify({'error': 'Failed to create email service', 'details': str(e)}), 500
 
-# NOTE: not called, directly called via api
+
 @email_service_bp.route('/<int:service_id>', methods=['PUT'])
 @jwt_required()
 @log_api_call("Update email service")
@@ -268,7 +267,7 @@ def update_email_service(service_id):
         logger.error(f"Failed to update email service {service_id}: {str(e)}")
         return jsonify({'error': 'Failed to update email service', 'details': str(e)}), 500
 
-# NOTE: not called, directly called via api
+
 @email_service_bp.route('/<int:service_id>', methods=['DELETE'])
 @jwt_required()
 @log_api_call("Delete email service")
@@ -300,7 +299,7 @@ def delete_email_service(service_id):
         logger.error(f"Failed to delete email service {service_id}: {str(e)}")
         return jsonify({'error': 'Failed to delete email service', 'details': str(e)}), 500
 
-# NOTE: not called, directly called via api
+
 @email_service_bp.route('/database/<int:database_id>', methods=['GET'])
 @jwt_required()
 @log_api_call("Get email services for database")
