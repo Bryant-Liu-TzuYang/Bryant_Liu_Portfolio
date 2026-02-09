@@ -10,25 +10,25 @@ database_bp = Blueprint('database', __name__)
 logger = get_logger(__name__)
 
 @log_function_call("Database ID extraction")
-def extract_database_id(input_str: str):
-    """Extract and normalize a Notion database ID from a raw ID or URL.
+def extract_database_id(database_url: str):
+    """Extract and normalize a Notion database ID from a raw ID or .
 
     Supports:
     - Raw 32-char hex ID (with or without dashes)
-    - Notion URLs where the last path segment contains the ID
+    - Notion s where the last path segment contains the ID
     - Share links that include the UUID anywhere in the string
     """
-    if not input_str:
+    if not database_url:
         return None
 
-    logger.debug(f"Extracting database ID from input: {input_str}")
+    logger.debug(f"Extracting database ID from input: {database_url}")
 
     # 32 hex characters optionally with dashes (UUID)
     uuid_regex = r"([0-9a-fA-F]{32}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})"
 
-    match = re.search(uuid_regex, input_str)
+    match = re.search(uuid_regex, database_url)
     if not match:
-        logger.warning(f"Could not extract database ID from input: {input_str}")
+        logger.warning(f"Could not extract database ID from input: {database_url}")
         return None
 
     raw_id = match.group(1)
@@ -60,8 +60,8 @@ def validate_notion_database(api_key, database_id):
 def add_database():
     """Add a new Notion database.
 
-    Requires: notion_api_key (integration token) or token_id, and database_url or database_id.
-    We always connect/validate using the database ID, not the URL.
+    Requires: notion_api_key (integration token) or token_id, and database_ or database_id.
+    We always connect/validate using the database ID, not the .
     """
     try:
         current_user_id = int(get_jwt_identity())
@@ -86,15 +86,15 @@ def add_database():
                 return jsonify({'error': 'Token not found or inactive'}), 404
             api_key = notion_token.token
 
-        # Accept either explicit database_id or a URL containing it
+        # Accept either explicit database_id or a  containing it
         provided_id = data.get('database_id')
-        database_url = data.get('database_url')
+        database_ = data.get('database_')
 
-        # Keep URL required to satisfy current schema (database_url NOT NULL)
-        if not database_url and not provided_id:
-            return jsonify({'error': 'Provide a Database URL or Database ID'}), 400
+        # Keep  required to satisfy current schema (database_ NOT NULL)
+        if not database_ and not provided_id:
+            return jsonify({'error': 'Provide a Database  or Database ID'}), 400
 
-        database_id = extract_database_id(provided_id or database_url)
+        database_id = extract_database_id(provided_id or database_)
         if not database_id:
             return jsonify({'error': 'Could not extract a valid Database ID'}), 400
 
@@ -122,14 +122,14 @@ def add_database():
             db.session.add(notion_token)
             db.session.flush()  # Get the token ID
 
-        # Use provided URL if available, otherwise store a minimal URL-like reference
-        stored_url = database_url or f"https://www.notion.so/{database_id}"
+        # Use provided  if available, otherwise store a minimal -like reference
+        stored_ = database_ or f"https://www.notion.so/{database_id}"
 
         notion_db = NotionDatabase(
             user_id=current_user_id,
             database_id=database_id,
             database_name=database_name,
-            database_url=stored_url,
+            database_=stored_,
             token_id=notion_token.id if notion_token else None
         )
 
@@ -189,7 +189,7 @@ def update_database(database_pk):
 
     Supports updating:
     - is_active flag
-    - database_url (and consequently database_id + database_name), requires notion_api_key or token_id
+    - database_ (and consequently database_id + database_name), requires notion_api_key or token_id
     """
     try:
         current_user_id = int(get_jwt_identity())
@@ -207,8 +207,8 @@ def update_database(database_pk):
         if data.get('is_active') is not None:
             database.is_active = bool(data['is_active'])
 
-        # If database_url is provided, re-extract ID and validate with token
-        if data.get('database_url') or data.get('database_id'):
+        # If database_ is provided, re-extract ID and validate with token
+        if data.get('database_') or data.get('database_id'):
             # Get API key either from direct input or from stored token
             api_key = data.get('notion_api_key')
             token_id = data.get('token_id')
@@ -228,7 +228,7 @@ def update_database(database_pk):
                 api_key = notion_token.token
                 database.token_id = token_id
 
-            new_id = extract_database_id(data.get('database_id') or data.get('database_url'))
+            new_id = extract_database_id(data.get('database_id') or data.get('database_'))
             if not new_id:
                 return jsonify({'error': 'Could not extract a valid Database ID'}), 400
 
@@ -248,8 +248,8 @@ def update_database(database_pk):
 
             database.database_id = new_id
             database.database_name = result or 'Untitled Database'
-            if data.get('database_url'):
-                database.database_url = data['database_url']
+            if data.get('database_'):
+                database.database_ = data['database_']
             
             # Store new token if provided directly
             if data.get('notion_api_key') and not token_id:
