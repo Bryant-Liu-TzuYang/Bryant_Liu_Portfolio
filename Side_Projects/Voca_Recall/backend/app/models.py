@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import secrets
 import pytz
+from sqlalchemy.ext.mutable import MutableDict, MutableList
 from . import db, bcrypt
 
 class User(db.Model):
@@ -196,6 +197,9 @@ class EmailService(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     last_sent_at = db.Column(db.DateTime, nullable=True)
     next_run_at = db.Column(db.DateTime, nullable=True)
+
+    # column selection settings (e.g. which columns to include in the email)
+    column_selection = db.Column(MutableList.as_mutable(db.JSON), default=list)
     
     def calculate_next_run(self, from_time=None):
         """
@@ -270,6 +274,7 @@ class EmailService(db.Model):
             'status': self.status,
             'last_sent_at': self.last_sent_at.isoformat() + 'Z' if self.last_sent_at else None,
             'next_run_at': self.next_run_at.isoformat() + 'Z' if self.next_run_at else None,
+            'column_selection': self.column_selection,
             'created_at': self.created_at.isoformat() + 'Z'
         }
 
@@ -315,4 +320,4 @@ class EmailLog(db.Model):
             'vocabulary_items': self.vocabulary_items,
             'status': self.status,
             'error_message': self.error_message
-        } 
+        }

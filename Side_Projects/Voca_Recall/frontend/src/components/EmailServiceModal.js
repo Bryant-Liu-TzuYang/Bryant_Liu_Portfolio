@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Clock, Hash, Filter, Calendar } from 'lucide-react';
-import axios from 'axios';
+import { X, Save, Clock, Hash, Filter, Calendar, List, GripVertical, Eye, EyeOff } from 'lucide-react';
+import apiService from '../utils/apiService';
 import toast from 'react-hot-toast';
 
 const EmailServiceModal = ({ isOpen, onClose, database, service = null, onSave }) => {
@@ -17,6 +17,36 @@ const EmailServiceModal = ({ isOpen, onClose, database, service = null, onSave }
     is_active: true,
   });
   const [saving, setSaving] = useState(false);
+  
+  // Column Selection Stuffs
+  const [availableColumns, setAvailableColumns] = useState([]);
+  const [columnsConfig, setColumnsConfig] = useState([]); // Array of { ...col, isVisible: boolean }
+  const [loadingColumns, setLoadingColumns] = useState(false);
+  const [dragStartIndex, setDragStartIndex] = useState(null);
+
+  useEffect(() => {
+    // Determine database ID
+    const dbId = service ? service.database_id : (database ? database.id : null);
+    
+    if (dbId) {
+       fetchColumns(dbId);
+    }
+  }, [service, database]);
+
+  const fetchColumns = async (dbId) => {
+    setLoadingColumns(true);
+    try {
+        const response = await apiService.get(`/databases/${dbId}/properties`);
+        if (response.data && response.data.columns) {
+            setAvailableColumns(response.data.columns);
+        }
+    } catch (error) {
+        console.error("Failed to fetch columns", error);
+        // Don't show toast error here to avoid annoyance if it fails silently
+    } finally {
+        setLoadingColumns(false);
+    }
+  };
 
   useEffect(() => {
     if (service) {
@@ -42,23 +72,99 @@ const EmailServiceModal = ({ isOpen, onClose, database, service = null, onSave }
     }
   }, [service, database]);
 
+  // Initialize columns configuration based on available columns and saved service selection
+  useEffect(() => {
+    if (availableColumns.length === 0) return;
+
+    const savedSelection = (service && service.column_selection) ? service.column_selection : [];
+    
+    // If we have a saved selection, we want to respect its order and visibility
+    if (savedSelection.length > 0) {
+        const savedMap = new Map();
+        savedSelection.forEach((col, index) => {
+            savedMap.set(col.name, { index, col }); 
+        });
+
+        // Visible columns (in saved order)
+        const visibleCols = availableColumns
+            .filter(col => savedMap.has(col.name))
+            .map(col => ({ ...col, isVisible: true }))
+            .sort((a, b) => savedMap.get(a.name).index - savedMap.get(b.name).index);
+
+        // Hidden columns (append at the end)
+        const hiddenCols = availableColumns
+            .filter(col => !savedMap.has(col.name))
+            .map(col => ({ ...col, isVisible: false }));
+
+        setColumnsConfig([...visibleCols, ...hiddenCols]);
+    } else {
+        // Default: All visible, original order
+        setColumnsConfig(availableColumns.map(col => ({ ...col, isVisible: true })));
+    }
+  }, [availableColumns, service]);
+
+  // Column Handlers
+  const handleToggleVisibility = (index) => {
+      const newConfig = [...columnsConfig];
+      newConfig[index].isVisible = !newConfig[index].isVisible;
+      setColumnsConfig(newConfig);
+  };
+
+  const handleDragStart = (e, index) => {
+      setDragStartIndex(index);
+      e.dataTransfer.effectAllowed = "move";
+      // Firefox requires data to be set
+      e.dataTransfer.setData("text/plain", index); 
+      // Optional: set custom drag image
+  };
+
+  const handleDragOver = (e, index) => {
+      e.preventDefault(); // allow drop
+      // Optional implementation: reorder on hover (smoother)
+      // For now, we'll do reorder on drop or just simple swap visuals
+  };
+
+  const handleDrop = (e, targetIndex) => {
+      e.preventDefault();
+      if (dragStartIndex === null || dragStartIndex === targetIndex) return;
+      
+      const newConfig = [...columnsConfig];
+      const [movedItem] = newConfig.splice(dragStartIndex, 1);
+      newConfig.splice(targetIndex, 0, movedItem);
+      
+      setColumnsConfig(newConfig);
+      setDragStartIndex(null);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Prepare column selection: only visible columns, in order
+    const selectedColumns = columnsConfig
+        .filter(c => c.isVisible)
+        .map(({ isVisible, ...col }) => col); // remove isVisible prop for backend
+
+    if (selectedColumns.length === 0) {
+        toast.error('Please select at least one property to display.');
+        return;
+    }
+
     setSaving(true);
 
     try {
       const payload = {
         ...formData,
-        database_id: database.id,
+        database_id: database ? database.id : (service ? service.database_id : null),
+        column_selection: selectedColumns
       };
 
       let response;
       if (service) {
         // Update existing service
-        response = await axios.put(`/api/email-services/${service.id}`, payload);
+        response = await apiService.put(`/email-services/${service.id}`, payload);
       } else {
         // Create new service
-        response = await axios.post('/api/email-services', payload);
+        response = await apiService.post('/email-services', payload);
       }
 
       toast.success(service ? 'Service updated successfully!' : 'Service created successfully!');
@@ -249,6 +355,87 @@ const EmailServiceModal = ({ isOpen, onClose, database, service = null, onSave }
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* Column Selection Section */}
+          <div className="border-t pt-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <List className="h-5 w-5 mr-2" />
+              Content Configuration
+            </h3>
+            
+            <p className="text-sm text-gray-500 mb-4">
+               Reorder properties to change their display order. Toggle visibility (eye icon) to include or exclude them from the email.
+               <br/>
+               The first visible property will be used as the <strong>Main Title/Word</strong>.
+            </p>
+
+            <div className="space-y-2 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                {loadingColumns ? (
+                    <div className="text-center py-8 text-gray-500 animate-pulse">Loading Notion properties...</div>
+                ) : columnsConfig.length > 0 ? (
+                    <div className="space-y-2">
+                        {columnsConfig.map((col, index) => {
+                            // Determine if this is the first visible column (Main Title)
+                            const firstVisibleIndex = columnsConfig.findIndex(c => c.isVisible);
+                            const isMainTitle = col.isVisible && index === firstVisibleIndex;
+                            
+                            return (
+                                <div 
+                                    key={col.name} 
+                                    draggable
+                                    onDragStart={(e) => handleDragStart(e, index)}
+                                    onDragOver={(e) => handleDragOver(e, index)}
+                                    onDrop={(e) => handleDrop(e, index)}
+                                    className={`flex items-center justify-between p-3 bg-white border rounded-md shadow-sm transition-all ${
+                                        col.isVisible ? 'border-gray-200 opacity-100' : 'border-dashed border-gray-200 opacity-60 bg-gray-50'
+                                    } hover:border-blue-300`}
+                                >
+                                    <div className="flex items-center flex-1 overflow-hidden">
+                                        <div 
+                                            className="mr-3 text-gray-400 cursor-move hover:text-gray-600"
+                                            title="Drag to reorder"
+                                        >
+                                            <GripVertical className="h-5 w-5" />
+                                        </div>
+                                        
+                                        <button 
+                                            type="button"
+                                            onClick={() => handleToggleVisibility(index)}
+                                            className={`mr-3 p-1.5 rounded-full hover:bg-gray-100 transition-colors ${
+                                                col.isVisible ? 'text-gray-700' : 'text-gray-400'
+                                            }`}
+                                            title={col.isVisible ? "Hide property" : "Show property"}
+                                        >
+                                            {col.isVisible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                                        </button>
+
+                                        <div className="flex flex-col flex-1 min-w-0">
+                                            <div className="flex items-center">
+                                                <span className={`font-medium truncate ${col.isVisible ? 'text-gray-900' : 'text-gray-500 decoration-slice'}`}>
+                                                    {col.name}
+                                                </span>
+                                                {isMainTitle && (
+                                                    <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full font-bold whitespace-nowrap">
+                                                        Main Title
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <span className="text-xs text-gray-400 capitalize">{col.type}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                ) : (
+                    <div className="text-center py-6 border-2 border-dashed border-gray-200 rounded-lg">
+                        <p className="text-gray-500 italic">
+                            No properties found. Please check your database connection.
+                        </p>
+                    </div>
+                )}
             </div>
           </div>
 

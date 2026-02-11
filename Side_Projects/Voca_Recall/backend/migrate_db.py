@@ -29,6 +29,15 @@ def migrate():
                 logger.info("Added column status")
             except Exception as e:
                 logger.warning(f"Could not add status (might exist): {e}")
+
+            # 3. Add column_selection
+            try:
+                logger.info("Attempting to add column_selection column...")
+                # Note: For MySQL ensure version supports JSON (5.7.8+)
+                conn.execute(text("ALTER TABLE email_services ADD COLUMN column_selection JSON"))
+                logger.info("Added column column_selection")
+            except Exception as e:
+                logger.warning(f"Could not add column_selection (might exist): {e}")
                 
             conn.commit()
             logger.info("Migration completed.")

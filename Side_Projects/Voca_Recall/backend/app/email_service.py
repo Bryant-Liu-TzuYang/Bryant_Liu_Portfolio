@@ -141,7 +141,8 @@ def create_email_service():
             selection_method=selection_method,
             date_range_start=date_range_start,
             date_range_end=date_range_end,
-            is_active=data.get('is_active', True)
+            is_active=data.get('is_active', True),
+            column_selection=data.get('column_selection', [])
         )
         
         # Calculate initial run time
@@ -242,6 +243,13 @@ def update_email_service(service_id):
             # We calculate from NOW, because if service was inactive or time changed, we want the *next* logical run.
             service.next_run_at = service.calculate_next_run(datetime.utcnow())
             service.status = 'PENDING'
+        
+        # Update column selection if provided
+        if 'column_selection' in data:
+            try:
+                service.column_selection = data['column_selection']
+            except ValueError:
+                return jsonify({'error': 'Invalid column selection format'}), 400
         
         db.session.commit()
         

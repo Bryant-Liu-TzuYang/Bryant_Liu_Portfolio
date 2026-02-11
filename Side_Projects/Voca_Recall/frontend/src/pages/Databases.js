@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import axios from 'axios';
+import apiService from '../utils/apiService';
 import toast from 'react-hot-toast';
 import { 
   Database, 
@@ -50,7 +50,7 @@ const Databases = () => {
 
   const fetchDatabases = async () => {
     try {
-      const response = await axios.get('/api/databases');
+      const response = await apiService.get('/databases');
       setDatabases(response.data.databases);
       // Fetch email services for each database
       response.data.databases.forEach(db => {
@@ -66,7 +66,7 @@ const Databases = () => {
 
   const fetchTokens = async () => {
     try {
-      const response = await axios.get('/api/databases/tokens');
+      const response = await apiService.get('/databases/tokens');
       setTokens(response.data.tokens);
     } catch (error) {
       console.error('Failed to fetch tokens:', error);
@@ -75,7 +75,7 @@ const Databases = () => {
 
   const fetchEmailServices = async (databaseId) => {
     try {
-      const response = await axios.get(`/api/email-services/database/${databaseId}`);
+      const response = await apiService.get(`/email-services/database/${databaseId}`);
       setEmailServices(prev => ({
         ...prev,
         [databaseId]: response.data.services
@@ -103,7 +103,7 @@ const Databases = () => {
     }
 
     try {
-      await axios.delete(`/api/email-services/${serviceId}`);
+      await apiService.delete(`/email-services/${serviceId}`);
       toast.success('Email service deleted successfully');
       fetchEmailServices(databaseId);
     } catch (error) {
@@ -142,11 +142,11 @@ const Databases = () => {
       }
 
       if (editingDatabase) {
-        await axios.put(`/api/databases/${editingDatabase.id}`, payload);
+        await apiService.put(`/databases/${editingDatabase.id}`, payload);
         toast.success('Database updated successfully!');
         setEditingDatabase(null);
       } else {
-        await axios.post('/api/databases', payload);
+        await apiService.post('/databases', payload);
         toast.success('Database added successfully!');
       }
       fetchDatabases();
@@ -166,7 +166,7 @@ const Databases = () => {
     }
 
     try {
-      await axios.delete(`/api/databases/${databaseId}`);
+      await apiService.delete(`/databases/${databaseId}`);
       toast.success('Database deleted successfully!');
       fetchDatabases();
     } catch (error) {
@@ -177,7 +177,7 @@ const Databases = () => {
   const handleTestConnection = async (databaseId) => {
     setTestingConnection(databaseId);
     try {
-      const response = await axios.post(`/api/databases/${databaseId}/test`, {});
+      const response = await apiService.post(`/databases/${databaseId}/test`, {});
 
       toast.success('Connection successful!');
       console.log('Test results:', response.data);
@@ -330,6 +330,7 @@ const Databases = () => {
                     <input
                       id="notion_api_key"
                       type="password"
+                      autoComplete="new-password"
                       className={`input-field ${
                         errors.notion_api_key ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''
                       }`}

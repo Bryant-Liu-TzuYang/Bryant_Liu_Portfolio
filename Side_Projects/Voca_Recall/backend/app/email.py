@@ -228,7 +228,7 @@ def get_vocabulary_from_notion(api_key, database_id, count=10, selection_method=
         return []
 
 @log_function_call("Email content creation")
-def create_email_content(vocabulary_items, user_name, database_url=None):
+def create_email_content(vocabulary_items, user_name, database_url=None, column_selection=None):
     """Create HTML email content with interactive flashcards"""
     html_content = f"""
     <!DOCTYPE html>
@@ -323,148 +323,78 @@ def create_email_content(vocabulary_items, user_name, database_url=None):
     """
     
     for i, item in enumerate(vocabulary_items, 1):
-        # Extract word/term (first priority field)
         word = ''
-        for key, value in item.items():
-            key_lower = key.lower()
-            if any(term in key_lower for term in ['word', 'term', 'vocabulary', 'name']) and not any(skip in key_lower for skip in ['類型', 'type']):
-                if value and str(value).strip():
-                    word = str(value)
-                    break
         
-        # If no word found, use first non-empty field
-        if not word:
-            for key, value in item.items():
-                if value and str(value).strip():
-                    word = str(value)
-                    break
+        # Enforce 'minimum one selection' rule
+        # Use column_selection to determine content
+        if not column_selection or len(column_selection) == 0:
+            # If no columns selected, we cannot render meaningful content
+            # In a production environment, this should be prevented by validation before this point
+            continue
+
+        # 1. Determine Title/Word (Summary)
+        # Use the first column in the selection as the title
+        primary_col = column_selection[0]
+        # Handle object structure {name: '...', type: '...'} or just 'name' string
+        primary_key = primary_col.get('name') if isinstance(primary_col, dict) else primary_col
         
-        # Extract specific fields in order
-        sentence = ''
-        definition = ''
-        def_syn_tran = ''
-        antonyms = ''
-        source = ''
-        source2 = ''
-        notes = ''
-        
-        for key, value in item.items():
-            if not value or not str(value).strip():
-                continue
-                
-            key_lower = key.lower()
+        val = item.get(primary_key)
+        if val and str(val).strip():
+            word = str(val)
+        else:
+            word = "Untitled"
             
-            # Match Sentence field
-            if 'sentence' in key_lower:
-                sentence = str(value)
-            # Match Definition field (exact match, not partial)
-            elif key_lower == 'definition':
-                definition = str(value)
-            # Match Def., Syn, Tran. field
-            elif any(term in key_lower for term in ['def.', 'def,', 'syn', 'tran']) and 'definition' not in key_lower:
-                def_syn_tran = str(value)
-            # Match antonyms field
-            elif 'antonym' in key_lower:
-                antonyms = str(value)
-            # Match Source field (exact match)
-            elif key_lower == 'source':
-                source = str(value)
-            # Match Source2 field
-            elif 'source2' in key_lower:
-                source2 = str(value)
-            # Match Notes field
-            elif 'note' in key_lower:
-                notes = str(value)
-        
         html_content += f"""
-                <div class="vocabulary-item">
-                    <details>
-                        <summary>{i}. {word}</summary>
-                        <div class="flashcard-content">
+            <div class="vocabulary-item">
+                <details>
+                    <summary>{i}. {word}</summary>
+                    <div class="flashcard-content">
         """
         
-        # Display fields in specific order, only if they have values
-        if sentence:
-            # Split the sentence into multiple sentences if concatenated
-            sentences = split_sentences(sentence)
+        # 2. Iterate through columns for the details
+        for col in column_selection:
+            col_name = col.get('name') if isinstance(col, dict) else col
             
-            html_content += f"""
-                            <div class="field-section">
-                                <div class="field-label">Sentence:</div>
-            """
+            val = item.get(col_name)
+            str_val = str(val) if val is not None else ''
             
-            # Format each sentence as a bullet point
-            if len(sentences) > 1:
-                html_content += "<ul style='margin: 5px 0; padding-left: 20px;'>"
-                for sent in sentences:
-                    formatted_sent = format_vocabulary_in_sentence(sent, word)
-                    html_content += f"<li style='margin: 3px 0;'>{formatted_sent}</li>"
-                html_content += "</ul>"
+            if not str_val.strip():
+                continue
+            
+            # Special handling for "Sentence" column (case-insensitive)
+            if 'sentence' in col_name.lower():
+                sentences = split_sentences(str_val)
+                html_content += f"""
+                        <div class="field-section">
+                            <div class="field-label">{col_name}:</div>
+                """
+                if len(sentences) > 1:
+                    html_content += "<ul style='margin: 5px 0; padding-left: 20px;'>"
+                    for sent in sentences:
+                        formatted_sent = format_vocabulary_in_sentence(sent, word)
+                        html_content += f"<li style='margin: 3px 0;'>{formatted_sent}</li>"
+                    html_content += "</ul>"
+                else:
+                    formatted_sentence = format_vocabulary_in_sentence(str_val, word)
+                    html_content += formatted_sentence
+                html_content += "</div>"
             else:
-                # Single sentence, no bullet needed
-                formatted_sentence = format_vocabulary_in_sentence(sentence, word)
-                html_content += formatted_sentence
-            
-            html_content += """
-                            </div>
-            """
-        
-        if definition:
-            html_content += f"""
-                            <div class="field-section">
-                                <div class="field-label">Definition:</div>
-                                {definition}
-                            </div>
-            """
-        
-        if def_syn_tran:
-            html_content += f"""
-                            <div class="field-section">
-                                <div class="field-label">Def., Syn, Tran.:</div>
-                                {def_syn_tran}
-                            </div>
-            """
-        
-        if antonyms:
-            html_content += f"""
-                            <div class="field-section">
-                                <div class="field-label">Antonyms:</div>
-                                {antonyms}
-                            </div>
-            """
-        
-        if source:
-            # Convert source to hyperlink if it's a URL
-            source_display = f'<a href="{source}" target="_blank" style="color: #667eea; text-decoration: none;">{source}</a>' if source.startswith(('http://', 'https://')) else source
-            html_content += f"""
-                            <div class="field-section">
-                                <div class="field-label">Source:</div>
-                                {source_display}
-                            </div>
-            """
-        
-        if source2:
-            # Convert source2 to hyperlink if it's a URL
-            source2_display = f'<a href="{source2}" target="_blank" style="color: #667eea; text-decoration: none;">{source2}</a>' if source2.startswith(('http://', 'https://')) else source2
-            html_content += f"""
-                            <div class="field-section">
-                                <div class="field-label">Source2:</div>
-                                {source2_display}
-                            </div>
-            """
-        
-        if notes:
-            html_content += f"""
-                            <div class="field-section">
-                                <div class="field-label">Notes:</div>
-                                {notes}
-                            </div>
-            """
+                # Link detection
+                display_val = str_val
+                if str_val.startswith(('http://', 'https://')):
+                     display_val = f'<a href="{str_val}" target="_blank" style="color: #667eea; text-decoration: none;">{str_val}</a>'
+                 
+                html_content += f"""
+                        <div class="field-section">
+                            <div class="field-label">{col_name}:</div>
+                            {display_val}
+                        </div>
+                """
         
         html_content += """
-                        </div>
-                    </details>
-                </div>
+                    </div>
+                </details>
+            </div>
         """
     
     # Add database link if provided
@@ -510,6 +440,7 @@ def send_test_email():
         selection_method = data.get('selection_method', 'random')
         date_range_start = data.get('date_range_start')
         date_range_end = data.get('date_range_end')
+        column_selection = data.get('column_selection', None)
         
         # Parse date range if provided
         date_start = None
@@ -547,6 +478,7 @@ def send_test_email():
             selection_method = service.selection_method
             date_start = service.date_range_start
             date_end = service.date_range_end
+            column_selection = service.column_selection
             
             if not database.token_id:
                 return jsonify({'error': 'Database has no associated token'}), 400
@@ -608,7 +540,7 @@ def send_test_email():
         database_url = f"https://www.notion.so/{database_id.replace('-', '')}"
         
         # Create email content
-        html_content = create_email_content(vocabulary_items, user.first_name, database_url)
+        html_content = create_email_content(vocabulary_items, user.first_name, database_url, column_selection=column_selection)
         text_content = f"Hello {user.first_name}, here are your vocabulary words for today!\n\n"
         
         for i, item in enumerate(vocabulary_items, 1):
@@ -751,7 +683,12 @@ def send_email_service_task(service_id):
             database_url = f"https://www.notion.so/{database.database_id.replace('-', '')}"
             
             # Create email content
-            html_content = create_email_content(vocabulary_items, user.first_name, database_url)
+            html_content = create_email_content(
+                vocabulary_items, 
+                user.first_name, 
+                database_url,
+                column_selection=service.column_selection
+            )
             
             # Send email
             subject = f"{service.service_name} - Vocabulary Recall"
