@@ -1,39 +1,48 @@
 # Deployment Guide
 
 ## Table of Contents
-- [Prerequisites](#prerequisites)
-- [Quick Start](#quick-start)
-  - [Using Setup Script (Recommended)](#using-setup-script-recommended)
-  - [Manual Setup](#manual-setup)
-- [Environment Configuration](#environment-configuration)
-  - [Quick Reference](#quick-reference)
-  - [Gmail Setup (Recommended for Development)](#gmail-setup-recommended-for-development)
-- [Development Environment](#development-environment)
-  - [Access Points](#access-points)
-  - [Commands](#commands)
-  - [Features](#features)
-- [Production Environment](#production-environment)
-  - [Server Requirements](#server-requirements)
-  - [Installation](#installation)
-  - [Access Points](#access-points-1)
-  - [SSL/HTTPS Setup](#sslhttps-setup)
-- [Monitoring & Maintenance](#monitoring--maintenance)
-  - [Health & Status](#health--status)
-  - [Logs](#logs)
-  - [Database Backup](#database-backup)
-  - [Updates](#updates)
-- [Troubleshooting](#troubleshooting)
-  - [Port Conflicts](#port-conflicts)
-  - [Database Issues](#database-issues)
-  - [Email Not Sending](#email-not-sending)
-  - [Notion API Issues](#notion-api-issues)
-- [Performance Optimization](#performance-optimization)
-- [Security](#security)
-  - [Production Checklist](#production-checklist)
-  - [Password Reset Security](#password-reset-security)
-  - [Firewall (Ubuntu)](#firewall-ubuntu)
-- [Support](#support)
-- [License](#license)
+- [Deployment Guide](#deployment-guide)
+  - [Table of Contents](#table-of-contents)
+  - [Prerequisites](#prerequisites)
+  - [Quick Start](#quick-start)
+    - [Using Setup Script (Recommended)](#using-setup-script-recommended)
+    - [Manual Setup](#manual-setup)
+  - [Environment Configuration](#environment-configuration)
+    - [Quick Reference](#quick-reference)
+    - [Gmail Setup (Recommended for Development)](#gmail-setup-recommended-for-development)
+  - [Docker Configuration Differences](#docker-configuration-differences)
+    - [1. Environment \& Security](#1-environment--security)
+    - [2. File Systems \& Hot Reloading](#2-file-systems--hot-reloading)
+    - [3. Infrastructure \& Routing (Nginx)](#3-infrastructure--routing-nginx)
+    - [4. Service Commands](#4-service-commands)
+    - [5. Data Persistence](#5-data-persistence)
+    - [6. Health Checks](#6-health-checks)
+  - [Development Environment](#development-environment)
+    - [Access Points](#access-points)
+    - [Commands](#commands)
+    - [Features](#features)
+  - [Production Environment](#production-environment)
+    - [Server Requirements](#server-requirements)
+    - [Installation](#installation)
+    - [Access Points](#access-points-1)
+    - [SSL/HTTPS Setup](#sslhttps-setup)
+  - [Monitoring \& Maintenance](#monitoring--maintenance)
+    - [Health \& Status](#health--status)
+    - [Logs](#logs)
+    - [Database Backup](#database-backup)
+    - [Updates](#updates)
+  - [Troubleshooting](#troubleshooting)
+    - [Port Conflicts](#port-conflicts)
+    - [Database Issues](#database-issues)
+    - [Email Not Sending](#email-not-sending)
+    - [Notion API Issues](#notion-api-issues)
+  - [Performance Optimization](#performance-optimization)
+  - [Security](#security)
+    - [Production Checklist](#production-checklist)
+    - [Password Reset Security](#password-reset-security)
+    - [Firewall (Ubuntu)](#firewall-ubuntu)
+  - [Support](#support)
+  - [License](#license)
 
 Deploy the Voca Recaller application on development (M1 MacBook Pro) and production (Ubuntu Linux) environments.
 
@@ -119,6 +128,42 @@ The setup script (`./setup.sh env`) automatically creates a `.env` file from `ba
 ```bash
 python -c "import secrets; print(secrets.token_urlsafe(32))"
 ```
+
+## Docker Configuration Differences
+
+The project uses two separate Docker Compose files tailored for their respective environments. Here are the key differences between `docker-compose.prod.yml` (Production) and `docker-compose.yml` (Development):
+
+### 1. Environment & Security
+- **Development:** Uses hardcoded credentials (e.g., `password`, `dev-secret-key`) and sets `FLASK_ENV=development`.
+- **Production:** Relies entirely on environment variables (`${MYSQL_PASSWORD}`, `${SECRET_KEY}`) for sensitive data and sets `FLASK_ENV=production`.
+
+### 2. File Systems & Hot Reloading
+- **Development:** Uses **Volumes** (Bind Mounts) like `./backend:/app`. This allows you to edit code on your machine and see changes immediately without rebuilding containers.
+- **Production:** **Removes code volumes**. It relies strictly on the code copied into the Docker image during the build process to ensure immutability and consistency.
+
+### 3. Infrastructure & Routing (Nginx)
+- **Production:** Adds an **`nginx`** service.
+  - Acts as a reverse proxy.
+  - Serves the Frontend static files on port `80`.
+  - Backs the API requests.
+- **Development:** Exposes services directly.
+  - Frontend is accessible on port `3000`.
+  - Backend is accessible on port `5001`.
+
+### 4. Service Commands
+- **Celery Worker:**
+  - *Dev:* Uses a complex Python string command or specific python script to handle context reloading.
+  - *Prod:* Uses the standard production CLI: `celery -A app.celery worker ...`.
+- **Celery Beat:**
+  - *Dev:* Runs `python scheduler.py`.
+  - *Prod:* Runs `celery -A app.celery beat ...`.
+
+### 5. Data Persistence
+- **Development:** Uses standard volume names like `mysql_data`.
+- **Production:** Uses production-specific volume names like `mysql_data_prod` and `redis_data_prod` to ensure data segregation between environments on the same machine.
+
+### 6. Health Checks
+- **Production:** The `backend` service includes a `healthcheck` configuration (using `curl`) to ensure the container is actually ready to traffic requests before dependent services or proxies start using it. This is absent in development.
 
 ## Development Environment
 
