@@ -85,7 +85,7 @@ services:
       - backend
     networks:
       - voca_recaller_network_prod
-    command: celery -A app.celery worker --loglevel=info --concurrency=4
+    command: celery -A make_celery.celery worker --loglevel=info --concurrency=4
 
   # Celery Beat (Scheduler)
   celery-beat:
@@ -111,7 +111,7 @@ services:
       - backend
     networks:
       - voca_recaller_network_prod
-    command: celery -A app.celery beat --loglevel=info
+    command: celery -A make_celery.celery beat --loglevel=info
 
   # Nginx Reverse Proxy
   nginx:
