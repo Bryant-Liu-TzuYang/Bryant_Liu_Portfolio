@@ -2,6 +2,35 @@
 
 A web application that helps users recall vocabulary from their Notion databases by sending daily email reminders with random vocabulary items.
 
+## Table of Contents
+
+- [Features](#features)
+- [Quick Start](#quick-start)
+   - [Using Setup Script (Recommended)](#using-setup-script-recommended)
+   - [Manual Setup](#manual-setup)
+      - [Development (M1 MacBook Pro)](#development-m1-macbook-pro)
+      - [Production (Ubuntu Linux)](#production-ubuntu-linux)
+- [Environment Variables](#environment-variables)
+   - [Quick Setup](#quick-setup)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Documentation](#documentation)
+   - [Setup & Configuration](#setup--configuration)
+   - [Operations](#operations)
+- [Logging](#logging)
+   - [Backend Logging](#backend-logging)
+   - [Frontend Logging](#frontend-logging)
+- [API Endpoints](#api-endpoints)
+   - [Authentication](#authentication)
+   - [User Management](#user-management)
+   - [Database Management](#database-management)
+   - [Email & Settings](#email--settings)
+- [Password Reset Flow](#password-reset-flow)
+   - [Security Features](#security-features)
+   - [Email Configuration for Password Reset](#email-configuration-for-password-reset)
+   - [SMTP Validation](#smtp-validation)
+- [License](#license)
+
 ## Features
 
 - User authentication and registration
