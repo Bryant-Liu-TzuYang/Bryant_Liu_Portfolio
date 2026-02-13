@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '../contexts/AuthContext';
@@ -9,6 +9,8 @@ const Register = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { register: registerUser } = useAuth();
   const navigate = useNavigate();
+  const passwordRef = useRef(null);
+  const confirmPasswordRef = useRef(null);
 
   const {
     register,
@@ -18,6 +20,16 @@ const Register = () => {
   } = useForm();
 
   const password = watch('password');
+
+  // Handler to skip show/hide button when tabbing from password field
+  const handlePasswordKeyDown = (e) => {
+    if (e.key === 'Tab' && !e.shiftKey) {
+      e.preventDefault();
+      if (confirmPasswordRef.current) {
+        confirmPasswordRef.current.focus();
+      }
+    }
+  };
 
   const onSubmit = async (data) => {
     setIsLoading(true);
@@ -174,9 +186,15 @@ const Register = () => {
                       message: 'Password must contain at least one uppercase letter, one lowercase letter, and one number',
                     },
                   })}
+                  ref={(e) => {
+                    register('password').ref(e);
+                    passwordRef.current = e;
+                  }}
+                  onKeyDown={handlePasswordKeyDown}
                 />
                 <button
                   type="button"
+                  tabIndex="-1"
                   className="absolute inset-y-0 right-0 pr-3 flex items-center"
                   onClick={() => setShowPassword(!showPassword)}
                 >
@@ -213,6 +231,10 @@ const Register = () => {
                     validate: (value) =>
                       value === password || 'Passwords do not match',
                   })}
+                  ref={(e) => {
+                    register('confirm_password').ref(e);
+                    confirmPasswordRef.current = e;
+                  }}
                 />
               </div>
               {errors.confirm_password && (
