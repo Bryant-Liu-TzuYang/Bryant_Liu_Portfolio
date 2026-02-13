@@ -31,3 +31,9 @@ You would need to promote again only if:
 You drop/recreate the database (e.g., docker-compose down -v which removes volumes)
 You manually delete the user from the database
 You reset your development environment completely
+
+## run the branches at the same time: using the -p flag
+
+```sh
+docker compose -p main up -d --build
+```
