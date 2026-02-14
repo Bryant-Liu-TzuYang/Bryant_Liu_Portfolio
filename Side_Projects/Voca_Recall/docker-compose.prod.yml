@@ -85,7 +85,7 @@ services:
       - backend
     networks:
       - voca_recaller_network_prod
-    command: celery -A make_celery.celery worker --loglevel=info --concurrency=4
+    command: python -c "from app import create_app, celery; app = create_app(); app.app_context().push(); celery.worker_main(['worker', '--loglevel=info', '--concurrency=4'])"
 
   # Celery Beat (Scheduler)
   celery-beat:
@@ -111,34 +111,28 @@ services:
       - backend
     networks:
       - voca_recaller_network_prod
-    command: celery -A make_celery.celery beat --loglevel=info
+    command: python scheduler.py
 
-  # Nginx Reverse Proxy
-  nginx:
-    image: nginx:alpine
-    container_name: voca_recaller_nginx_prod
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      # - "443:443"
-    volumes:
-      - ./frontend/nginx.conf:/etc/nginx/nginx.conf
-      - ./nginx/ssl:/etc/nginx/ssl
-      - ./frontend/build:/usr/share/nginx/html
-    depends_on:
-      - backend
-      - frontend
-    networks:
-      - voca_recaller_network_prod
-
-  # React Frontend
+  # MERGED: Replaces both 'nginx' and 'frontend' services
+  # This service now builds the Dockerfile, which runs 'npm run build' inside the container
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: voca_recaller_frontend_prod
     restart: unless-stopped
+    ports:
+      - "80:80"
+      # - "443:443"
+    volumes:
+      # We still mount the config so you can tweak proxy settings without rebuilding
+      - ./frontend/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+      # REMOVED: - ./frontend/build:/usr/share/nginx/html
+    depends_on:
+      - backend
     environment:
+      # Ensure API URL is available if used in nginx environment substitution
       - REACT_APP_API_URL=${REACT_APP_API_URL:-http://localhost:5000}
     networks:
       - voca_recaller_network_prod

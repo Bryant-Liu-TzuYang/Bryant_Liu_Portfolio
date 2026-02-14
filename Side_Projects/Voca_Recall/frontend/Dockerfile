@@ -19,6 +19,9 @@ RUN npm run build
 FROM nginx:alpine
 
 # Copy built app to nginx
+# look at the previous stage (named locally on line 2 as AS build).
+# The heavy node_modules folder is left behind in the build stage
+# and does not exist in your final production image.
 COPY --from=build /app/build /usr/share/nginx/html
 
 # Copy nginx configuration

@@ -86,7 +86,7 @@ services:
       - backend
     networks:
       - voca_recaller_network
-    command: python -c "from app import create_app, celery; app = create_app(); app.app_context().push(); celery.worker_main(['worker', '--loglevel=info'])"
+    command: python -c "from app import create_app, celery; app = create_app(); app.app_context().push(); celery.worker_main(['worker', '--loglevel=info', '--concurrency=4'])"
 
   # Celery Beat Scheduler
   celery-beat:

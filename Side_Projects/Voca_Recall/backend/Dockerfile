@@ -11,7 +11,7 @@ WORKDIR /app
 
 # Install system dependencies
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
+    && apt-get install -y --no-install-recommends --fix-missing \
         gcc \
         default-libmysqlclient-dev \
         pkg-config \
