@@ -146,6 +146,7 @@ Scheduled email service configurations.
 - `last_sent_at` - Timestamp of last successful send (DATETIME)
 - `created_at` - Creation timestamp
 - `updated_at` - Last update timestamp
+- `column_selection` - JSON array of column names to include in email (JSON)
 
 **Current Count**: 1 service
 

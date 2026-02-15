@@ -91,10 +91,11 @@ Email sent and logged to email_logs table
    - `random`: Random sample of N items
    - `latest`: N most recently created items
    - `date_range`: Items created between start and end dates
-4. Generate HTML email content
-5. Send email via SMTP
-6. Update `last_sent_at` timestamp
-7. **Log result to `email_logs` table** (status, timestamp, vocabulary items, errors)
+4. Filter vocabulary properties based on `column_selection` list (if configured).
+5. Generate HTML email content
+6. Send email via SMTP
+7. Update `last_sent_at` timestamp
+8. **Log result to `email_logs` table** (status, timestamp, vocabulary items, errors)
 
 **Error Handling**:
 - Logs errors with full traceback

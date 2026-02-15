@@ -46,6 +46,7 @@ All endpoints except Auth (Register/Login/Reset) require a valid JWT Access Toke
 | PUT | `/{id}` | Update database | `{ "database_name": "...", ... }` | [`backend/app/database.py`](../backend/app/database.py) | [`pages/Databases.js`](../frontend/src/pages/Databases.js): `onSubmit` |
 | DELETE | `/{id}` | Delete database | - | [`backend/app/database.py`](../backend/app/database.py) | [`pages/Databases.js`](../frontend/src/pages/Databases.js): `handleDelete` |
 | POST | `/{id}/test` | Test database connection | - | [`backend/app/database.py`](../backend/app/database.py) | [`pages/Databases.js`](../frontend/src/pages/Databases.js): `handleTestConnection` |
+| GET | `/{id}/properties` | Get database columns (properties) | - | [`backend/app/database.py`](../backend/app/database.py) | [`components/EmailServiceModal.js`](../frontend/src/components/EmailServiceModal.js): `fetchColumns` |
 
 ## Email Services (`/api/email-services`)
 
@@ -54,9 +55,9 @@ Services are scheduled jobs linked to Notion databases.
 | Method | Endpoint | Description | Request Body | Related File | Caller |
 |--------|----------|-------------|--------------|--------------|--------|
 | GET | `/` | List all email services | - | [`backend/app/email_service.py`](../backend/app/email_service.py) | [`pages/Services.js`](../frontend/src/pages/Services.js): `fetchServices`<br>[`pages/Settings.js`](../frontend/src/pages/Settings.js): `fetchEmailServices` |
-| POST | `/` | Create email service | `{ "service_name": "...", ... }` | [`backend/app/email_service.py`](../backend/app/email_service.py) | [`components/EmailServiceModal.js`](../frontend/src/components/EmailServiceModal.js): `handleSubmit` |
+| POST | `/` | Create email service | `{ "service_name": "...", "column_selection": ["col1", "col2"], ... }` | [`backend/app/email_service.py`](../backend/app/email_service.py) | [`components/EmailServiceModal.js`](../frontend/src/components/EmailServiceModal.js): `handleSubmit` |
 | GET | `/{id}` | Get service details | - | [`backend/app/email_service.py`](../backend/app/email_service.py) | - |
-| PUT | `/{id}` | Update service | `{ "service_name": "...", ... }` | [`backend/app/email_service.py`](../backend/app/email_service.py) | [`components/EmailServiceModal.js`](../frontend/src/components/EmailServiceModal.js): `handleSubmit` |
+| PUT | `/{id}` | Update service | `{ "service_name": "...", "column_selection": ["col1"], ... }` | [`backend/app/email_service.py`](../backend/app/email_service.py) | [`components/EmailServiceModal.js`](../frontend/src/components/EmailServiceModal.js): `handleSubmit` |
 | DELETE | `/{id}` | Delete service | - | [`backend/app/email_service.py`](../backend/app/email_service.py) | [`pages/Services.js`](../frontend/src/pages/Services.js): `handleDeleteService`<br>[`pages/Databases.js`](../frontend/src/pages/Databases.js): `handleDeleteEmailService` |
 | GET | `/database/{db_id}` | Get services for a database | - | [`backend/app/email_service.py`](../backend/app/email_service.py) | [`pages/Databases.js`](../frontend/src/pages/Databases.js): `fetchEmailServices` |
 
