@@ -5,13 +5,10 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { 
-  Settings as SettingsIcon, 
   User, 
   Mail, 
   Clock, 
   Save,
-  Eye,
-  EyeOff,
   Send,
   Activity,
   Key,
@@ -19,25 +16,24 @@ import {
   Filter
 } from 'lucide-react';
 import LoggingStatus from '../components/LoggingStatus';
+import TestEmailModal from '../components/TestEmailModal';
 
 const Settings = () => {
   const { user, updateProfile, isDeveloper } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [showPassword, setShowPassword] = useState(false);
-  const [sendingTest, setSendingTest] = useState(false);
   const [activeTab, setActiveTab] = useState('profile');
   const [databases, setDatabases] = useState([]);
   const [selectedDatabase, setSelectedDatabase] = useState('');
   const [emailSettings, setEmailSettings] = useState(null);
   const [savingSettings, setSavingSettings] = useState(false);
   const [emailServices, setEmailServices] = useState([]);
+  const [showTestEmailModal, setShowTestEmailModal] = useState(false);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-    reset,
   } = useForm();
 
   useEffect(() => {
@@ -102,29 +98,13 @@ const Settings = () => {
     }
   };
 
-  const sendTestEmail = async () => {
-    if (!selectedDatabase) {
-      toast.error('Please select a database first or add one on the Databases page');
+  const handleOpenTestEmailModal = () => {
+    if (databases.length === 0) {
+      toast.error('Please add a database first on the Databases page');
+      navigate('/databases');
       return;
     }
-
-    const vocabularyCount = prompt('How many vocabulary items? (default: 5)', '5');
-    if (vocabularyCount === null) return;
-
-    setSendingTest(true);
-    try {
-      await axios.post('/api/email/send-test', {
-        database_pk: parseInt(selectedDatabase),
-        vocabulary_count: parseInt(vocabularyCount) || 5,
-      });
-
-      toast.success('Test email sent successfully!');
-    } catch (error) {
-      const message = error.response?.data?.error || 'Failed to send test email';
-      toast.error(message);
-    } finally {
-      setSendingTest(false);
-    }
+    setShowTestEmailModal(true);
   };
 
   const tabs = [
@@ -273,41 +253,16 @@ const Settings = () => {
             </div>
 
             <div className="space-y-4">
-              {databases.length > 0 ? (
-                <>
-                  <div>
-                    <label htmlFor="test-database" className="form-label">
-                      Select Database for Test Email
-                    </label>
-                    <select
-                      id="test-database"
-                      value={selectedDatabase}
-                      onChange={(e) => setSelectedDatabase(e.target.value)}
-                      className="input-field"
-                    >
-                      {databases.map((db) => (
-                        <option key={db.id} value={db.id}>
-                          {db.database_name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={sendTestEmail}
-                    disabled={sendingTest}
-                    className="btn-secondary inline-flex items-center"
-                  >
-                    {sendingTest ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600 mr-2"></div>
-                    ) : (
-                      <Send className="h-4 w-4 mr-2" />
-                    )}
-                    Send Test Email
-                  </button>
-                </>
-              ) : (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <button
+                type="button"
+                onClick={handleOpenTestEmailModal}
+                className="btn-secondary inline-flex items-center"
+              >
+                <Send className="h-4 w-4 mr-2" />
+                Send Test Email
+              </button>
+              {databases.length === 0 && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-4">
                   <p className="text-sm text-yellow-800">
                     No databases found. Please add a database on the{' '}
                     <a href="/databases" className="underline font-semibold">
@@ -477,6 +432,13 @@ const Settings = () => {
           </button>
         </div>
       )}
+
+      {/* Test Email Modal */}
+      <TestEmailModal
+        isOpen={showTestEmailModal}
+        onClose={() => setShowTestEmailModal(false)}
+        databases={databases}
+      />
     </div>
   );
 };
