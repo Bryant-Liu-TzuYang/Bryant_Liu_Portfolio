@@ -1,3 +1,5 @@
+from time import sleep
+
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
@@ -15,6 +17,11 @@ celery = Celery()
 # Import logging components
 from .logging_config import setup_logging, get_logger
 from .middleware import log_requests
+
+# Sleep configuration for retrying database connection on startup
+SLEEP_INTERVAL = 5  # times
+SLEEP_SECONDS = 5  # seconds
+
 
 def create_celery(app):
     """Create Celery instance with beat scheduler support"""
@@ -96,9 +103,17 @@ def create_app(config_name=None):
     logger.info("All blueprints registered")
     
     # Create database tables
-    with app.app_context():
-        db.create_all()
-        logger.info("Database tables created/verified")
+    for i in range(SLEEP_INTERVAL):  # Retry mechanism for database connection
+        try:
+            with app.app_context():
+                db.create_all()
+                logger.info("Database tables created/verified")
+                break  # If successful, break out of retry loop
+        except Exception as e:
+            logger.warning(f"Failed to create database tables on attempt {i+1}: {e}")
+            sleep(SLEEP_SECONDS)  # Wait before retrying
+            if i == SLEEP_INTERVAL - 1:  # If this is the last attempt, raise the error
+                raise e
     
     # Validate SMTP credentials on startup
     with app.app_context():
