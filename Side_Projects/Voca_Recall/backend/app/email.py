@@ -217,6 +217,24 @@ def get_vocabulary_from_notion(api_key, database_id, count=10, selection_method=
                         item_data[prop_name] = date_obj.get('start', '')
                     else:
                         item_data[prop_name] = ''
+                elif prop_type == 'created_time':
+                    # Created time property - returns ISO 8601 datetime string
+                    item_data[prop_name] = prop_value.get('created_time', '')
+                elif prop_type == 'last_edited_time':
+                    # Last edited time property - returns ISO 8601 datetime string
+                    item_data[prop_name] = prop_value.get('last_edited_time', '')
+                elif prop_type == 'unique_id':
+                    # Unique ID property - returns a number or prefix-number combination
+                    unique_id = prop_value.get('unique_id', {})
+                    if unique_id:
+                        prefix = unique_id.get('prefix')
+                        number = unique_id.get('number')
+                        if prefix:
+                            item_data[prop_name] = f"{prefix}-{number}" if number else prefix
+                        else:
+                            item_data[prop_name] = str(number) if number else ''
+                    else:
+                        item_data[prop_name] = ''
             
             vocabulary_items.append(item_data)
         
