@@ -55,6 +55,37 @@ generate_secret_key() {
     python3 -c "import secrets; print(secrets.token_urlsafe(32))" 2>/dev/null || openssl rand -base64 32
 }
 
+# Function to make sure the Docker daemon is running on macOS
+ensure_docker_daemon() {
+    if docker info >/dev/null 2>&1; then
+        return 0
+    fi
+
+    if [[ "$(uname -s)" == "Darwin" ]] && command -v open >/dev/null 2>&1; then
+        echo "🐳 Docker daemon is not running. Opening Docker Desktop..."
+        open -a Docker >/dev/null 2>&1 || open /Applications/Docker.app >/dev/null 2>&1 || true
+
+        local attempts=0
+        local max_attempts=30
+        while [ "$attempts" -lt "$max_attempts" ]; do
+            if docker info >/dev/null 2>&1; then
+                echo "✅ Docker daemon is ready"
+                return 0
+            fi
+
+            attempts=$((attempts + 1))
+            sleep 2
+        done
+
+        echo "❌ Docker Desktop was opened, but the Docker daemon is still unavailable."
+        echo "   Please wait until Docker finishes starting, then run this script again."
+        return 1
+    fi
+
+    echo "❌ Docker daemon is not running. Please start Docker and try again."
+    return 1
+}
+
 # Function for interactive environment setup
 interactive_setup() {
     local env_type=$1
@@ -609,6 +640,10 @@ setup_development() {
         echo "❌ Docker Compose is not installed. Please install Docker Compose first."
         exit 1
     fi
+
+    if ! ensure_docker_daemon; then
+        exit 1
+    fi
     
     # Validate environment first (pass 'dev' to use dev template)
     if ! validate_environment "dev"; then
@@ -649,6 +684,10 @@ setup_production() {
     # Check Docker Compose is installed
     if ! command -v docker-compose &> /dev/null; then
         echo "❌ Docker Compose is not installed. Please install Docker Compose first."
+        exit 1
+    fi
+
+    if ! ensure_docker_daemon; then
         exit 1
     fi
     
