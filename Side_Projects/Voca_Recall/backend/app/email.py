@@ -5,10 +5,11 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import random
-from datetime import datetime
+from datetime import date, datetime
 from celery.schedules import crontab
 import pytz
 import re
+from typing import Any, TypedDict
 from .models import User, NotionDatabase, NotionToken, EmailService, EmailLog, db
 from . import celery
 from .logging_config import get_logger
@@ -16,6 +17,15 @@ from .middleware import log_api_call, log_function_call
 
 email_bp = Blueprint('email', __name__)
 logger = get_logger(__name__)
+
+
+class ColumnSelectionItem(TypedDict, total=False):
+    name: str
+    type: str
+
+
+ColumnSelection = list[ColumnSelectionItem | str]
+
 
 def split_sentences(text):
     """
@@ -125,6 +135,8 @@ def get_vocabulary_from_notion(api_key, database_id, count=10, selection_method=
         notion = Client(auth=api_key)
         
         # Build query filters based on selection method
+        # Page size limited by Notion up to 100
+        # https://developers.notion.com/reference/intro#:~:text=Default%3A%20100-,Maximum%3A%20100,-The%20response%20may
         query_params = {
             'database_id': database_id,
             'page_size': 100
@@ -246,7 +258,12 @@ def get_vocabulary_from_notion(api_key, database_id, count=10, selection_method=
         return []
 
 @log_function_call("Email content creation")
-def create_email_content(vocabulary_items, user_name, database_url=None, column_selection=None):
+def create_email_content(
+    vocabulary_items: list[dict[str, Any]],
+    user_name: str,
+    database_url: str | None = None,
+    column_selection: ColumnSelection | None = None,
+) -> str:
     """Create HTML email content with interactive flashcards"""
     html_content = f"""
     <!DOCTYPE html>
@@ -343,6 +360,7 @@ def create_email_content(vocabulary_items, user_name, database_url=None, column_
     for i, item in enumerate(vocabulary_items, 1):
         word = ''
         
+        # TODO
         # Enforce 'minimum one selection' rule
         # Use column_selection to determine content
         if not column_selection or len(column_selection) == 0:
@@ -451,18 +469,18 @@ def send_test_email():
             logger.warning(f"User {current_user_id} not found for test email")
             return jsonify({'error': 'User not found'}), 404
         
-        data = request.get_json()
-        database_pk = data.get('database_pk')
-        service_id = data.get('service_id')  # New: support sending test using a service
-        vocabulary_count = data.get('vocabulary_count', 5)
-        selection_method = data.get('selection_method', 'random')
-        date_range_start = data.get('date_range_start')
-        date_range_end = data.get('date_range_end')
-        column_selection = data.get('column_selection', None)
+        data: dict[str, Any] = request.get_json() or {}
+        database_pk: int | None = data.get('database_pk')
+        service_id: int | None = data.get('service_id')  # Support sending test using a service
+        vocabulary_count: int = data.get('vocabulary_count', 5)
+        selection_method: str = data.get('selection_method', 'random')
+        date_range_start: str | None = data.get('date_range_start')
+        date_range_end: str | None = data.get('date_range_end')
+        column_selection: ColumnSelection | None = data.get('column_selection')
         
         # Parse date range if provided
-        date_start = None
-        date_end = None
+        date_start: date | None = None
+        date_end: date | None = None
         if date_range_start:
             try:
                 from datetime import datetime as dt
