@@ -336,7 +336,7 @@ def create_email_content(
                 color: #667eea;
                 text-decoration: none;
                 font-weight: bold;
-                font-size: 28px;
+                font-size: 23px;
             }}
             .database-link a:hover {{
                 text-decoration: underline;
@@ -348,7 +348,7 @@ def create_email_content(
         <div class="container">
             <div class="header">
                 <h1>📚 Daily Vocabulary Recall</h1>
-                <p>Hello {user_name}, here are your vocabulary words for today!</p>
+                <p style="font-size: 17px;">Hello {user_name}, here are your vocabulary words for today!</p>
             </div>
             <div class="content">
                 <div class="instruction">
@@ -356,7 +356,7 @@ def create_email_content(
                 </div>
                 <h2>Today's Vocabulary ({len(vocabulary_items)} words)</h2>
     """
-    
+
     for i, item in enumerate(vocabulary_items, 1):
         word = ''
         
@@ -390,6 +390,7 @@ def create_email_content(
         # 2. Iterate through columns for the details
         for col in column_selection:
             col_name = col.get('name') if isinstance(col, dict) else col
+            if col_name == primary_key: continue
             
             val = item.get(col_name)
             str_val = str(val) if val is not None else ''
@@ -437,7 +438,7 @@ def create_email_content(
     if database_url:
         html_content += f"""
                 <div class="database-link">
-                    <span style="font-size: 28px;">📖</span> <a href="{database_url}" target="_blank">View Full Notion Database</a>
+                    <span style="font-size: 23px;">📖</span> <a href="{database_url}" target="_blank">View Full Notion Database</a>
                 </div>
         """
     
@@ -577,33 +578,12 @@ def send_test_email():
         
         # Create email content
         html_content = create_email_content(vocabulary_items, user.first_name, database_url, column_selection=column_selection)
-        text_content = f"Hello {user.first_name}, here are your vocabulary words for today!\n\n"
-        
-        for i, item in enumerate(vocabulary_items, 1):
-            word = ''
-            definition = ''
-            for key, value in item.items():
-                key_lower = key.lower()
-                if any(term in key_lower for term in ['word', 'term', 'vocabulary', 'name']):
-                    word = str(value) if value else ''
-                elif any(term in key_lower for term in ['definition', 'meaning', 'description']):
-                    definition = str(value) if value else ''
-            
-            if not word and not definition:
-                fields = list(item.items())
-                if len(fields) >= 1:
-                    word = str(fields[0][1]) if fields[0][1] else ''
-                if len(fields) >= 2:
-                    definition = str(fields[1][1]) if fields[1][1] else ''
-            
-            text_content += f"{i}. {word}: {definition}\n\n"
-        
+
         # Send email
         success, error = send_email(
             user.email,
             "Test: Daily Vocabulary Recall",
             html_content,
-            text_content
         )
         
         if not success:
