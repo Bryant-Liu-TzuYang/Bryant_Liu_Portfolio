@@ -356,6 +356,7 @@ const Services = () => {
           setEditingService(null); // reset `editingService`
         }}
         database={selectedDatabase} // read `selectedDatabase`
+        databases={!editingService ? Object.values(databases) : null} // pass list in create mode
         service={editingService} // read `editingService`
         onSave={handleServiceSave} // updates `services`, closes modal
       />

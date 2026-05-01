@@ -3,7 +3,7 @@ import { X, Save, Clock, Hash, Filter, Calendar, List, GripVertical, Eye, EyeOff
 import apiService from '../utils/apiService';
 import toast from 'react-hot-toast';
 
-const EmailServiceModal = ({ isOpen, onClose, database, service = null, onSave }) => {
+const EmailServiceModal = ({ isOpen, onClose, database, databases = null, service = null, onSave }) => {
   const [formData, setFormData] = useState({
     service_name: '',
     description: '',
@@ -17,6 +17,9 @@ const EmailServiceModal = ({ isOpen, onClose, database, service = null, onSave }
     is_active: true,
   });
   const [saving, setSaving] = useState(false);
+
+  // Selected database ID (used in create mode when `databases` array is provided)
+  const [selectedDatabaseId, setSelectedDatabaseId] = useState('');
   
   // Column Selection Stuffs
   const [availableColumns, setAvailableColumns] = useState([]);
@@ -24,14 +27,37 @@ const EmailServiceModal = ({ isOpen, onClose, database, service = null, onSave }
   const [loadingColumns, setLoadingColumns] = useState(false);
   const [dragStartIndex, setDragStartIndex] = useState(null);
 
+  // Resolve the active database ID from props
+  const getActiveDatabaseId = () => {
+    if (service) return service.database_id;
+    if (selectedDatabaseId) return selectedDatabaseId;
+    if (database) return database.id;
+    return null;
+  };
+
+  // Initialize selectedDatabaseId when the modal opens
   useEffect(() => {
-    // Determine database ID
-    const dbId = service ? service.database_id : (database ? database.id : null);
-    
+    if (!isOpen) return;
+    if (service) {
+      setSelectedDatabaseId(String(service.database_id));
+    } else if (databases && databases.length > 0) {
+      setSelectedDatabaseId(String(databases[0].id));
+    } else if (database) {
+      setSelectedDatabaseId(String(database.id));
+    }
+  }, [isOpen, service, databases, database]);
+
+  useEffect(() => {
+    // Determine database ID inline to avoid stale closure issues
+    const dbId = service
+      ? service.database_id
+      : selectedDatabaseId || (database ? database.id : null);
+
     if (dbId) {
        fetchColumns(dbId);
     }
-  }, [service, database]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [service, database, selectedDatabaseId]);
 
   const fetchColumns = async (dbId) => {
     setLoadingColumns(true);
@@ -63,14 +89,19 @@ const EmailServiceModal = ({ isOpen, onClose, database, service = null, onSave }
         date_range_end: service.date_range_end || '',
         is_active: service.is_active !== undefined ? service.is_active : true,
       });
-    } else if (database) {
-      // Create mode: set default name based on database
-      setFormData(prev => ({
-        ...prev,
-        service_name: `${database.database_name} - Email Service`,
-      }));
+    } else {
+      // Create mode: set default name based on the selected/provided database
+      const activeDb = databases
+        ? databases.find(db => String(db.id) === String(selectedDatabaseId))
+        : database;
+      if (activeDb) {
+        setFormData(prev => ({
+          ...prev,
+          service_name: `${activeDb.database_name} - Email Service`,
+        }));
+      }
     }
-  }, [service, database]);
+  }, [service, database, databases, selectedDatabaseId]);
 
   // Initialize columns configuration based on available columns and saved service selection
   useEffect(() => {
@@ -154,7 +185,7 @@ const EmailServiceModal = ({ isOpen, onClose, database, service = null, onSave }
     try {
       const payload = {
         ...formData,
-        database_id: database ? database.id : (service ? service.database_id : null),
+        database_id: getActiveDatabaseId(),
         column_selection: selectedColumns
       };
 
@@ -196,6 +227,25 @@ const EmailServiceModal = ({ isOpen, onClose, database, service = null, onSave }
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {/* Database Selection - only in create mode with multiple databases */}
+          {!service && databases && databases.length > 0 && (
+            <div>
+              <label className="form-label">Select Database *</label>
+              <select
+                value={selectedDatabaseId}
+                onChange={(e) => setSelectedDatabaseId(e.target.value)}
+                className="input-field"
+                required
+              >
+                {databases.map((db) => (
+                  <option key={db.id} value={db.id}>
+                    {db.database_name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           {/* Service Name */}
           <div>
             <label className="form-label">Service Name *</label>
