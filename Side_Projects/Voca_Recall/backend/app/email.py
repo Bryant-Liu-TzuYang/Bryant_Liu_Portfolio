@@ -197,6 +197,7 @@ def get_vocabulary_from_notion(api_key, database_id, count=10, selection_method=
                     item_data[prop_name] = select.get('name', '') if select else ''
                 elif prop_type == 'multi_select':
                     multi_select = prop_value.get('multi_select', [])
+                    if not multi_select: continue
                     item_data[prop_name] = [option.get('name', '') for option in multi_select]
                 elif prop_type == 'url':
                     item_data[prop_name] = prop_value.get('url', '')
