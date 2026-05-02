@@ -49,10 +49,10 @@ const TestEmailModal = ({ isOpen, onClose, databases }) => {
     }
   };
 
-  // Initialize columns configuration - all visible by default
+  // Initialize columns configuration - all visible by default, except unique_id columns
   useEffect(() => {
     if (availableColumns.length > 0) {
-      setColumnsConfig(availableColumns.map(col => ({ ...col, isVisible: true })));
+      setColumnsConfig(availableColumns.map(col => ({ ...col, isVisible: col.type !== 'unique_id' })));
     }
   }, [availableColumns]);
 

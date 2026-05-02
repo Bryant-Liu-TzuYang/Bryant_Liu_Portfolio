@@ -129,8 +129,8 @@ const EmailServiceModal = ({ isOpen, onClose, database, databases = null, servic
 
         setColumnsConfig([...visibleCols, ...hiddenCols]);
     } else {
-        // Default: All visible, original order
-        setColumnsConfig(availableColumns.map(col => ({ ...col, isVisible: true })));
+        // Default: All visible except unique_id columns, original order
+        setColumnsConfig(availableColumns.map(col => ({ ...col, isVisible: col.type !== 'unique_id' })));
     }
   }, [availableColumns, service]);
 
