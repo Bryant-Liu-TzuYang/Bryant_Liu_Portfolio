@@ -11,7 +11,8 @@ import {
   Users,
   Menu,
   X,
-  FileText
+  FileText,
+  HelpCircle
 } from 'lucide-react';
 
 const Navbar = () => {
@@ -25,6 +26,7 @@ const Navbar = () => {
     { name: 'Services', href: '/services', icon: Mail },
     { name: 'Email Logs', href: '/email-logs', icon: FileText },
     { name: 'Settings', href: '/settings', icon: Settings },
+    { name: 'How to Use', href: '/how-to-use', icon: HelpCircle },
     ...(isAdmin() ? [{ name: 'Manage Users', href: '/manage-users', icon: Users }] : []),
   ];
 

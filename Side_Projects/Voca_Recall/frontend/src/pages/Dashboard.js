@@ -8,16 +8,41 @@ import {
   Database, 
   Mail, 
   Plus, 
-  Settings, 
   Calendar,
-  TrendingUp,
-  Clock
+  Clock,
+  HelpCircle,
+  Play
 } from 'lucide-react';
+import WelcomeOverlay, { WELCOME_STORAGE_KEY } from '../components/WelcomeOverlay';
+
+const getGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 12) return { text: 'Good morning', emoji: '🌅' };
+  if (hour < 17) return { text: 'Good afternoon', emoji: '☀️' };
+  if (hour < 21) return { text: 'Good evening', emoji: '🌇' };
+  return { text: 'Good night', emoji: '🌙' };
+};
 
 const Dashboard = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showTour, setShowTour] = useState(false);
+  const greeting = getGreeting();
+  const today = new Date().toLocaleDateString(undefined, {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+
+  // Show the welcome tour automatically on first visit
+  useEffect(() => {
+    const seen = localStorage.getItem(WELCOME_STORAGE_KEY);
+    if (!seen) {
+      setShowTour(true);
+    }
+  }, []);
 
   useEffect(() => {
     fetchStats();
@@ -52,14 +77,44 @@ const Dashboard = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Welcome tour overlay */}
+      {showTour && <WelcomeOverlay onClose={() => setShowTour(false)} />}
+
       {/* Welcome Section */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">
-          Welcome back, {user?.first_name}! 👋
-        </h1>
-        <p className="mt-2 text-gray-600">
-          Here's what's happening with your vocabulary learning.
-        </p>
+      <div className="mb-8 animate-fade-in">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <p className="text-sm font-medium text-primary-500 uppercase tracking-widest mb-1">
+              {today}
+            </p>
+            <h1 className="text-3xl font-bold text-gray-900">
+              {greeting.emoji}{' '}
+              <span className="bg-gradient-to-r from-primary-600 to-indigo-500 bg-clip-text text-transparent">
+                {greeting.text}
+              </span>
+              {user?.first_name ? `, ${user.first_name}!` : '!'}
+            </h1>
+            <p className="mt-2 text-gray-500">
+              Here's what's happening with your vocabulary learning.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+            <button
+              onClick={() => setShowTour(true)}
+              className="inline-flex items-center gap-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 px-4 py-2 rounded-lg transition-colors duration-200 focus:outline-none shadow-sm"
+            >
+              <Play className="h-4 w-4" />
+              Take the Tour
+            </button>
+            <Link
+              to="/how-to-use"
+              className="inline-flex items-center gap-2 text-sm font-medium text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-4 py-2 rounded-lg transition-colors duration-200"
+            >
+              <HelpCircle className="h-4 w-4" />
+              How to Use
+            </Link>
+          </div>
+        </div>
       </div>
 
       {/* Statistics Cards */}

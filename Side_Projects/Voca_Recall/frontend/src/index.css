@@ -57,4 +57,52 @@
   button {
     position: relative;
   }
+}
+
+/* ── Welcome overlay animations ────────────────────────── */
+@keyframes mascotBob {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-10px); }
+}
+@keyframes mascotWave {
+  0%, 100% { transform: rotate(0deg); }
+  30%      { transform: rotate(22deg); }
+  60%      { transform: rotate(-5deg); }
+}
+@keyframes overlayFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes cardSlideUp {
+  from { transform: translateY(48px) scale(0.96); opacity: 0; }
+  to   { transform: translateY(0)    scale(1);    opacity: 1; }
+}
+@keyframes stepFade {
+  0%   { opacity: 0; transform: translateX(18px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+@keyframes celebrate {
+  0%, 100% { transform: rotate(0deg)   scale(1); }
+  25%      { transform: rotate(-12deg) scale(1.08); }
+  75%      { transform: rotate(12deg)  scale(1.08); }
+}
+
+.animate-mascot-bob {
+  animation: mascotBob 2.4s ease-in-out infinite;
+}
+.animate-mascot-wave {
+  animation: mascotWave 1.3s ease-in-out infinite;
+  transform-origin: 75% 90%;
+}
+.animate-overlay-in {
+  animation: overlayFadeIn 0.25s ease-out both;
+}
+.animate-card-in {
+  animation: cardSlideUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.animate-step-fade {
+  animation: stepFade 0.3s ease-out both;
+}
+.animate-celebrate {
+  animation: celebrate 0.9s ease-in-out infinite;
 } 

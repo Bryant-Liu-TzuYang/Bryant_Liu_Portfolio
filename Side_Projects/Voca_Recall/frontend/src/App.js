@@ -13,6 +13,7 @@ import Settings from './pages/Settings';
 import ManageTokens from './pages/ManageTokens';
 import ManageUsers from './pages/ManageUsers';
 import EmailLogs from './pages/EmailLogs';
+import HowToUse from './pages/HowToUse';
 import LoadingSpinner from './components/LoadingSpinner';
 
 function App() {
@@ -70,6 +71,10 @@ function App() {
           <Route 
             path="/email-logs" 
             element={isAuthenticated ? <EmailLogs /> : <Navigate to="/login" />} 
+          />
+          <Route 
+            path="/how-to-use" 
+            element={isAuthenticated ? <HowToUse /> : <Navigate to="/login" />} 
           />
           <Route 
             path="/" 
