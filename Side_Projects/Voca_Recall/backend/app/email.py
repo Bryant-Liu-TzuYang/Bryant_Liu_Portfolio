@@ -27,21 +27,6 @@ class ColumnSelectionItem(TypedDict, total=False):
 ColumnSelection = list[ColumnSelectionItem | str]
 
 
-def split_sentences(text):
-    """
-    Split text into individual sentences.
-    Handles sentences that end with period, question mark, or exclamation mark.
-    """
-    if not text:
-        return []
-    
-    # Split by sentence-ending punctuation followed by space and capital letter
-    # This pattern looks for . ! ? followed by space and a capital letter
-    sentences = re.split(r'(?<=[.!?])\s+(?=[A-Z])', text.strip())
-    
-    # Filter out empty strings and return
-    return [s.strip() for s in sentences if s.strip()]
-
 def format_vocabulary_in_sentence(sentence, vocabulary_word):
     """
     Format the vocabulary word in the sentence with bold and italic HTML tags.
@@ -400,7 +385,7 @@ def create_email_content(
             
             # Special handling for "Sentence" column (case-insensitive)
             if 'sentence' in col_name.lower():
-                sentences = split_sentences(str_val)
+                sentences = [line for line in str_val.split('\n') if line.strip()]
                 html_content += f"""
                         <div class="field-section">
                             <div class="field-label">{col_name}:</div>
