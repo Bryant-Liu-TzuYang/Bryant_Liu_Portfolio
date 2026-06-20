@@ -112,7 +112,7 @@ const Settings = () => {
     { id: 'email', name: 'Email Settings', icon: Mail },
     { id: 'services', name: 'Email Services', icon: Database },
     ...(isDeveloper() ? [{ id: 'logging', name: 'Logging', icon: Activity }] : []),
-    { id: 'tokens', name: 'Tokens', icon: Key },
+    { id: 'tokens', name: 'Manage Tokens', icon: Key },
   ];
 
   if (loading) {
