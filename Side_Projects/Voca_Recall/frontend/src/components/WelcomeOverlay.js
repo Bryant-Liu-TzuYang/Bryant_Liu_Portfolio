@@ -156,7 +156,11 @@ const tourSteps = [
     gradientTo: 'to-amber-500',
     title: "You're All Set!",
     subtitle: 'Start building your vocabulary habit',
-    body: 'Daily vocab emails are on their way. Check Email Logs to see delivery history and visit How to Use any time for a refresher.',
+    body: (
+      <>
+        Daily vocab emails are on their way. Check <strong>Email Logs</strong> to see delivery history and visit <strong>How to Use</strong> any time for a refresher.
+      </>
+    ),
     isLast: true,
   },
 ];
