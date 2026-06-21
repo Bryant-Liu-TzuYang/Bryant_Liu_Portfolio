@@ -109,7 +109,7 @@ const Settings = () => {
 
   const tabs = [
     { id: 'profile', name: 'Profile', icon: User },
-    { id: 'email', name: 'Email Settings', icon: Mail },
+    { id: 'email', name: 'Test Email', icon: Mail },
     { id: 'services', name: 'Email Services', icon: Database },
     ...(isDeveloper() ? [{ id: 'logging', name: 'Logging', icon: Activity }] : []),
     { id: 'tokens', name: 'Manage Tokens', icon: Key },

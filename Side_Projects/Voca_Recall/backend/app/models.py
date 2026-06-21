@@ -183,6 +183,11 @@ class EmailService(db.Model):
     # Vocabulary settings
     vocabulary_count = db.Column(db.Integer, default=10)
     selection_method = db.Column(db.String(20), default='random')  # random, latest, date_range
+
+    # Preferred email client - controls how the email body is formatted.
+    # apple_mail supports interactive <details> toggles; gmail/outlook do not,
+    # so for those clients the primary column is rendered in bold instead.
+    email_client = db.Column(db.String(20), default='apple_mail')  # apple_mail, gmail, outlook
     
     # Date range settings (for selection_method='date_range')
     date_range_start = db.Column(db.Date, nullable=True)
@@ -268,6 +273,7 @@ class EmailService(db.Model):
             'frequency': self.frequency,
             'vocabulary_count': self.vocabulary_count,
             'selection_method': self.selection_method,
+            'email_client': self.email_client,
             'date_range_start': self.date_range_start.isoformat() if self.date_range_start else None,
             'date_range_end': self.date_range_end.isoformat() if self.date_range_end else None,
             'is_active': self.is_active,

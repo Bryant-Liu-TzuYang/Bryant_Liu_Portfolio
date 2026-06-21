@@ -127,7 +127,13 @@ def create_email_service():
         selection_method = data.get('selection_method', 'random')
         if selection_method not in ['random', 'latest', 'date_range']:
             return jsonify({'error': 'selection_method must be one of: random, latest, date_range'}), 400
-        
+
+        # Validate email_client
+        from .email import EMAIL_CLIENTS
+        email_client = data.get('email_client', 'apple_mail')
+        if email_client not in EMAIL_CLIENTS:
+            return jsonify({'error': f"email_client must be one of: {', '.join(EMAIL_CLIENTS)}"}), 400
+
         # Create email service
         service = EmailService(
             user_id=current_user_id,
@@ -139,6 +145,7 @@ def create_email_service():
             frequency=data.get('frequency', 'daily'),
             vocabulary_count=vocabulary_count,
             selection_method=selection_method,
+            email_client=email_client,
             date_range_start=date_range_start,
             date_range_end=date_range_end,
             is_active=data.get('is_active', True),
@@ -215,6 +222,12 @@ def update_email_service(service_id):
             if data['selection_method'] not in ['random', 'latest', 'date_range']:
                 return jsonify({'error': 'selection_method must be one of: random, latest, date_range'}), 400
             service.selection_method = data['selection_method']
+
+        if 'email_client' in data:
+            from .email import EMAIL_CLIENTS
+            if data['email_client'] not in EMAIL_CLIENTS:
+                return jsonify({'error': f"email_client must be one of: {', '.join(EMAIL_CLIENTS)}"}), 400
+            service.email_client = data['email_client']
         
         if 'date_range_start' in data:
             if data['date_range_start']:

@@ -27,6 +27,20 @@ class ColumnSelectionItem(TypedDict, total=False):
 ColumnSelection = list[ColumnSelectionItem | str]
 
 
+# Supported email clients. Apple Mail renders the interactive <details>/<summary>
+# toggles; Gmail and Outlook strip them, so for those clients we fall back to a
+# static layout where the primary column (the vocabulary word) is shown in bold.
+EMAIL_CLIENTS = ('apple_mail', 'gmail', 'outlook')
+DEFAULT_EMAIL_CLIENT = 'apple_mail'
+
+
+def normalize_email_client(email_client: str | None) -> str:
+    """Return a valid email client identifier, falling back to the default."""
+    if email_client and email_client in EMAIL_CLIENTS:
+        return email_client
+    return DEFAULT_EMAIL_CLIENT
+
+
 def format_vocabulary_in_sentence(sentence, vocabulary_word):
     """
     Format the vocabulary word in the sentence with bold and italic HTML tags.
@@ -243,14 +257,78 @@ def get_vocabulary_from_notion(api_key, database_id, count=10, selection_method=
         logger.error(f"Error fetching vocabulary from Notion database {database_id}: {str(e)}")
         return []
 
+def render_item_fields(
+    item: dict[str, Any],
+    word: str,
+    primary_key: str,
+    column_selection: ColumnSelection,
+) -> str:
+    """Render the detail fields (everything except the primary column) for one item."""
+    fields_html = ""
+    for col in column_selection:
+        col_name = col.get('name') if isinstance(col, dict) else col
+        if not col_name or not isinstance(col_name, str):
+            continue
+        if col_name == primary_key:
+            continue
+
+        val = item.get(col_name)
+        if isinstance(val, list):
+            str_val = ", ".join(str(v) for v in val)
+        else:
+            str_val = str(val) if val is not None else ''
+
+        if not str_val.strip():
+            continue
+
+                # Special handling for "Sentence" column (case-insensitive)
+        if 'sentence' in col_name.lower():
+            sentences = [line for line in str_val.split('\\n') if line.strip()]
+            fields_html += f"""
+                        <div class="field-section" style="font-size: 16px; color: #555; margin-bottom: 15px; line-height: 1.8;">
+                            <div class="field-label" style="font-weight: bold; color: #764ba2; margin-bottom: 5px;">{col_name}:</div>
+            """
+            if len(sentences) > 1:
+                fields_html += "<ul style='margin: 5px 0; padding-left: 20px;'>"
+                for sent in sentences:
+                    formatted_sent = format_vocabulary_in_sentence(sent, word)
+                    fields_html += f"<li style='margin: 3px 0;'>{formatted_sent}</li>"
+                fields_html += "</ul>"
+            else:
+                formatted_sentence = format_vocabulary_in_sentence(str_val, word)
+                fields_html += formatted_sentence
+            fields_html += "</div>"
+        else:
+            # Link detection
+            display_val = str_val
+            if str_val.startswith(('http://', 'https://')):
+                display_val = f'<a href="{str_val}" target="_blank" style="color: #667eea; text-decoration: none;">{str_val}</a>'
+
+            fields_html += f"""
+                        <div class="field-section" style="font-size: 16px; color: #555; margin-bottom: 15px; line-height: 1.8;">
+                            <div class="field-label" style="font-weight: bold; color: #764ba2; margin-bottom: 5px;">{col_name}:</div>
+                            {display_val}
+                        </div>
+            """
+    return fields_html
+
+
 @log_function_call("Email content creation")
 def create_email_content(
     vocabulary_items: list[dict[str, Any]],
     user_name: str,
     database_url: str | None = None,
     column_selection: ColumnSelection | None = None,
+    email_client: str | None = None,
 ) -> str:
-    """Create HTML email content with interactive flashcards"""
+    """Create HTML email content tailored to the user's preferred email client.
+
+    Apple Mail supports interactive <details>/<summary> flashcards, so words stay
+    collapsed until tapped. Gmail and Outlook strip those toggles, so the content
+    is rendered statically with the vocabulary word shown in bold.
+    """
+    email_client = normalize_email_client(email_client)
+    supports_toggles = email_client == 'apple_mail'
     html_content = f"""
     <!DOCTYPE html>
     <html>
@@ -273,6 +351,14 @@ def create_email_content(
                 list-style: none;
                 user-select: none;
                 transition: background-color 0.3s ease;
+            }}
+            .vocabulary-word {{
+                font-size: 20px;
+                font-weight: bold;
+                color: #2c3e50;
+                padding: 20px;
+                background: linear-gradient(to right, #f8f9fa 0%, #ffffff 100%);
+                border-bottom: 2px solid #667eea;
             }}
             summary::-webkit-details-marker {{ display: none; }}
             summary::before {{
@@ -337,9 +423,22 @@ def create_email_content(
                 <p style="font-size: 17px;">Hello {user_name}, here are your vocabulary words for today!</p>
             </div>
             <div class="content">
+    """
+
+    if supports_toggles:
+        html_content += """
                 <div class="instruction">
                     💡 <strong>Tip:</strong> Click or tap on any word to reveal its details!
                 </div>
+        """
+    else:
+        html_content += """
+                <div class="instruction">
+                    💡 <strong>Tip:</strong> Try to recall each word's meaning before reading its details!
+                </div>
+        """
+
+    html_content += f"""
                 <h2>Today's Vocabulary ({len(vocabulary_items)} words)</h2>
     """
 
@@ -365,61 +464,33 @@ def create_email_content(
             word = str(val)
         else:
             word = "Untitled"
-            
-        html_content += f"""
+
+        # Render the detail fields shared by both layouts
+        fields_html = render_item_fields(item, word, primary_key, column_selection)
+
+        if supports_toggles:
+            # Apple Mail: interactive collapsible flashcard
+            html_content += f"""
             <div class="vocabulary-item">
                 <details>
                     <summary>{i}. {word}</summary>
                     <div class="flashcard-content">
-        """
-        
-        # 2. Iterate through columns for the details
-        for col in column_selection:
-            col_name = col.get('name') if isinstance(col, dict) else col
-            if col_name == primary_key: continue
-            
-            val = item.get(col_name)
-            str_val = str(val) if val is not None else ''
-            
-            if not str_val.strip():
-                continue
-            
-            # Special handling for "Sentence" column (case-insensitive)
-            if 'sentence' in col_name.lower():
-                sentences = [line for line in str_val.split('\n') if line.strip()]
-                html_content += f"""
-                        <div class="field-section">
-                            <div class="field-label">{col_name}:</div>
-                """
-                if len(sentences) > 1:
-                    html_content += "<ul style='margin: 5px 0; padding-left: 20px;'>"
-                    for sent in sentences:
-                        formatted_sent = format_vocabulary_in_sentence(sent, word)
-                        html_content += f"<li style='margin: 3px 0;'>{formatted_sent}</li>"
-                    html_content += "</ul>"
-                else:
-                    formatted_sentence = format_vocabulary_in_sentence(str_val, word)
-                    html_content += formatted_sentence
-                html_content += "</div>"
-            else:
-                # Link detection
-                display_val = str_val
-                if str_val.startswith(('http://', 'https://')):
-                     display_val = f'<a href="{str_val}" target="_blank" style="color: #667eea; text-decoration: none;">{str_val}</a>'
-                 
-                html_content += f"""
-                        <div class="field-section">
-                            <div class="field-label">{col_name}:</div>
-                            {display_val}
-                        </div>
-                """
-        
-        html_content += """
+                        {fields_html}
                     </div>
                 </details>
             </div>
-        """
-    
+            """
+        else:
+            # Gmail / Outlook: no toggle support, show the word in bold with details always visible
+            html_content += f"""
+            <div class="vocabulary-item" style="background: white; margin: 15px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); overflow: hidden;">
+                <div class="vocabulary-word" style="font-size: 20px; font-weight: bold; color: #2c3e50; padding: 20px; background-color: #f8f9fa; border-bottom: 2px solid #667eea;">{i}. <strong>{word}</strong></div>
+                <div class="flashcard-content" style="padding: 20px;">
+                    {fields_html}
+                </div>
+            </div>
+            """
+
     # Add database link if provided
     if database_url:
         html_content += f"""
@@ -464,7 +535,8 @@ def send_test_email():
         date_range_start: str | None = data.get('date_range_start')
         date_range_end: str | None = data.get('date_range_end')
         column_selection: ColumnSelection | None = data.get('column_selection')
-        
+        email_client: str | None = data.get('email_client')
+
         # Parse date range if provided
         date_start: date | None = None
         date_end: date | None = None
@@ -502,6 +574,7 @@ def send_test_email():
             date_start = service.date_range_start
             date_end = service.date_range_end
             column_selection = service.column_selection
+            email_client = service.email_client
             
             if not database.token_id:
                 return jsonify({'error': 'Database has no associated token'}), 400
@@ -563,7 +636,7 @@ def send_test_email():
         database_url = f"https://www.notion.so/{database_id.replace('-', '')}"
         
         # Create email content
-        html_content = create_email_content(vocabulary_items, user.first_name, database_url, column_selection=column_selection)
+        html_content = create_email_content(vocabulary_items, user.first_name, database_url, column_selection=column_selection, email_client=email_client)
 
         # Send email
         success, error = send_email(
@@ -686,10 +759,11 @@ def send_email_service_task(service_id):
             
             # Create email content
             html_content = create_email_content(
-                vocabulary_items, 
-                user.first_name, 
+                vocabulary_items,
+                user.first_name,
                 database_url,
-                column_selection=service.column_selection
+                column_selection=service.column_selection,
+                email_client=service.email_client
             )
             
             # Send email

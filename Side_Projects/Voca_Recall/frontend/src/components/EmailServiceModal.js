@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Clock, Hash, Filter, Calendar, List, GripVertical, Eye, EyeOff } from 'lucide-react';
+import { X, Save, Clock, Hash, Filter, Calendar, List, GripVertical, Eye, EyeOff, Mail } from 'lucide-react';
 import apiService from '../utils/apiService';
 import toast from 'react-hot-toast';
 
@@ -12,6 +12,7 @@ const EmailServiceModal = ({ isOpen, onClose, database, databases = null, servic
     frequency: 'daily',
     vocabulary_count: 10,
     selection_method: 'random',
+    email_client: 'apple_mail',
     date_range_start: '',
     date_range_end: '',
     is_active: true,
@@ -85,6 +86,7 @@ const EmailServiceModal = ({ isOpen, onClose, database, databases = null, servic
         frequency: service.frequency || 'daily',
         vocabulary_count: service.vocabulary_count || 10,
         selection_method: service.selection_method || 'random',
+        email_client: service.email_client || 'apple_mail',
         date_range_start: service.date_range_start || '',
         date_range_end: service.date_range_end || '',
         is_active: service.is_active !== undefined ? service.is_active : true,
@@ -420,6 +422,29 @@ const EmailServiceModal = ({ isOpen, onClose, database, databases = null, servic
                <br/>
                The first visible property will be used as the <strong>Main Title/Word</strong>.
             </p>
+
+            {/* Email Client Preference */}
+            <div className="mb-6">
+              <label className="form-label flex items-center">
+                <Mail className="h-4 w-4 mr-2" />
+                Preferred Email Client *
+              </label>
+              <select
+                value={formData.email_client}
+                onChange={(e) => setFormData({ ...formData, email_client: e.target.value })}
+                className="input-field"
+                required
+              >
+                <option value="apple_mail">Apple Mail</option>
+                <option value="gmail">Gmail</option>
+                <option value="outlook">Outlook</option>
+              </select>
+              <p className="mt-1 text-sm text-gray-500">
+                {formData.email_client === 'apple_mail'
+                  ? 'Words appear as interactive flashcards you can tap to reveal details.'
+                  : 'Gmail and Outlook do not support interactive toggles, so each word is shown in bold with its details displayed below.'}
+              </p>
+            </div>
 
             <div className="space-y-2 bg-gray-50 p-4 rounded-lg border border-gray-200">
                 {loadingColumns ? (

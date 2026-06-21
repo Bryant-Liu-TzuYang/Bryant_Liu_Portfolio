@@ -38,7 +38,15 @@ def migrate():
                 logger.info("Added column column_selection")
             except Exception as e:
                 logger.warning(f"Could not add column_selection (might exist): {e}")
-                
+
+            # 4. Add email_client (preferred email client for formatting)
+            try:
+                logger.info("Attempting to add email_client column...")
+                conn.execute(text("ALTER TABLE email_services ADD COLUMN email_client VARCHAR(20) DEFAULT 'apple_mail'"))
+                logger.info("Added column email_client")
+            except Exception as e:
+                logger.warning(f"Could not add email_client (might exist): {e}")
+
             conn.commit()
             logger.info("Migration completed.")
 

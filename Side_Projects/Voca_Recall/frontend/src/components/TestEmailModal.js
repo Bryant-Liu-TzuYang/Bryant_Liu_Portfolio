@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Send, Hash, Filter, Calendar, List, GripVertical, Eye, EyeOff } from 'lucide-react';
+import { X, Send, Hash, Filter, Calendar, List, GripVertical, Eye, EyeOff, Mail } from 'lucide-react';
 import apiService from '../utils/apiService';
 import toast from 'react-hot-toast';
 
@@ -8,6 +8,7 @@ const TestEmailModal = ({ isOpen, onClose, databases }) => {
     database_id: '',
     vocabulary_count: 10,
     selection_method: 'random',
+    email_client: 'apple_mail',
     date_range_start: '',
     date_range_end: '',
   });
@@ -105,6 +106,7 @@ const TestEmailModal = ({ isOpen, onClose, databases }) => {
         database_pk: parseInt(formData.database_id),
         vocabulary_count: parseInt(formData.vocabulary_count),
         selection_method: formData.selection_method,
+        email_client: formData.email_client,
         date_range_start: formData.date_range_start || null,
         date_range_end: formData.date_range_end || null,
         column_selection: selectedColumns
@@ -245,6 +247,29 @@ const TestEmailModal = ({ isOpen, onClose, databases }) => {
               <br/>
               The first visible property will be used as the <strong>Main Title/Word</strong>.
             </p>
+
+            {/* Email Client Preference */}
+            <div className="mb-6">
+              <label className="form-label flex items-center">
+                <Mail className="h-4 w-4 mr-2" />
+                Preferred Email Client *
+              </label>
+              <select
+                value={formData.email_client}
+                onChange={(e) => setFormData({ ...formData, email_client: e.target.value })}
+                className="input-field"
+                required
+              >
+                <option value="apple_mail">Apple Mail</option>
+                <option value="gmail">Gmail</option>
+                <option value="outlook">Outlook</option>
+              </select>
+              <p className="mt-1 text-sm text-gray-500">
+                {formData.email_client === 'apple_mail'
+                  ? 'Words appear as interactive flashcards you can tap to reveal details.'
+                  : 'Gmail and Outlook do not support interactive toggles, so each word is shown in bold with its details displayed below.'}
+              </p>
+            </div>
 
             <div className="space-y-2 bg-gray-50 p-4 rounded-lg border border-gray-200">
               {loadingColumns ? (
