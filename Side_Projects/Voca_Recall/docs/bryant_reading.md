@@ -37,6 +37,12 @@ You drop/recreate the database (e.g., docker-compose down -v which removes volum
 You manually delete the user from the database
 You reset your development environment completely
 
+## Check Docker container backend logs
+
+```sh
+docker logs voca_recaller_backend --follow
+```
+
 ## Access SQL CLI inside the container
 
 ```sh
